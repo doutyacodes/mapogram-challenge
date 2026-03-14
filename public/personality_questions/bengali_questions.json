@@ -1,0 +1,183 @@
+[
+    {
+      "id": 1,
+      "question_text": "আমি আমার হাত দিয়ে কাজ করতে এবং সরঞ্জাম ব্যবহার করতে পছন্দ করি।",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 2,
+      "question_text": "আমি বাড়ির চারপাশে জিনিস মেরামত করতে এবং ঠিক করতে পছন্দ করি।",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 3,
+      "question_text": "আমি ইনডোর কার্যকলাপের চেয়ে আউটডোর কার্যকলাপ পছন্দ করি।",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 4,
+      "question_text": "আমি যন্ত্রপাতি বা ভারী সরঞ্জাম পরিচালনায় আগ্রহী।",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 5,
+      "question_text": "আমি এমন কার্যকলাপ পছন্দ করি যেগুলি নির্মাণ বা তৈরি করার সাথে জড়িত।",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 6,
+      "question_text": "আমি জটিল সমস্যা এবং ধাঁধা সমাধান করতে পছন্দ করি।",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 7,
+      "question_text": "আমি বৈজ্ঞানিক তত্ত্ব এবং নীতিগুলি সম্পর্কে শিখতে আগ্রহী।",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 8,
+      "question_text": "আমি গবেষণা প্রকল্প বা পরীক্ষায় কাজ করতে পছন্দ করি।",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 9,
+      "question_text": "আমি জিনিসগুলি কীভাবে কাজ করে এবং কেন ঘটে তা জানার জন্য কৌতূহলী।",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 10,
+      "question_text": "আমি এমন কাজ পছন্দ করি যা সমালোচনামূলক চিন্তা এবং বিশ্লেষণের প্রয়োজন।",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 11,
+      "question_text": "আমি শিল্প, সঙ্গীত বা লেখালেখি তৈরি করতে পছন্দ করি।",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 12,
+      "question_text": "আমি অভিনয় বা নাচের মতো অভিনয় শিল্পে আগ্রহী।",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 13,
+      "question_text": "আমি বিভিন্ন ধরনের সৃজনশীলতার মাধ্যমে নিজেকে প্রকাশ করতে পছন্দ করি।",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 14,
+      "question_text": "আমি বিভিন্ন সংস্কৃতি এবং শিল্প শৈলী অন্বেষণ করতে পছন্দ করি।",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 15,
+      "question_text": "আমি এমন কার্যকলাপ পছন্দ করি যা আমাকে আমার কল্পনা ব্যবহার করতে দেয়।",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 16,
+      "question_text": "আমি অন্যদের সাহায্য করতে এবং তাদের জীবনে পরিবর্তন আনতে পছন্দ করি।",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 17,
+      "question_text": "আমি অন্যদের শেখাতে বা পরামর্শ দিতে আগ্রহী।",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 18,
+      "question_text": "আমি দলে কাজ করতে এবং অন্যদের সাথে সহযোগিতা করতে পছন্দ করি।",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 19,
+      "question_text": "আমি সহানুভূতিশীল এবং মানুষের উদ্বেগ শুনতে পছন্দ করি।",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 20,
+      "question_text": "আমি এমন কার্যকলাপ পছন্দ করি যা লোকেদের সাথে যোগাযোগ এবং তাদের সমর্থন করার সাথে জড়িত।",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 21,
+      "question_text": "আমি প্রকল্পের নেতৃত্ব দিতে এবং অন্যদের অনুপ্রাণিত করতে পছন্দ করি।",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 22,
+      "question_text": "আমি নিজস্ব ব্যবসা বা উদ্যোগ শুরু করতে আগ্রহী।",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 23,
+      "question_text": "আমি অন্যদের আমার দৃষ্টিভঙ্গি বোঝাতে পছন্দ করি।",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 24,
+      "question_text": "আমি প্রতিযোগিতামূলক এবং লক্ষ্য নির্ধারণ করে তা অর্জন করতে পছন্দ করি।",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 25,
+      "question_text": "আমি এমন কার্যকলাপ পছন্দ করি যা বিক্রয়, প্রচার বা আলোচনার সাথে জড়িত।",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 26,
+      "question_text": "আমি তথ্য সংগঠিত এবং শ্রেণীবদ্ধ করতে পছন্দ করি।",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    },
+    {
+      "id": 27,
+      "question_text": "আমি সংখ্যা, ডেটা বা পরিসংখ্যান নিয়ে কাজ করতে আগ্রহী।",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    },
+    {
+      "id": 28,
+      "question_text": "আমি প্রতিষ্ঠিত পদ্ধতি এবং নির্দেশিকা অনুসরণ করতে পছন্দ করি।",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    },
+    {
+      "id": 29,
+      "question_text": "আমি বিশদমুখী এবং এমন কাজগুলি উপভোগ করি যা নির্ভুলতা এবং যথার্থতার প্রয়োজন।",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    },
+    {
+      "id": 30,
+      "question_text": "আমি পরিকল্পনা, সময়সূচী বা রেকর্ড রাখার সাথে সম্পর্কিত কার্যকলাপ পছন্দ করি।",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    }
+  ]
+  

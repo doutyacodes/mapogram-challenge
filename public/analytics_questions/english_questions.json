@@ -1,0 +1,62 @@
+[
+    {
+        "id": 1,
+        "question": "When you are at a social event, do you:",
+        "quiz_id": 1
+    },
+    {
+        "id": 2,
+        "question": "How do you usually prefer to spend your free time?",
+        "quiz_id": 1
+    },
+    {
+        "id": 3,
+        "question": "Do you typically think out loud or process your thoughts internally?",
+        "quiz_id": 1
+    },
+    {
+        "id": 4,
+        "question": "When learning something new, do you prefer:",
+        "quiz_id": 1
+    },
+    {
+        "id": 5,
+        "question": "In your day-to-day life, are you more likely to:",
+        "quiz_id": 1
+    },
+    {
+        "id": 6,
+        "question": "When approaching a problem, do you tend to:",
+        "quiz_id": 1
+    },
+    {
+        "id": 7,
+        "question": "When making decisions, do you prioritize:",
+        "quiz_id": 1
+    },
+    {
+        "id": 8,
+        "question": "Do you find it more important to be:",
+        "quiz_id": 1
+    },
+    {
+        "id": 9,
+        "question": "In conflicts, do you:",
+        "quiz_id": 1
+    },
+    {
+        "id": 10,
+        "question": "When it comes to planning, do you prefer:",
+        "quiz_id": 1
+    },
+    {
+        "id": 11,
+        "question": "How do you approach tasks and deadlines?",
+        "quiz_id": 1
+    },
+    {
+        "id": 12,
+        "question": "In your daily life, do you:",
+        "quiz_id": 1
+    }
+]

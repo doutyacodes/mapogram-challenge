@@ -1,0 +1,23 @@
+[
+    {
+      "choiceId": 1,
+      "choiceText": "Totalmente en desacuerdo"
+    },
+    {
+      "choiceId": 2,
+      "choiceText": "En desacuerdo"
+    },
+    {
+      "choiceId": 3,
+      "choiceText": "Neutral"
+    },
+    {
+      "choiceId": 4,
+      "choiceText": "De acuerdo"
+    },
+    {
+      "choiceId": 5,
+      "choiceText": "Totalmente de acuerdo"
+    }
+  ]
+  

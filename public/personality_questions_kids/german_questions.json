@@ -1,0 +1,182 @@
+[
+    {
+        "id": 1,
+        "question_text": "Magst du es, mit Bausteinen, Werkzeugen zu spielen oder Dinge zu reparieren?",
+        "quiz_id": 2,
+        "personality_types_id": 1
+    },
+    {
+        "id": 2,
+        "question_text": "Genießt du Outdoor-Aktivitäten wie Wandern, Gärtnern oder Sport?",
+        "quiz_id": 2,
+        "personality_types_id": 1
+    },
+    {
+        "id": 3,
+        "question_text": "Magst du es, herauszufinden, wie Maschinen oder Geräte funktionieren?",
+        "quiz_id": 2,
+        "personality_types_id": 1
+    },
+    {
+        "id": 4,
+        "question_text": "Würdest du lieber Aktivitäten wie Bauen, Kochen oder Handarbeiten machen?",
+        "quiz_id": 2,
+        "personality_types_id": 1
+    },
+    {
+        "id": 5,
+        "question_text": "Hilfst du gerne bei Aufgaben rund ums Haus, wie Dinge reparieren oder Gartenarbeit?",
+        "quiz_id": 2,
+        "personality_types_id": 1
+    },
+    {
+        "id": 6,
+        "question_text": "Fragst du gerne, wie Dinge funktionieren oder warum Dinge passieren?",
+        "quiz_id": 2,
+        "personality_types_id": 2
+    },
+    {
+        "id": 7,
+        "question_text": "Magst du Experimente machen, Rätsel lösen oder Antworten auf schwierige Probleme finden?",
+        "quiz_id": 2,
+        "personality_types_id": 2
+    },
+    {
+        "id": 8,
+        "question_text": "Liest du gerne Bücher oder schaust Shows, die Wissenschaft, Technik oder Natur erklären?",
+        "quiz_id": 2,
+        "personality_types_id": 2
+    },
+    {
+        "id": 9,
+        "question_text": "Interessierst du dich für Tiere, den Weltraum oder wie der menschliche Körper funktioniert?",
+        "quiz_id": 2,
+        "personality_types_id": 2
+    },
+    {
+        "id": 10,
+        "question_text": "Magst du es, herauszufinden, wie Dinge gemacht werden oder neue Ideen zu erforschen?",
+        "quiz_id": 2,
+        "personality_types_id": 2
+    },
+    {
+        "id": 11,
+        "question_text": "Zeichnest, malst oder bastelst du gerne?",
+        "quiz_id": 2,
+        "personality_types_id": 3
+    },
+    {
+        "id": 12,
+        "question_text": "Schreibst du gerne Geschichten, Gedichte oder erfindest Spiele und Lieder?",
+        "quiz_id": 2,
+        "personality_types_id": 3
+    },
+    {
+        "id": 13,
+        "question_text": "Schauspielst, singst oder spielst du gerne ein Musikinstrument?",
+        "quiz_id": 2,
+        "personality_types_id": 3
+    },
+    {
+        "id": 14,
+        "question_text": "Dekorierst du gerne dein Zimmer oder entwirfst deine eigenen Kleider oder Spielzeuge?",
+        "quiz_id": 2,
+        "personality_types_id": 3
+    },
+    {
+        "id": 15,
+        "question_text": "Denkst du gerne über neue und kreative Wege nach, um Probleme zu lösen oder Dinge zu machen?",
+        "quiz_id": 2,
+        "personality_types_id": 3
+    },
+    {
+        "id": 16,
+        "question_text": "Hilfst du gerne deinen Freunden oder deiner Familie, wenn sie ein Problem haben?",
+        "quiz_id": 2,
+        "personality_types_id": 4
+    },
+    {
+        "id": 17,
+        "question_text": "Spielst du gerne Mannschaftssport oder bist du gerne Teil von Gruppenaktivitäten?",
+        "quiz_id": 2,
+        "personality_types_id": 4
+    },
+    {
+        "id": 18,
+        "question_text": "Kümmerst du dich gerne um Haustiere, kleine Kinder oder hilfst Menschen, wenn sie traurig sind?",
+        "quiz_id": 2,
+        "personality_types_id": 4
+    },
+    {
+        "id": 19,
+        "question_text": "Redest du gerne mit deinen Freunden und stellst sicher, dass alle glücklich sind?",
+        "quiz_id": 2,
+        "personality_types_id": 4
+    },
+    {
+        "id": 20,
+        "question_text": "Hilfst du gerne anderen, Dinge zu lernen oder neue Ideen zu verstehen?",
+        "quiz_id": 2,
+        "personality_types_id": 4
+    },
+    {
+        "id": 21,
+        "question_text": "Bist du gerne für Spiele oder Aktivitäten verantwortlich und triffst Entscheidungen für die Gruppe?",
+        "quiz_id": 2,
+        "personality_types_id": 5
+    },
+    {
+        "id": 22,
+        "question_text": "Planst du gerne Veranstaltungen, entwickelst neue Ideen oder startest neue Spiele oder Projekte?",
+        "quiz_id": 2,
+        "personality_types_id": 5
+    },
+    {
+        "id": 23,
+        "question_text": "Hilfst du gerne bei der Organisation von Aktivitäten für Freunde oder Familie, wie ein Kuchenverkauf oder eine Party?",
+        "quiz_id": 2,
+        "personality_types_id": 5
+    },
+    {
+        "id": 24,
+        "question_text": "Redest du gerne mit anderen und überzeugst sie, etwas Neues auszuprobieren?",
+        "quiz_id": 2,
+        "personality_types_id": 5
+    },
+    {
+        "id": 25,
+        "question_text": "Magst du Führungsrollen, wie Kapitän eines Teams zu sein oder eine Gruppe zu leiten?",
+        "quiz_id": 2,
+        "personality_types_id": 5
+    },
+    {
+        "id": 26,
+        "question_text": "Magst du es, deine Spielzeuge, Bücher oder andere Gegenstände auf eine bestimmte Weise zu organisieren?",
+        "quiz_id": 2,
+        "personality_types_id": 6
+    },
+    {
+        "id": 27,
+        "question_text": "Hältst du gerne Regeln ein, wenn du Spiele spielst oder Aktivitäten machst?",
+        "quiz_id": 2,
+        "personality_types_id": 6
+    },
+    {
+        "id": 28,
+        "question_text": "Magst du es, Listen, Diagramme zu führen oder Dinge ordentlich und sauber zu halten?",
+        "quiz_id": 2,
+        "personality_types_id": 6
+    },
+    {
+        "id": 29,
+        "question_text": "Hilfst du gerne bei Aufgaben, die das Organisieren oder Sortieren von Dingen erfordern?",
+        "quiz_id": 2,
+        "personality_types_id": 6
+    },
+    {
+        "id": 30,
+        "question_text": "Arbeitest du gerne mit Zahlen, führst Aufzeichnungen oder sammelst Dinge in einer bestimmten Reihenfolge?",
+        "quiz_id": 2,
+        "personality_types_id": 6
+    }
+]

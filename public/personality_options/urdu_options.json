@@ -1,0 +1,23 @@
+[
+    {
+      "choiceId": 1,
+      "choice_text": "قطعی اختلاف"
+    },
+    {
+      "choiceId": 2,
+      "choice_text": "اختلاف"
+    },
+    {
+      "choiceId": 3,
+      "choice_text": "غیر جانبدار"
+    },
+    {
+      "choiceId": 4,
+      "choice_text": "متفق"
+    },
+    {
+      "choiceId": 5,
+      "choice_text": "مکمل متفق"
+    }
+  ]
+  

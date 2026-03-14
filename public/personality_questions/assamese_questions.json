@@ -1,0 +1,183 @@
+[
+    {
+      "id": 1,
+      "question_text": "মই মোৰ হাতৰে কাম কৰাত আৰু সঁজুলি ব্যৱহাৰ কৰাত আনন্দ পাওঁ।",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 2,
+      "question_text": "মই ঘৰৰ আশে-পাশে বস্তু মৰামতি কৰাত আৰু ফিক্স কৰিবলৈ ভাল পাওঁ।",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 3,
+      "question_text": "মই অন্দৰৰ কামৰ পৰিৱৰ্তে বাহিৰত কাম কৰিবলৈ ভাল পাওঁ।",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 4,
+      "question_text": "মই যন্ত্ৰপাতি বা ভাৰী সঁজুলি চলাবলৈ আগ্ৰহী।",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 5,
+      "question_text": "মই এনে কামবোৰত আনন্দ পাওঁ য'ত নিৰ্মাণ বা নিৰ্মাণৰ লগত সম্পৰ্ক আছে।",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 6,
+      "question_text": "মই জটিল সমস্যা আৰু ধাঁহা সমাধান কৰিবলৈ ভাল পাওঁ।",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 7,
+      "question_text": "মই বৈজ্ঞানিক তত্ত্ব আৰু নীতিবোৰ শিকাত আগ্ৰহী।",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 8,
+      "question_text": "মই গৱেষণা প্ৰকল্প বা পৰীক্ষণৰ কাম কৰিবলৈ ভাল পাওঁ।",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 9,
+      "question_text": "মই কৌতূহলী হওঁ, কিছুমান বস্তু কেনেকৈ কাম কৰে আৰু কিয় ঘটে সেয়া বুজিবলৈ।",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 10,
+      "question_text": "মই এনে কাম পছন্দ কৰো য'ত সমালোচনামূলক চিন্তা আৰু বিশ্লেষণৰ প্ৰয়োজন।",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 11,
+      "question_text": "মই কলা, সংগীত বা লিখাৰ সৃষ্টি কৰাত আনন্দ পাওঁ।",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 12,
+      "question_text": "মই অভিনয় বা নৃত্যৰ দৰে পৰিৱেশন কলাত আগ্ৰহী।",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 13,
+      "question_text": "মই বিভিন্ন সৃষ্টিশীলতাৰে মোৰ মনোভাৱ প্ৰকাশ কৰাত আনন্দ পাওঁ।",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 14,
+      "question_text": "মই বিভিন্ন সংস্কৃতি আৰু শৈলীৰ অন্বেষণ কৰাত আনন্দ পাওঁ।",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 15,
+      "question_text": "মই এনে কাম পছন্দ কৰো য'ত মই মোৰ কল্পনাশক্তি ব্যৱহাৰ কৰিবলৈ পাৰো।",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 16,
+      "question_text": "মই আনক সহায় কৰাত আৰু তেওঁলোকৰ জীৱনত পাৰ্থক্য সৃষ্টি কৰাত আনন্দ পাওঁ।",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 17,
+      "question_text": "মই আনক শিকোৱাৰ বা পৰামৰ্শ দিবলৈ আগ্ৰহী।",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 18,
+      "question_text": "মই দলত কাম কৰিবলৈ আৰু আনৰ সৈতে সহযোগ কৰিবলৈ ভাল পাওঁ।",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 19,
+      "question_text": "মই সহানুভূতিশীল, আৰু মানুহৰ উদ্বেগবোৰ শুনিবলৈ ভাল পাওঁ।",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 20,
+      "question_text": "মই এনে কাম পছন্দ কৰো য'ত মানুহৰ লগত যোগাযোগ কৰাত আৰু তেওঁলোকক সমৰ্থন কৰাত সঙ্ক্ৰান্ত।",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 21,
+      "question_text": "মই প্ৰকল্পসমূহৰ নেতৃত্ব দিয়াত আৰু আনক অনুপ্ৰাণিত কৰাত আনন্দ পাওঁ।",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 22,
+      "question_text": "মই নিজৰ উদ্যোগ বা ব্যৱসায় আৰম্ভ কৰিবলৈ আগ্ৰহী।",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 23,
+      "question_text": "মই আনক মোৰ দৃষ্টিভংগী বুজাবলৈ ভাল পাওঁ।",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 24,
+      "question_text": "মই প্ৰতিযোগিতামূলক, আৰু লক্ষ্য স্থাপন কৰি সেয়া লাভ কৰাত আনন্দ পাওঁ।",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 25,
+      "question_text": "মই বিক্ৰী, প্ৰচাৰ, বা আলোচনা কৰাত সঙ্ক্ৰান্ত কামবোৰত আনন্দ পাওঁ।",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 26,
+      "question_text": "মই তথ্য সংগঠন কৰাত আৰু শ্ৰেণীবদ্ধ কৰাত আনন্দ পাওঁ।",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    },
+    {
+      "id": 27,
+      "question_text": "মই সংখ্যা, তথ্য, বা পৰিসংখ্যা নিয়েই কাম কৰিবলৈ আগ্ৰহী।",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    },
+    {
+      "id": 28,
+      "question_text": "মই প্ৰতিষ্ঠিত পদ্ধতি আৰু নির্দেশনাৰ অনুসৰণ কৰিবলৈ পছন্দ কৰো।",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    },
+    {
+      "id": 29,
+      "question_text": "মই সূক্ষ্ম চিন্তাধারাৰ, আৰু মই এনে কাম উপভোগ কৰো য'ত সঠিকতা আৰু স্পষ্টতাৰ প্ৰয়োজন।",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    },
+    {
+      "id": 30,
+      "question_text": "মই পৰিকল্পনা, সময়সূচী, বা ৰেকৰ্ড ৰখাৰ লগত সম্পৰ্কিত কামবোৰত আনন্দ পাওঁ।",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    }
+  ]
+  

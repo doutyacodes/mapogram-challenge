@@ -1,0 +1,146 @@
+[
+    {
+        "id": 1,
+        "text": "Mit einer großen Gruppe von Freunden spielen.",
+        "analytic_id": 1,
+        "question_id": 1
+    },
+    {
+        "id": 2,
+        "text": "Zeit alleine verbringen, lesen oder zeichnen.",
+        "analytic_id": 2,
+        "question_id": 1
+    },
+    {
+        "id": 3,
+        "text": "Ich möchte mit meinen Freunden und meiner Familie reden.",
+        "analytic_id": 1,
+        "question_id": 2
+    },
+    {
+        "id": 4,
+        "text": "Ich brauche etwas Ruhe, um nachzudenken.",
+        "analytic_id": 2,
+        "question_id": 2
+    },
+    {
+        "id": 5,
+        "text": "Leicht mit ihnen sprechen.",
+        "analytic_id": 1,
+        "question_id": 3
+    },
+    {
+        "id": 6,
+        "text": "Warten, bis ich sie besser kenne, bevor ich spreche.",
+        "analytic_id": 2,
+        "question_id": 3
+    },
+    {
+        "id": 7,
+        "text": "Klare Anweisungen Schritt für Schritt befolgen.",
+        "analytic_id": 3,
+        "question_id": 4
+    },
+    {
+        "id": 8,
+        "text": "Einen eigenen kreativen Weg finden, um es zu tun.",
+        "analytic_id": 4,
+        "question_id": 4
+    },
+    {
+        "id": 9,
+        "text": "Die Fakten und Details.",
+        "analytic_id": 3,
+        "question_id": 5
+    },
+    {
+        "id": 10,
+        "text": "Die Gesamtheit oder die Möglichkeiten.",
+        "analytic_id": 4,
+        "question_id": 5
+    },
+    {
+        "id": 11,
+        "text": "Es enthält viele Details, die Ihnen helfen zu erkennen, was passiert.",
+        "analytic_id": 3,
+        "question_id": 6
+    },
+    {
+        "id": 12,
+        "text": "Es bringt Sie dazu, über neue Ideen oder das, was als Nächstes passieren könnte, nachzudenken.",
+        "analytic_id": 4,
+        "question_id": 6
+    },
+    {
+        "id": 13,
+        "text": "Gerecht sein und alle Fakten betrachten.",
+        "analytic_id": 5,
+        "question_id": 7
+    },
+    {
+        "id": 14,
+        "text": "Darüber nachdenken, wie sich andere fühlen und was sie glücklich machen würde.",
+        "analytic_id": 6,
+        "question_id": 7
+    },
+    {
+        "id": 15,
+        "text": "Sagen Sie ihnen, was am sinnvollsten ist, auch wenn es ihre Gefühle verletzen könnte.",
+        "analytic_id": 5,
+        "question_id": 8
+    },
+    {
+        "id": 16,
+        "text": "Berücksichtigen Sie ihre Gefühle und versuchen Sie, etwas zu sagen, das sie nicht verärgert.",
+        "analytic_id": 6,
+        "question_id": 8
+    },
+    {
+        "id": 17,
+        "text": "Konzentrieren Sie sich auf das, was logisch ist und Sinn macht.",
+        "analytic_id": 5,
+        "question_id": 9
+    },
+    {
+        "id": 18,
+        "text": "Denken Sie darüber nach, wie die Lösung andere Menschen beeinflussen wird.",
+        "analytic_id": 6,
+        "question_id": 9
+    },
+    {
+        "id": 19,
+        "text": "Planen, wann und wie alles pünktlich erledigt werden soll.",
+        "analytic_id": 7,
+        "question_id": 10
+    },
+    {
+        "id": 20,
+        "text": "Einfach anfangen und es auf dem Weg herausfinden.",
+        "analytic_id": 8,
+        "question_id": 10
+    },
+    {
+        "id": 21,
+        "text": "Ich möchte genau wissen, was mich erwartet und einem Plan folgen.",
+        "analytic_id": 7,
+        "question_id": 11
+    },
+    {
+        "id": 22,
+        "text": "Ich mag es, die Freiheit zu haben, zu entscheiden, was als Nächstes zu tun ist.",
+        "analytic_id": 8,
+        "question_id": 11
+    },
+    {
+        "id": 23,
+        "text": "Den Plan kennen und sich daran halten.",
+        "analytic_id": 7,
+        "question_id": 12
+    },
+    {
+        "id": 24,
+        "text": "Zeit zum Erkunden und spontane Dinge zu tun.",
+        "analytic_id": 8,
+        "question_id": 12
+    }
+]

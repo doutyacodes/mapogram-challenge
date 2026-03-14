@@ -1,0 +1,62 @@
+[
+    {
+        "id": 1,
+        "question": "Which activity do you enjoy more?",
+        "quiz_id": 1
+    },
+    {
+        "id": 2,
+        "question": "How do you feel after a long day at school?",
+        "quiz_id": 1
+    },
+    {
+        "id": 3,
+        "question": "When meeting new people, do you usually...",
+        "quiz_id": 1
+    },
+    {
+        "id": 4,
+        "question": "When doing a project for school, do you prefer...",
+        "quiz_id": 1
+    },
+    {
+        "id": 5,
+        "question": "What do you pay attention to when learning something new?",
+        "quiz_id": 1
+    },
+    {
+        "id": 6,
+        "question": "When you hear a story, do you like it when...",
+        "quiz_id": 1
+    },
+    {
+        "id": 7,
+        "question": "When making decisions, what\u2019s more important to you?",
+        "quiz_id": 1
+    },
+    {
+        "id": 8,
+        "question": "If you have to give advice to a friend, do you usually...",
+        "quiz_id": 1
+    },
+    {
+        "id": 9,
+        "question": "When solving a problem, do you prefer to...",
+        "quiz_id": 1
+    },
+    {
+        "id": 10,
+        "question": "When doing homework, do you prefer...",
+        "quiz_id": 1
+    },
+    {
+        "id": 11,
+        "question": "How do you feel about schedules and routines?",
+        "quiz_id": 1
+    },
+    {
+        "id": 12,
+        "question": "When going on a trip or vacation, do you prefer...",
+        "quiz_id": 1
+    }
+]

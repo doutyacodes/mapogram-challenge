@@ -1,0 +1,62 @@
+[
+    {
+        "id": 1,
+        "question": "Welche Aktivität macht Ihnen mehr Spaß?",
+        "quiz_id": 1
+    },
+    {
+        "id": 2,
+        "question": "Wie fühlen Sie sich nach einem langen Schultag?",
+        "quiz_id": 1
+    },
+    {
+        "id": 3,
+        "question": "Wenn Sie neue Leute treffen, tun Sie normalerweise...",
+        "quiz_id": 1
+    },
+    {
+        "id": 4,
+        "question": "Wenn Sie ein Schulprojekt machen, bevorzugen Sie...",
+        "quiz_id": 1
+    },
+    {
+        "id": 5,
+        "question": "Worauf achten Sie, wenn Sie etwas Neues lernen?",
+        "quiz_id": 1
+    },
+    {
+        "id": 6,
+        "question": "Wenn Sie eine Geschichte hören, mögen Sie es, wenn...",
+        "quiz_id": 1
+    },
+    {
+        "id": 7,
+        "question": "Was ist Ihnen wichtiger, wenn Sie Entscheidungen treffen?",
+        "quiz_id": 1
+    },
+    {
+        "id": 8,
+        "question": "Wenn Sie einem Freund einen Rat geben müssen, tun Sie normalerweise...",
+        "quiz_id": 1
+    },
+    {
+        "id": 9,
+        "question": "Wenn Sie ein Problem lösen, bevorzugen Sie...",
+        "quiz_id": 1
+    },
+    {
+        "id": 10,
+        "question": "Wenn Sie Hausaufgaben machen, bevorzugen Sie...",
+        "quiz_id": 1
+    },
+    {
+        "id": 11,
+        "question": "Wie stehen Sie zu Zeitplänen und Routinen?",
+        "quiz_id": 1
+    },
+    {
+        "id": 12,
+        "question": "Wenn Sie auf eine Reise oder in den Urlaub fahren, bevorzugen Sie...",
+        "quiz_id": 1
+    }
+]

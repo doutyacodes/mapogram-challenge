@@ -1,0 +1,62 @@
+[
+    {
+        "id": 1,
+        "question": "Cuando estás en un evento social, ¿tú:",
+        "quiz_id": 1
+    },
+    {
+        "id": 2,
+        "question": "¿Cómo prefieres pasar tu tiempo libre?",
+        "quiz_id": 1
+    },
+    {
+        "id": 3,
+        "question": "¿Sueles pensar en voz alta o procesar tus pensamientos internamente?",
+        "quiz_id": 1
+    },
+    {
+        "id": 4,
+        "question": "Cuando aprendes algo nuevo, ¿prefieres:",
+        "quiz_id": 1
+    },
+    {
+        "id": 5,
+        "question": "En tu vida diaria, ¿es más probable que tú:",
+        "quiz_id": 1
+    },
+    {
+        "id": 6,
+        "question": "Al abordar un problema, ¿tú tiendes a:",
+        "quiz_id": 1
+    },
+    {
+        "id": 7,
+        "question": "Al tomar decisiones, ¿priorizas:",
+        "quiz_id": 1
+    },
+    {
+        "id": 8,
+        "question": "¿Encuentras más importante ser:",
+        "quiz_id": 1
+    },
+    {
+        "id": 9,
+        "question": "En los conflictos, ¿tú:",
+        "quiz_id": 1
+    },
+    {
+        "id": 10,
+        "question": "En lo que respecta a la planificación, ¿prefieres:",
+        "quiz_id": 1
+    },
+    {
+        "id": 11,
+        "question": "¿Cómo abordas las tareas y los plazos?",
+        "quiz_id": 1
+    },
+    {
+        "id": 12,
+        "question": "En tu vida diaria, ¿tú:",
+        "quiz_id": 1
+    }
+]

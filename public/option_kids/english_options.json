@@ -1,0 +1,146 @@
+[
+    {
+        "id": 1,
+        "text": "Playing with a big group of friends.",
+        "analytic_id": 1,
+        "question_id": 1
+    },
+    {
+        "id": 2,
+        "text": "Spending time by myself reading or drawing.",
+        "analytic_id": 2,
+        "question_id": 1
+    },
+    {
+        "id": 3,
+        "text": "I want to talk to my friends and family.",
+        "analytic_id": 1,
+        "question_id": 2
+    },
+    {
+        "id": 4,
+        "text": "I need some quiet time to think.",
+        "analytic_id": 2,
+        "question_id": 2
+    },
+    {
+        "id": 5,
+        "text": "Talk to them easily.",
+        "analytic_id": 1,
+        "question_id": 3
+    },
+    {
+        "id": 6,
+        "text": "Wait to get to know them better before speaking.",
+        "analytic_id": 2,
+        "question_id": 3
+    },
+    {
+        "id": 7,
+        "text": "Following clear directions step by step.",
+        "analytic_id": 3,
+        "question_id": 4
+    },
+    {
+        "id": 8,
+        "text": "Coming up with your own creative way to do it.",
+        "analytic_id": 4,
+        "question_id": 4
+    },
+    {
+        "id": 9,
+        "text": "The facts and details.",
+        "analytic_id": 3,
+        "question_id": 5
+    },
+    {
+        "id": 10,
+        "text": "The overall idea or possibilities.",
+        "analytic_id": 4,
+        "question_id": 5
+    },
+    {
+        "id": 11,
+        "text": "It has a lot of details that help you picture what is happening.",
+        "analytic_id": 3,
+        "question_id": 6
+    },
+    {
+        "id": 12,
+        "text": "It makes you think about new ideas or what could happen next.",
+        "analytic_id": 4,
+        "question_id": 6
+    },
+    {
+        "id": 13,
+        "text": "Being fair and looking at all the facts.",
+        "analytic_id": 5,
+        "question_id": 7
+    },
+    {
+        "id": 14,
+        "text": "Thinking about how others feel and what would make them happy.",
+        "analytic_id": 6,
+        "question_id": 7
+    },
+    {
+        "id": 15,
+        "text": "Tell them what makes the most sense, even if it might hurt their feelings.",
+        "analytic_id": 5,
+        "question_id": 8
+    },
+    {
+        "id": 16,
+        "text": "Consider their feelings and try to say something that won't upset them.",
+        "analytic_id": 6,
+        "question_id": 8
+    },
+    {
+        "id": 17,
+        "text": "Focus on what’s logical and makes sense.",
+        "analytic_id": 5,
+        "question_id": 9
+    },
+    {
+        "id": 18,
+        "text": "Think about how the solution will affect others.",
+        "analytic_id": 6,
+        "question_id": 9
+    },
+    {
+        "id": 19,
+        "text": "Planning when and how to finish everything on time.",
+        "analytic_id": 7,
+        "question_id": 10
+    },
+    {
+        "id": 20,
+        "text": "Just getting started and figuring it out as you go along.",
+        "analytic_id": 8,
+        "question_id": 10
+    },
+    {
+        "id": 21,
+        "text": "I like to know exactly what to expect and follow a plan.",
+        "analytic_id": 7,
+        "question_id": 11
+    },
+    {
+        "id": 22,
+        "text": "I like having freedom to decide what to do next.",
+        "analytic_id": 8,
+        "question_id": 11
+    },
+    {
+        "id": 23,
+        "text": "Knowing the plan and sticking to it.",
+        "analytic_id": 7,
+        "question_id": 12
+    },
+    {
+        "id": 24,
+        "text": "Having time to explore and do things spontaneously.",
+        "analytic_id": 8,
+        "question_id": 12
+    }
+]

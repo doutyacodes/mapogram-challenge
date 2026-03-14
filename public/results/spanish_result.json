@@ -1,0 +1,179 @@
+[
+    {
+      "id": 1,
+      "type_sequence": "ISTJ",
+      "description": "Tu tipo de personalidad se define por tu naturaleza práctica, enfocada en los hechos y confiable. Eres muy meticuloso, prosperas con la estructura y eres conocido por tu enfoque metódico en la vida y el trabajo. Eres introvertido, prefiriendo pasar tiempo solo o en compañía de amigos cercanos o familiares en lugar de grandes grupos. Tus decisiones se basan en hechos concretos y razonamiento lógico, lo que te hace excelente en la planificación y organización. En el lugar de trabajo, eres visto como un empleado confiable que cumple con sus compromisos y asegura que los proyectos se completen de manera precisa y a tiempo. Valorás la tradición y a menudo sigues procedimientos establecidos, lo que puede hacer que parezcas rígido o inflexible para los demás. Sin embargo, esta adhesión a la estructura es lo que te permite sobresalir en roles que requieren precisión y atención al detalle, como la contabilidad, la ingeniería o el análisis de datos. En tu vida personal, eres un compañero leal y dedicado, valorando la estabilidad y la consistencia en tus relaciones. Es posible que tengas dificultades para expresar tus emociones, ya que tiendes a priorizar la lógica sobre los sentimientos, pero tus acciones a menudo hablan más fuerte que las palabras. En resumen, tu tipo de personalidad se caracteriza por un fuerte sentido del deber, la responsabilidad y la confiabilidad, lo que te convierte en un pilar fundamental en cualquier equipo o comunidad a la que pertenezcas.",
+      "strengths": "Confiable y responsable, Organizado, Práctico, Orientado a los detalles, Leal",
+      "weaknesses": "Inflexible, Excesivamente crítico, Reservado, Terco",
+      "opportunities": "Roles de liderazgo, Gestión de proyectos, Carreras especializadas, Consultoría",
+      "threats": "Resistencia al cambio, Problemas de equilibrio entre trabajo y vida personal, Conflictos con otros",
+      "most_suitable_careers": "Contador, Ingeniero, Gerente de proyectos, Analista de datos, Abogado, Administrador, Auditor",
+      "least_suitable_careers": "Director creativo, Vendedor, Trabajador social, Especialista en relaciones públicas"
+    },
+    {
+      "id": 2,
+      "type_sequence": "ISFJ",
+      "description": "Tu personalidad se caracteriza por tu naturaleza cálida, afectuosa y considerada. Estás profundamente comprometido en ayudar a los demás y a menudo haces un esfuerzo extra para asegurar el bienestar de quienes te rodean. Como introvertido, eres reservado y privado, prefiriendo formar conexiones profundas con unos pocos amigos cercanos en lugar de tener un gran círculo social. Eres muy sensible a las necesidades y sentimientos de los demás, a menudo anteponiendo su bienestar al tuyo. Esto te convierte en un excelente cuidador y amigo de apoyo. Eres práctico y orientado a los detalles, con un fuerte sentido del deber y la responsabilidad. Sobresales en roles que requieren atención al detalle y un enfoque estructurado, como la enfermería, la enseñanza o la administración. En el lugar de trabajo, eres conocido por tu confiabilidad y dedicación, a menudo yendo más allá para asegurar que las tareas se completen con los más altos estándares.",
+      "strengths": "Compasivo y cariñoso, Orientado a los detalles, Confiable y responsable, Organizado, Leal",
+      "weaknesses": "Excesivamente abnegado, Dificultad con el cambio, Evita los conflictos, Puede tener dificultades para afirmar sus propias necesidades",
+      "opportunities": "Roles en cuidado de la salud, cargos administrativos, trabajo comunitario, tareas detalladas y de apoyo",
+      "threats": "Riesgo de agotamiento por comprometerse demasiado, Dificultad para adaptarse a cambios repentinos, Posibilidad de que otros se aprovechen debido a su naturaleza complaciente",
+      "most_suitable_careers": "Enfermero, Maestro, Trabajador social, Consejero, Bibliotecario, Asistente administrativo, Representante de servicio al cliente",
+      "least_suitable_careers": "Emprendedor (debido al alto nivel de riesgo e incertidumbre), Roles de ventas bajo alta presión"
+    },
+    {
+      "id": 3,
+      "type_sequence": "INFJ",
+      "description": "Eres conocido por tus profundas percepciones y tu gran empatía. Tienes una capacidad única para entender y conectarte con las emociones y motivaciones de los demás, a menudo actuando como una fuente de consuelo y guía para quienes te rodean. Como introvertido, eres reflexivo y reservado, prefiriendo pasar tiempo en introspección o en conversaciones significativas con unos pocos amigos cercanos. Eres altamente intuitivo, confiando en tus instintos y sabiduría interior para navegar por el mundo. A menudo te atraen carreras que te permiten tener un impacto positivo en los demás, como la consejería, el trabajo social o la escritura. En el lugar de trabajo, eres un solucionador de problemas creativo, que sobresale en encontrar soluciones innovadoras a problemas complejos.",
+      "strengths": "Perspicaz e intuitivo, Empático y compasivo, Idealista y con principios, Fuerte sentido del propósito",
+      "weaknesses": "Excesivamente idealista, Puede ser reservado, Perfeccionista, Dificultad para establecer límites",
+      "opportunities": "Consejería y profesiones de salud mental, Roles creativos y artísticos, Trabajo en organizaciones sin fines de lucro",
+      "threats": "Riesgo de agotamiento por sobreexigencia, Dificultad para lidiar con el conflicto",
+      "most_suitable_careers": "Consejero, Escritor, Trabajador social, Organizador de ONGs, Maestro, Director creativo",
+      "least_suitable_careers": "Roles de ventas bajo alta presión, Trabajos altamente estructurados o repetitivos"
+    },
+    {
+      "id": 4,
+      "type_sequence": "INTJ",
+      "description": "Eres conocido por tu naturaleza analítica, estratégica e independiente. Eres altamente intelectual y estás motivado por un deseo de entender y dominar sistemas e ideas complejas. Como introvertido, eres reservado y reflexivo, prefiriendo pasar tiempo solo o en compañía de unos pocos amigos cercanos. Eres altamente intuitivo y confías en tus percepciones e instintos para guiar tus decisiones y acciones. A menudo te atraen carreras que requieren pensamiento estratégico y resolución de problemas, como la ingeniería, la ciencia o los negocios. En el lugar de trabajo, eres conocido por tu capacidad para ver el panorama general y desarrollar planes y estrategias a largo plazo.",
+      "strengths": "Estratégico y visionario, Independiente y autosuficiente, Altamente analítico y con capacidad para resolver problemas",
+      "weaknesses": "Puede parecer distante o reservado, Dificultades en relaciones interpersonales, Excesivamente crítico o exigente",
+      "opportunities": "Roles de liderazgo y planificación estratégica, Investigación y desarrollo",
+      "threats": "Riesgo de agotamiento por trabajar demasiado, Conflictos debido a altos estándares y crítica",
+      "most_suitable_careers": "Ingeniero, Científico, Consultor estratégico",
+      "least_suitable_careers": "Atención al cliente, Roles con mucha interacción interpersonal"
+    },
+    {
+      "id": 5,
+      "type_sequence": "ISTP",
+      "description": "Te caracterizas por tu enfoque práctico y tu destreza para resolver problemas. Eres altamente observador y analítico, centrado en entender cómo funcionan las cosas. Como introvertido, eres reservado e independiente, prefiriendo pasar tiempo solo o con unos pocos amigos cercanos. Eres altamente hábil en la resolución de problemas y a menudo te atraen carreras que requieren conocimientos técnicos y habilidades prácticas, como la mecánica, la ingeniería o la construcción.",
+      "strengths": "Práctico y orientado a la acción, Excelentes habilidades para resolver problemas, Adaptable y flexible, Independiente y autosuficiente",
+      "weaknesses": "Puede ser reservado o distante, Dificultad para planificar a largo plazo, Puede evitar discusiones emocionales",
+      "opportunities": "Carreras que requieren habilidades técnicas y solución de problemas, Trabajos que ofrecen flexibilidad y variedad",
+      "threats": "Riesgo de aburrimiento con tareas repetitivas, Conflictos en ambientes estructurados",
+      "most_suitable_careers": "Mecánico, Ingeniero, Arquitecto, Rescatador de emergencias (bombero, paramédico)",
+      "least_suitable_careers": "Roles con alta demanda emocional"
+    },
+    {
+      "id": 6,
+      "type_sequence": "ISFP",
+      "description": "Eres conocido por tu naturaleza gentil, sensible y creativa. Eres altamente sintonizado con el mundo que te rodea y tienes una profunda apreciación por la belleza y la estética. Como introvertido, eres reservado y privado, prefiriendo pasar tiempo solo o en compañía de amigos cercanos y familiares. Eres altamente empático y compasivo, a menudo poniendo las necesidades de los demás antes que las tuyas. A menudo te atraen carreras que te permiten expresar tu creatividad y talentos artísticos.",
+      "strengths": "Creativo y artístico, Empático y compasivo, Flexible y adaptable",
+      "weaknesses": "Puede evitar el conflicto, Excesivamente sensible a la crítica, Dificultades en la planificación a largo plazo",
+      "opportunities": "Carreras que permitan la expresión creativa, Trabajos en ambientes dinámicos y flexibles",
+      "threats": "Riesgo de sentirse abrumado en estructuras rígidas",
+      "most_suitable_careers": "Artista o diseñador, Músico o intérprete, Trabajador social o consejero",
+      "least_suitable_careers": "Roles con alta presión o rutina estricta"
+    },
+    {
+      "id": 7,
+      "type_sequence": "INFP",
+      "description": "Eres conocido por tu profunda empatía, creatividad y fuertes valores. Estás impulsado por un deseo de entenderte a ti mismo y a los demás, buscando a menudo encontrar significado y propósito en tu vida. Como introvertido, eres reflexivo y reservado, prefiriendo pasar tiempo en introspección o en conversaciones significativas. Eres altamente intuitivo, confiando en tu sabiduría interna para guiar tus decisiones y acciones.",
+      "strengths": "Idealista e imaginativo, Empático y compasivo, Creativo y original",
+      "weaknesses": "Puede ser excesivamente idealista, Dificultades con temas prácticos y organización",
+      "opportunities": "Carreras que permitan la expresión creativa y el crecimiento personal",
+      "threats": "Riesgo de agotamiento por comprometerse demasiado",
+      "most_suitable_careers": "Escritor, Artista, Consejero, Trabajador social",
+      "least_suitable_careers": "Roles de ventas bajo alta presión"
+    },
+    {
+      "id": 8,
+      "type_sequence": "INTP",
+      "description": "Te caracterizas por tu naturaleza analítica, curiosa e inventiva. Eres altamente intelectual y estás motivado por un deseo de comprender y dominar sistemas e ideas complejas. Como introvertido, eres reservado y reflexivo, prefiriendo pasar tiempo solo o en compañía de unos pocos amigos cercanos. Eres altamente intuitivo, confiando en tus percepciones e instintos para guiar tus decisiones y acciones.",
+      "strengths": "Analítico y lógico, Innovador e imaginativo",
+      "weaknesses": "Puede tener dificultades con los detalles prácticos y el seguimiento",
+      "opportunities": "Roles en investigación y desarrollo",
+      "threats": "Riesgo de sentirse abrumado por tareas prácticas o mundanas",
+      "most_suitable_careers": "Científico, Desarrollador de software, Ingeniero",
+      "least_suitable_careers": "Roles de ventas bajo alta presión"
+    },
+    {
+      "id": 9,
+      "type_sequence": "ESTP",
+      "description": "Eres conocido por tu naturaleza enérgica, aventurera y espontánea. Eres altamente observador y analítico, centrado en entender cómo funcionan las cosas. Como extrovertido, eres sociable y disfrutas de actividades dinámicas. Sobresales en resolver problemas y te atraen carreras que requieren habilidades técnicas y prácticas.",
+      "strengths": "Energético, Resolución rápida de problemas, Flexible y práctico",
+      "weaknesses": "Impulsivo, Dificultades con la planificación a largo plazo",
+      "opportunities": "Roles que requieren decisiones rápidas y trabajo práctico",
+      "threats": "Riesgo de agotamiento en situaciones de alto estrés",
+      "most_suitable_careers": "Responder de emergencias, Vendedor, Emprendedor",
+      "least_suitable_careers": "Roles con alta demanda emocional"
+    },
+    {
+      "id": 10,
+      "type_sequence": "ESFP",
+      "description": "Te caracterizas por tu naturaleza enérgica, espontánea y sociable. A menudo eres el centro de atención, trayendo alegría a quienes te rodean. Disfrutas de la creatividad y las interacciones sociales, lo que te hace ideal para carreras artísticas o basadas en eventos.",
+      "strengths": "Energético, Muy sociable, Empático y comprensivo",
+      "weaknesses": "Impulsivo, Dificultades con la planificación a largo plazo",
+      "opportunities": "Carreras que involucren la interacción social y la creatividad",
+      "threats": "Riesgo de agotamiento por demasiadas actividades",
+      "most_suitable_careers": "Planificador de eventos, Artista, Trabajador social",
+      "least_suitable_careers": "Roles técnicos o analíticos"
+    },
+    {
+      "id": 11,
+      "type_sequence": "ENFP",
+      "description": "Eres conocido por tu naturaleza entusiasta, creativa y sociable. Te impulsa el deseo de conectar con los demás y explorar nuevas ideas. Sobresales en resolver problemas creativos y en construir relaciones.",
+      "strengths": "Creativo, Empático, Excelentes habilidades de comunicación",
+      "weaknesses": "Fácilmente distraído, Dificultades con la rutina",
+      "opportunities": "Carreras que permitan la innovación y el crecimiento personal",
+      "threats": "Riesgo de agotamiento por demasiadas responsabilidades",
+      "most_suitable_careers": "Director creativo, Escritor, Consejero",
+      "least_suitable_careers": "Roles altamente estructurados o repetitivos"
+    },
+    {
+      "id": 12,
+      "type_sequence": "ENTP",
+      "description": "Te caracterizas por tu naturaleza analítica, curiosa e inventiva. Eres sociable y disfrutas de discutir ideas. Te atraen roles estratégicos que implican innovación y resolución de problemas.",
+      "strengths": "Innovador, Habilidades para resolver problemas, Carismático",
+      "weaknesses": "Fácilmente distraído, Puede evitar tareas rutinarias",
+      "opportunities": "Carreras que involucren el pensamiento estratégico",
+      "threats": "Riesgo de agotamiento por asumir demasiados proyectos",
+      "most_suitable_careers": "Emprendedor, Consultor",
+      "least_suitable_careers": "Roles altamente estructurados"
+    },
+    {
+      "id": 13,
+      "type_sequence": "ESTJ",
+      "description": "Eres conocido por tu naturaleza organizada, práctica y decisiva. Eres lógico y te impulsa el deseo de crear orden en tu vida. Sobresales en roles de liderazgo y gestión.",
+      "strengths": "Organizado, Líder fuerte, Eficiente",
+      "weaknesses": "Puede parecer rígido o inflexible",
+      "opportunities": "Roles de liderazgo y planificación",
+      "threats": "Riesgo de agotamiento en ambientes de alta presión",
+      "most_suitable_careers": "Gerente, Director de operaciones, Oficial militar",
+      "least_suitable_careers": "Roles con mucha flexibilidad"
+    },
+    {
+      "id": 14,
+      "type_sequence": "ESFJ",
+      "description": "Te caracterizas por tu naturaleza cálida, empática y sociable. Eres altamente compasivo y te impulsa el deseo de ayudar a los demás. Sobresales en roles que requieren habilidades interpersonales.",
+      "strengths": "Empático, Excelente habilidades interpersonales, Confiable",
+      "weaknesses": "Dificultad con la crítica o el conflicto",
+      "opportunities": "Carreras que impliquen ayudar a otros",
+      "threats": "Riesgo de agotamiento por sobrecarga de responsabilidades",
+      "most_suitable_careers": "Enfermero, Trabajador social, Planificador de eventos",
+      "least_suitable_careers": "Roles técnicos o analíticos"
+    },
+    {
+      "id": 15,
+      "type_sequence": "ENFJ",
+      "description": "Eres conocido por tu naturaleza carismática, empática e inspiradora. Te impulsa el deseo de conectar con los demás y tener un impacto positivo. Sobresales en roles de liderazgo y en ayudar a los demás.",
+      "strengths": "Carismático, Empático, Líder excelente",
+      "weaknesses": "Idealista en exceso, Toma demasiadas responsabilidades",
+      "opportunities": "Roles de liderazgo y gestión de equipos",
+      "threats": "Riesgo de agotamiento por sobreexigencia",
+      "most_suitable_careers": "Consejero, Director de ONG, Planificador de eventos",
+      "least_suitable_careers": "Roles con poca interacción social"
+    },
+    {
+      "id": 16,
+      "type_sequence": "ENTJ",
+      "description": "Te caracterizas por tu naturaleza analítica, estratégica y decisiva. Eres altamente intelectual y te atraen roles de liderazgo y planificación estratégica.",
+      "strengths": "Líder fuerte, Visionario, Eficiente",
+      "weaknesses": "Puede parecer dominante o demasiado agresivo",
+      "opportunities": "Carreras de liderazgo y planificación estratégica",
+      "threats": "Riesgo de agotamiento en roles de alta presión",
+      "most_suitable_careers": "CEO, Consultor estratégico",
+      "least_suitable_careers": "Roles con poca flexibilidad"
+    }
+  ]
+  

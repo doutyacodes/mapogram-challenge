@@ -1,0 +1,146 @@
+[
+    {
+        "id": 1,
+        "text": "Fühlen Sie sich energiegeladen durch den Kontakt mit vielen Menschen.",
+        "analytic_id": 1,
+        "question_id": 1
+    },
+    {
+        "id": 2,
+        "text": "Fühlen Sie sich erschöpft nach längerem Sozialkontakt.",
+        "analytic_id": 2,
+        "question_id": 1
+    },
+    {
+        "id": 3,
+        "text": "Teilnahme an Aktivitäten mit Freunden und Familie.",
+        "analytic_id": 1,
+        "question_id": 2
+    },
+    {
+        "id": 4,
+        "text": "Zeit alleine oder mit einem engen Freund verbringen.",
+        "analytic_id": 2,
+        "question_id": 2
+    },
+    {
+        "id": 5,
+        "text": "Laut denken und Ideen mit anderen diskutieren.",
+        "analytic_id": 1,
+        "question_id": 3
+    },
+    {
+        "id": 6,
+        "text": "Gedanken intern verarbeiten, bevor sie geteilt werden.",
+        "analytic_id": 2,
+        "question_id": 3
+    },
+    {
+        "id": 7,
+        "text": "Sich auf Details und Fakten konzentrieren.",
+        "analytic_id": 3,
+        "question_id": 4
+    },
+    {
+        "id": 8,
+        "text": "Das Verständnis der zugrunde liegenden Konzepte und Theorien.",
+        "analytic_id": 4,
+        "question_id": 4
+    },
+    {
+        "id": 9,
+        "text": "Sich auf das konzentrieren, was jetzt passiert und realistisch ist.",
+        "analytic_id": 3,
+        "question_id": 5
+    },
+    {
+        "id": 10,
+        "text": "Über zukünftige Möglichkeiten und das, was sein könnte, nachdenken.",
+        "analytic_id": 4,
+        "question_id": 5
+    },
+    {
+        "id": 11,
+        "text": "Sich auf vergangene Erfahrungen und praktische Lösungen verlassen.",
+        "analytic_id": 3,
+        "question_id": 6
+    },
+    {
+        "id": 12,
+        "text": "Auf der Suche nach neuen Ideen und innovativen Lösungen.",
+        "analytic_id": 4,
+        "question_id": 6
+    },
+    {
+        "id": 13,
+        "text": "Logische Analyse und objektive Kriterien.",
+        "analytic_id": 5,
+        "question_id": 7
+    },
+    {
+        "id": 14,
+        "text": "Persönliche Werte und die Auswirkungen auf andere.",
+        "analytic_id": 6,
+        "question_id": 7
+    },
+    {
+        "id": 15,
+        "text": "Fest und fair in Ihren Urteilen.",
+        "analytic_id": 5,
+        "question_id": 8
+    },
+    {
+        "id": 16,
+        "text": "Mitfühlend und rücksichtsvoll gegenüber den Gefühlen der Menschen.",
+        "analytic_id": 6,
+        "question_id": 8
+    },
+    {
+        "id": 17,
+        "text": "Konzentrieren Sie sich darauf, das Problem logisch zu lösen.",
+        "analytic_id": 5,
+        "question_id": 9
+    },
+    {
+        "id": 18,
+        "text": "Streben Sie danach, Harmonie zu bewahren und andere nicht zu verletzen.",
+        "analytic_id": 6,
+        "question_id": 9
+    },
+    {
+        "id": 19,
+        "text": "Einen klaren Plan haben und sich daran halten.",
+        "analytic_id": 7,
+        "question_id": 10
+    },
+    {
+        "id": 20,
+        "text": "Spontan und flexibel mit Ihren Plänen sein.",
+        "analytic_id": 8,
+        "question_id": 10
+    },
+    {
+        "id": 21,
+        "text": "Bevorzugen Sie es, Aufgaben im Voraus zu erledigen.",
+        "analytic_id": 7,
+        "question_id": 11
+    },
+    {
+        "id": 22,
+        "text": "Fühlen Sie sich wohl dabei, in letzter Minute zu arbeiten.",
+        "analytic_id": 8,
+        "question_id": 11
+    },
+    {
+        "id": 23,
+        "text": "Möchten Sie, dass Dinge entschieden und abgeschlossen sind.",
+        "analytic_id": 7,
+        "question_id": 12
+    },
+    {
+        "id": 24,
+        "text": "Genießen Sie es, Optionen offen zu halten und neue Möglichkeiten zu erkunden.",
+        "analytic_id": 8,
+        "question_id": 12
+    }
+]

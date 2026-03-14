@@ -1,0 +1,22 @@
+[
+    {
+      "choiceId": 1,
+      "choiceText": "மிகவும் மறுக்கிறேன்"
+    },
+    {
+      "choiceId": 2,
+      "choiceText": "மறுக்கிறேன்"
+    },
+    {
+      "choiceId": 3,
+      "choiceText": "நடுநிலை"
+    },
+    {
+      "choiceId": 4,
+      "choiceText": "ஒப்புக்கொள்கிறேன்"
+    },
+    {
+      "choiceId": 5,
+      "choiceText": "மிகவும் ஒப்புக்கொள்கிறேன்"
+    }
+]

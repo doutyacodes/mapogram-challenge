@@ -1,0 +1,508 @@
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100),
+  email VARCHAR(100) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  role VARCHAR(20) DEFAULT 'user', -- 'user' or 'page'
+  website_url VARCHAR(255), -- optional, mostly for pages
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+ 
+CREATE TABLE user_profiles (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  bio TEXT,
+  profile_pic_url VARCHAR(255),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE layers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE post_category_templates (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL UNIQUE,
+  shape VARCHAR(30) NOT NULL,
+  icon_name VARCHAR(50) NOT NULL,
+  color VARCHAR(20),
+  class_name VARCHAR(100)
+);
+
+CREATE TABLE category_layer_map (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  category_id INT NOT NULL,
+  layer_id INT NOT NULL,
+  FOREIGN KEY (category_id) REFERENCES post_category_templates(id),
+  FOREIGN KEY (layer_id) REFERENCES layers(id)
+);
+
+CREATE TABLE user_posts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  page_id INT NOT NULL,
+  title VARCHAR(255),
+  description TEXT,
+  image_url TEXT,
+  latitude DECIMAL(10, 7),
+  longitude DECIMAL(10, 7),
+  category_id INT NOT NULL,
+  delete_after_hours INT,
+  is_permanent BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (page_id) REFERENCES users(id),
+  FOREIGN KEY (category_id) REFERENCES post_category_templates(id)
+);
+
+CREATE TABLE post_layer_map (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  post_id INT NOT NULL,
+  layer_id INT NOT NULL,
+  FOREIGN KEY (post_id) REFERENCES user_posts(id),
+  FOREIGN KEY (layer_id) REFERENCES layers(id)
+);
+
+CREATE TABLE languages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  code VARCHAR(10) NOT NULL
+);
+
+CREATE TABLE user_news_details (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  post_id INT NOT NULL UNIQUE,
+  article_url TEXT,
+  summary TEXT,
+  language_id INT,
+  is_high_priority BOOLEAN DEFAULT FALSE,
+  is_breaking BOOLEAN DEFAULT FALSE,
+  breaking_expire_at TIMESTAMP,
+  FOREIGN KEY (post_id) REFERENCES user_posts(id),
+  FOREIGN KEY (language_id) REFERENCES languages(id)
+);
+
+CREATE TABLE user_post_registrations (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+
+  post_id INT NOT NULL,
+  user_id INT NOT NULL,
+
+  user_latitude DECIMAL(10, 7),
+  user_longitude DECIMAL(10, 7),
+
+  note TEXT,
+  resume_url TEXT,
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE KEY unique_registration (post_id, user_id),
+
+  FOREIGN KEY (post_id) REFERENCES user_posts(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+
+ALTER TABLE post_category_templates
+ADD COLUMN post_type ENUM('general', 'job', 'news', 'event') DEFAULT 'general';
+
+ALTER TABLE user_posts
+ADD COLUMN post_type ENUM('general', 'job', 'news', 'event') DEFAULT 'general';
+
+CREATE TABLE page_types (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(50) NOT NULL UNIQUE,
+  description TEXT,
+  icon_url TEXT
+);
+
+ALTER TABLE users ADD COLUMN page_type_id INT DEFAULT NULL;
+ALTER TABLE users ADD FOREIGN KEY (page_type_id) REFERENCES page_types(id);
+
+CREATE TABLE page_type_category_permissions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  page_type_id INT NOT NULL,
+  category_template_id INT NOT NULL,
+  FOREIGN KEY (page_type_id) REFERENCES page_types(id),
+  FOREIGN KEY (category_template_id) REFERENCES post_category_templates(id)
+);
+
+INSERT INTO page_types (name, description, icon_url) VALUES
+  ('Media Channel', 'A digital or broadcast media company sharing news, videos, and updates', NULL),
+  ('Startup', 'A growing tech or business startup sharing updates, hiring, or product announcements', NULL),
+  ('News Organization', 'Covers political, local, and global news topics.', '/icons/news.svg'),
+  ('Journalist', 'Individual covering stories, investigative reports, or opinions.', '/icons/journalist.svg'),
+  ('Software Company', 'Publishes tech updates, job openings, and product announcements.', '/icons/software.svg');
+
+
+INSERT INTO layers (name) VALUES 
+  ('News'),
+  ('Jobs'),
+  ('Events');
+
+
+INSERT INTO post_category_templates (id, name, shape, icon_name, color, class_name, post_type) VALUES
+-- General post type
+(1, 'Posts', 'pin', 'MessagesSquare', '#3b82f6', 'text-red-600', 'general'),
+
+-- Job post types  
+(10, 'Jobs', 'rectangle', 'Briefcase', '#0ea5e9', 'text-sky-600', 'job'),
+(11, 'Internship', 'badge', 'GraduationCap', '#a855f7', 'text-purple-600', 'job'),
+(12, 'Gigs', 'tag', 'MousePointerClick', '#f59e0b', 'text-yellow-600', 'job'),
+(13, 'Others', 'starburst', 'MoreHorizontal', '#6b7280', 'text-gray-600', 'job'),
+
+-- News post types (all using 'pin' shape)
+(14, 'Natural Disaster', 'pin', 'AlertTriangle', '#DC2626', 'text-red-600', 'news'),
+(15, 'Crime', 'pin', 'FaHandcuffs', '#B45309', 'text-amber-700', 'news'),
+(16, 'Politics', 'pin', 'Vote', '#4338CA', 'text-indigo-600', 'news'),
+(17, 'Geopolitics', 'pin', 'Globe', '#1E293B', 'text-slate-800', 'news'),
+(18, 'Protest', 'pin', 'Megaphone', '#EA580C', 'text-orange-600', 'news'),
+(19, 'Accident', 'pin', 'AlertOctagon', '#B91C1C', 'text-red-700', 'news'),
+(20, 'Weather', 'pin', 'Cloud', '#06B6D4', 'text-cyan-500', 'news'),
+(21, 'Festival / Event', 'pin', 'PartyPopper', '#EC4899', 'text-pink-500', 'news'),
+(22, 'Conflict / War', 'pin', 'GiCrossedSwords', '#7F1D1D', 'text-red-900', 'news'),
+(23, 'Public Announcement', 'pin', 'Speaker', '#2563EB', 'text-blue-600', 'news'),
+(24, 'Emergency Alert', 'pin', 'BellRing', '#EF4444', 'text-red-500', 'news'),
+(25, 'Sports', 'pin', 'Trophy', '#CA8A04', 'text-yellow-600', 'news'),
+(26, 'Health', 'pin', 'Heart', '#E11D48', 'text-rose-600', 'news'),
+(27, 'Business', 'pin', 'DollarSign', '#475569', 'text-slate-700', 'news'),
+(28, 'Entertainment', 'pin', 'Music', '#8B5CF6', 'text-violet-500', 'news'),
+(29, 'Technology', 'pin', 'Laptop', '#1D4ED8', 'text-blue-700', 'news'),
+(30, 'Science', 'pin', 'FlaskConical', '#0D9488', 'text-teal-600', 'news'),
+(31, 'Education', 'pin', 'GraduationCap', '#047857', 'text-emerald-700', 'news'),
+(32, 'Environment', 'pin', 'Leaf', '#65A30D', 'text-lime-600', 'news'),
+(33, 'Social Issues', 'pin', 'HandHeart', '#9333EA', 'text-purple-600', 'news'),
+(34, 'Transportation', 'pin', 'Train', '#4B5563', 'text-gray-600', 'news'),
+(35, 'Automobiles', 'pin', 'Car', '#3F3F46', 'text-zinc-700', 'news'),
+(36, 'Finance', 'pin', 'TrendingUp', '#15803D', 'text-green-700', 'news'),
+(37, 'Movies', 'pin', 'Clapperboard', '#C026D3', 'text-fuchsia-600', 'news'),
+(38, 'Cricket', 'pin', 'Target', '#D97706', 'text-amber-600', 'news'),
+(39, 'Military', 'pin', 'Shield', '#57534E', 'text-stone-600', 'news'),
+(40, 'Space', 'pin', 'Rocket', '#075985', 'text-sky-800', 'news'),
+(41, 'Lifestyle', 'pin', 'Sparkles', '#FB7185', 'text-rose-400', 'news'),
+(42, 'Wildlife', 'pin', 'PawPrint', '#C2410C', 'text-orange-700', 'news');
+
+
+INSERT INTO category_layer_map (category_id, layer_id) VALUES
+-- Jobs Layer (layer_id = 2) - Maps to Posts, Jobs, Internship, Gigs, Others
+(1, 2),   -- Posts -> Jobs Layer
+(10, 2),  -- Jobs -> Jobs Layer  
+(11, 2),  -- Internship -> Jobs Layer
+(12, 2),  -- Gigs -> Jobs Layer
+(13, 2),  -- Others -> Jobs Layer
+
+-- News Layer (layer_id = 1) - Maps to all news categories
+(14, 1),  -- Natural Disaster -> News Layer
+(15, 1),  -- Crime -> News Layer
+(16, 1),  -- Politics -> News Layer
+(17, 1),  -- Geopolitics -> News Layer
+(18, 1),  -- Protest -> News Layer
+(19, 1),  -- Accident -> News Layer
+(20, 1),  -- Weather -> News Layer
+(21, 1),  -- Festival / Event -> News Layer
+(22, 1),  -- Conflict / War -> News Layer
+(23, 1),  -- Public Announcement -> News Layer
+(24, 1),  -- Emergency Alert -> News Layer
+(25, 1),  -- Sports -> News Layer
+(26, 1),  -- Health -> News Layer
+(27, 1),  -- Business -> News Layer
+(28, 1),  -- Entertainment -> News Layer
+(29, 1),  -- Technology -> News Layer
+(30, 1),  -- Science -> News Layer
+(31, 1),  -- Education -> News Layer
+(32, 1),  -- Environment -> News Layer
+(33, 1),  -- Social Issues -> News Layer
+(34, 1),  -- Transportation -> News Layer
+(35, 1),  -- Automobiles -> News Layer
+(36, 1),  -- Finance -> News Layer
+(37, 1),  -- Movies -> News Layer
+(38, 1),  -- Cricket -> News Layer
+(39, 1),  -- Military -> News Layer
+(40, 1),  -- Space -> News Layer
+(41, 1),  -- Lifestyle -> News Layer
+(42, 1);  -- Wildlife -> News Layer
+
+-- Events Layer (layer_id = 3) - No mappings for now as requested
+
+
+------------------------------------------=========================------------------------=====================
+
+
+INSERT INTO page_type_category_permissions (page_type_id, category_template_id) VALUES
+-- Media Channel (page_type_id = 1) - Access to ALL categories
+(1, 1),   -- Posts
+(1, 10),  -- Jobs
+(1, 11),  -- Internship
+(1, 12),  -- Gigs
+(1, 13),  -- Others
+(1, 14),  -- Natural Disaster
+(1, 15),  -- Crime
+(1, 16),  -- Politics
+(1, 17),  -- Geopolitics
+(1, 18),  -- Protest
+(1, 19),  -- Accident
+(1, 20),  -- Weather
+(1, 21),  -- Festival / Event
+(1, 22),  -- Conflict / War
+(1, 23),  -- Public Announcement
+(1, 24),  -- Emergency Alert
+(1, 25),  -- Sports
+(1, 26),  -- Health
+(1, 27),  -- Business
+(1, 28),  -- Entertainment
+(1, 29),  -- Technology
+(1, 30),  -- Science
+(1, 31),  -- Education
+(1, 32),  -- Environment
+(1, 33),  -- Social Issues
+(1, 34),  -- Transportation
+(1, 35),  -- Automobiles
+(1, 36),  -- Finance
+(1, 37),  -- Movies
+(1, 38),  -- Cricket
+(1, 39),  -- Military
+(1, 40),  -- Space
+(1, 41),  -- Lifestyle
+(1, 42),  -- Wildlife
+
+-- Startup (page_type_id = 2) - Access to ALL categories EXCEPT news type
+(2, 1),   -- Posts
+(2, 10),  -- Jobs
+(2, 11),  -- Internship
+(2, 12),  -- Gigs
+(2, 13),  -- Others
+
+-- News Organization (page_type_id = 3) - Access to ALL categories
+(3, 1),   -- Posts
+(3, 10),  -- Jobs
+(3, 11),  -- Internship
+(3, 12),  -- Gigs
+(3, 13),  -- Others
+(3, 14),  -- Natural Disaster
+(3, 15),  -- Crime
+(3, 16),  -- Politics
+(3, 17),  -- Geopolitics
+(3, 18),  -- Protest
+(3, 19),  -- Accident
+(3, 20),  -- Weather
+(3, 21),  -- Festival / Event
+(3, 22),  -- Conflict / War
+(3, 23),  -- Public Announcement
+(3, 24),  -- Emergency Alert
+(3, 25),  -- Sports
+(3, 26),  -- Health
+(3, 27),  -- Business
+(3, 28),  -- Entertainment
+(3, 29),  -- Technology
+(3, 30),  -- Science
+(3, 31),  -- Education
+(3, 32),  -- Environment
+(3, 33),  -- Social Issues
+(3, 34),  -- Transportation
+(3, 35),  -- Automobiles
+(3, 36),  -- Finance
+(3, 37),  -- Movies
+(3, 38),  -- Cricket
+(3, 39),  -- Military
+(3, 40),  -- Space
+(3, 41),  -- Lifestyle
+(3, 42),  -- Wildlife
+
+-- Journalist (page_type_id = 4) - Access to ALL categories
+(4, 1),   -- Posts
+(4, 10),  -- Jobs
+(4, 11),  -- Internship
+(4, 12),  -- Gigs
+(4, 13),  -- Others
+(4, 14),  -- Natural Disaster
+(4, 15),  -- Crime
+(4, 16),  -- Politics
+(4, 17),  -- Geopolitics
+(4, 18),  -- Protest
+(4, 19),  -- Accident
+(4, 20),  -- Weather
+(4, 21),  -- Festival / Event
+(4, 22),  -- Conflict / War
+(4, 23),  -- Public Announcement
+(4, 24),  -- Emergency Alert
+(4, 25),  -- Sports
+(4, 26),  -- Health
+(4, 27),  -- Business
+(4, 28),  -- Entertainment
+(4, 29),  -- Technology
+(4, 30),  -- Science
+(4, 31),  -- Education
+(4, 32),  -- Environment
+(4, 33),  -- Social Issues
+(4, 34),  -- Transportation
+(4, 35),  -- Automobiles
+(4, 36),  -- Finance
+(4, 37),  -- Movies
+(4, 38),  -- Cricket
+(4, 39),  -- Military
+(4, 40),  -- Space
+(4, 41),  -- Lifestyle
+(4, 42),  -- Wildlife
+
+-- Software Company (page_type_id = 5) - Access to ALL categories EXCEPT news type
+(5, 1),   -- Posts
+(5, 10),  -- Jobs
+(5, 11),  -- Internship
+(5, 12),  -- Gigs
+(5, 13);  -- Others
+
+
+
+CREATE INDEX idx_user_posts_page_id ON user_posts(page_id);
+CREATE INDEX idx_user_posts_category_id ON user_posts(category_id);
+CREATE INDEX idx_user_posts_post_type ON user_posts(post_type);
+CREATE INDEX idx_user_posts_created_at ON user_posts(created_at);
+CREATE INDEX idx_user_posts_coordinates ON user_posts(latitude, longitude);
+
+CREATE INDEX idx_user_news_details_post_id ON user_news_details(post_id);
+CREATE INDEX idx_user_news_details_language_id ON user_news_details(language_id);
+CREATE INDEX idx_user_news_details_is_high_priority ON user_news_details(is_high_priority);
+
+CREATE INDEX idx_post_layer_map_post_id ON post_layer_map(post_id);
+CREATE INDEX idx_post_layer_map_layer_id ON post_layer_map(layer_id);
+
+CREATE INDEX idx_category_layer_map_category_id ON category_layer_map(category_id);
+CREATE INDEX idx_category_layer_map_layer_id ON category_layer_map(layer_id);
+
+INSERT INTO languages (id, name, code) VALUES
+(1, 'English', 'en'),
+(2, 'Hindi', 'hi'),
+(3, 'Malayalam', 'ml'),
+(4, 'Tamil', 'ta'),
+(5, 'French', 'fr'),
+(6, 'German', 'de'),
+(7, 'Italian', 'it'),
+(8, 'Spanish', 'es'),
+(9, 'Arabic', 'ar'),
+(10, 'Kannada', 'kn'),
+(11, 'Telugu', 'te'),
+(12, 'Bengali', 'bn'),
+(13, 'Urdu', 'ur');
+
+CREATE TABLE user_post_likes (
+  user_id INT NOT NULL,
+  post_id INT NOT NULL,
+  liked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, post_id),
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (post_id) REFERENCES user_posts(id)
+);
+
+CREATE TABLE user_job_details (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  post_id INT NOT NULL UNIQUE,
+  job_type ENUM('Internship', 'Jobs', 'Gigs', 'Others') NOT NULL,
+  link VARCHAR(500),
+  is_paid BOOLEAN NOT NULL DEFAULT TRUE,
+  salary_or_stipend VARCHAR(100),
+  location_type ENUM('remote', 'onsite', 'hybrid') NOT NULL,
+  duration VARCHAR(100),
+  application_deadline DATE,
+  event_name VARCHAR(255),
+  event_date DATE,
+  additional_info TEXT,
+  FOREIGN KEY (post_id) REFERENCES user_posts(id)
+);
+
+CREATE INDEX idx_user_job_details_post_id ON user_job_details(post_id);
+CREATE INDEX idx_user_job_details_job_type ON user_job_details(job_type);
+CREATE INDEX idx_user_job_details_location_type ON user_job_details(location_type);
+CREATE INDEX idx_user_job_details_application_deadline ON user_job_details(application_deadline);
+
+CREATE TABLE skills (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) UNIQUE NOT NULL
+);
+
+CREATE TABLE job_skills_map (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  job_id INT NOT NULL,
+  skill_id INT NOT NULL,
+  FOREIGN KEY (job_id) REFERENCES user_job_details(id),
+  FOREIGN KEY (skill_id) REFERENCES skills(id)
+);
+
+CREATE TABLE education_qualifications (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) UNIQUE NOT NULL
+);
+
+CREATE TABLE job_education_map (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  job_id INT NOT NULL,
+  education_id INT NOT NULL,
+  FOREIGN KEY (job_id) REFERENCES user_job_details(id),
+  FOREIGN KEY (education_id) REFERENCES education_qualifications(id)
+);
+
+CREATE TABLE job_experience (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  job_id INT NOT NULL,
+  min_years INT DEFAULT 0,
+  max_years INT DEFAULT 0,
+  FOREIGN KEY (job_id) REFERENCES user_job_details(id)
+);
+
+INSERT INTO skills (name) VALUES
+('JavaScript'),
+('Python'),
+('Java'),
+('C++'),
+('SQL'),
+('React'),
+('Node.js'),
+('HTML'),
+('CSS'),
+('Git'),
+('Machine Learning'),
+('Data Analysis'),
+('Communication'),
+('Leadership'),
+('Sales'),
+('Marketing'),
+('Graphic Design'),
+('Figma'),
+('UI/UX Design'),
+('Content Writing');
+
+INSERT INTO education_qualifications (name) VALUES
+('High School'),
+('Diploma'),
+('B.A'),
+('B.Sc'),
+('B.Com'),
+('BBA'),
+('B.Tech'),
+('B.E'),
+('M.A'),
+('M.Sc'),
+('M.Com'),
+('MBA'),
+('M.Tech'),
+('Ph.D'),
+('Any Graduate'),
+('Any Postgraduate');
+
+CREATE TABLE `user_followed_pages` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `page_id` INT NOT NULL,
+  `followed_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX `idx_user_page` (`user_id`, `page_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`page_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+);
+
+CREATE TABLE `user_followed_layers` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `layer_id` INT NOT NULL,
+  `followed_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX `idx_user_layer` (`user_id`, `layer_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`layer_id`) REFERENCES `layers`(`id`) ON DELETE CASCADE
+);

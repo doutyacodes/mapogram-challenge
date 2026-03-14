@@ -1,0 +1,183 @@
+[
+    {
+      "id": 1,
+      "question_text": "Me gusta trabajar con mis manos y usar herramientas.",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 2,
+      "question_text": "Me gusta arreglar y reparar cosas en casa.",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 3,
+      "question_text": "Prefiero las actividades al aire libre a las actividades en interiores.",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 4,
+      "question_text": "Me interesa operar maquinaria o equipo pesado.",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 5,
+      "question_text": "Disfruto de actividades que implican construir o construir cosas.",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 6,
+      "question_text": "Disfruto resolviendo problemas complejos y acertijos.",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 7,
+      "question_text": "Me interesa aprender sobre teorías y principios científicos.",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 8,
+      "question_text": "Me gusta trabajar en proyectos de investigación o experimentos.",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 9,
+      "question_text": "Tengo curiosidad por saber cómo funcionan las cosas y por qué ocurren.",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 10,
+      "question_text": "Prefiero tareas que requieran pensamiento crítico y análisis.",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 11,
+      "question_text": "Disfruto creando arte, música o escribiendo.",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 12,
+      "question_text": "Me interesan las artes escénicas, como la actuación o la danza.",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 13,
+      "question_text": "Me gusta expresarme a través de diferentes formas de creatividad.",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 14,
+      "question_text": "Disfruto explorando diferentes culturas y estilos artísticos.",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 15,
+      "question_text": "Prefiero actividades que me permitan usar mi imaginación.",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 16,
+      "question_text": "Disfruto ayudar a los demás y marcar una diferencia en sus vidas.",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 17,
+      "question_text": "Me interesa enseñar o ser mentor de otros.",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 18,
+      "question_text": "Me gusta trabajar en equipo y colaborar con otros.",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 19,
+      "question_text": "Soy empático y disfruto escuchando las preocupaciones de las personas.",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 20,
+      "question_text": "Prefiero actividades que impliquen interactuar con personas y apoyarlas.",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 21,
+      "question_text": "Disfruto liderando proyectos y motivando a los demás.",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 22,
+      "question_text": "Me interesa iniciar mi propio negocio o emprendimiento.",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 23,
+      "question_text": "Me gusta persuadir a otros para que vean mi punto de vista.",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 24,
+      "question_text": "Soy competitivo y disfruto estableciendo y logrando metas.",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 25,
+      "question_text": "Prefiero actividades que impliquen vender, promocionar o negociar.",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 26,
+      "question_text": "Disfruto organizando y categorizando información.",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    },
+    {
+      "id": 27,
+      "question_text": "Me interesa trabajar con números, datos o estadísticas.",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    },
+    {
+      "id": 28,
+      "question_text": "Me gusta seguir procedimientos y pautas establecidas.",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    },
+    {
+      "id": 29,
+      "question_text": "Soy detallista y disfruto de las tareas que requieren precisión y exactitud.",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    },
+    {
+      "id": 30,
+      "question_text": "Prefiero actividades que involucren planificación, programación o mantenimiento de registros.",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    }
+  ]
+  

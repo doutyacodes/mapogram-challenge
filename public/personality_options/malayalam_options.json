@@ -1,0 +1,22 @@
+[
+  {
+    "choiceId": 1,
+    "choiceText": "ശക്തമായ്‌ വിയോജിക്കുന്നു"
+  },
+  {
+    "choiceId": 2,
+    "choiceText": "വിയോജിക്കുന്നു"
+  },
+  {
+    "choiceId": 3,
+    "choiceText": "നിഷ്പക്ഷം"
+  },
+  {
+    "choiceId": 4,
+    "choiceText": "യോജിക്കുന്നു"
+  },
+  {
+    "choiceId": 5,
+    "choiceText": "ശക്തമായ്‌ യോജിക്കുന്നു"
+  }
+]

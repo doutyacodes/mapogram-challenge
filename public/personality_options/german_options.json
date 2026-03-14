@@ -1,0 +1,23 @@
+[
+    {
+      "choiceId": 1,
+      "choiceText": "Stimme überhaupt nicht zu"
+    },
+    {
+      "choiceId": 2,
+      "choiceText": "Stimme nicht zu"
+    },
+    {
+      "choiceId": 3,
+      "choiceText": "Neutral"
+    },
+    {
+      "choiceId": 4,
+      "choiceText": "Stimme zu"
+    },
+    {
+      "choiceId": 5,
+      "choiceText": "Stimme voll zu"
+    }
+  ]
+  

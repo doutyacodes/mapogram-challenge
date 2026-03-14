@@ -1,0 +1,23 @@
+[
+    {
+      "choiceId": 1,
+      "choiceText": "সম্পূৰ্ণ অসম্মত"
+    },
+    {
+      "choiceId": 2,
+      "choiceText": "অসম্মত"
+    },
+    {
+      "choiceId": 3,
+      "choiceText": "নিরপেক্ষ"
+    },
+    {
+      "choiceId": 4,
+      "choiceText": "একমত"
+    },
+    {
+      "choiceId": 5,
+      "choiceText": "সম্পূৰ্ণ একমত"
+    }
+  ]
+  

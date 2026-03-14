@@ -1,0 +1,62 @@
+[
+    {
+        "id": 1,
+        "question": "¿Qué actividad disfrutas más?",
+        "quiz_id": 1
+    },
+    {
+        "id": 2,
+        "question": "¿Cómo te sientes después de un largo día en la escuela?",
+        "quiz_id": 1
+    },
+    {
+        "id": 3,
+        "question": "Cuando conoces gente nueva, ¿normalmente...",
+        "quiz_id": 1
+    },
+    {
+        "id": 4,
+        "question": "Cuando haces un proyecto para la escuela, ¿prefieres...",
+        "quiz_id": 1
+    },
+    {
+        "id": 5,
+        "question": "¿A qué prestas atención cuando aprendes algo nuevo?",
+        "quiz_id": 1
+    },
+    {
+        "id": 6,
+        "question": "Cuando escuchas una historia, ¿te gusta cuando...",
+        "quiz_id": 1
+    },
+    {
+        "id": 7,
+        "question": "Al tomar decisiones, ¿qué es más importante para ti?",
+        "quiz_id": 1
+    },
+    {
+        "id": 8,
+        "question": "Si tienes que dar un consejo a un amigo, ¿normalmente...",
+        "quiz_id": 1
+    },
+    {
+        "id": 9,
+        "question": "Cuando resuelves un problema, ¿prefieres...",
+        "quiz_id": 1
+    },
+    {
+        "id": 10,
+        "question": "Cuando haces la tarea, ¿prefieres...",
+        "quiz_id": 1
+    },
+    {
+        "id": 11,
+        "question": "¿Cómo te sientes acerca de los horarios y rutinas?",
+        "quiz_id": 1
+    },
+    {
+        "id": 12,
+        "question": "Cuando vas de viaje o de vacaciones, ¿prefieres...",
+        "quiz_id": 1
+    }
+]

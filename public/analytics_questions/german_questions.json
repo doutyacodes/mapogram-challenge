@@ -1,0 +1,62 @@
+[
+    {
+        "id": 1,
+        "question": "Wenn Sie auf einer gesellschaftlichen Veranstaltung sind, tun Sie:",
+        "quiz_id": 1
+    },
+    {
+        "id": 2,
+        "question": "Wie verbringen Sie normalerweise Ihre Freizeit?",
+        "quiz_id": 1
+    },
+    {
+        "id": 3,
+        "question": "Denken Sie normalerweise laut nach oder verarbeiten Sie Ihre Gedanken intern?",
+        "quiz_id": 1
+    },
+    {
+        "id": 4,
+        "question": "Wenn Sie etwas Neues lernen, bevorzugen Sie:",
+        "quiz_id": 1
+    },
+    {
+        "id": 5,
+        "question": "In Ihrem Alltag, sind Sie eher geneigt zu:",
+        "quiz_id": 1
+    },
+    {
+        "id": 6,
+        "question": "Wenn Sie an ein Problem herangehen, neigen Sie dazu:",
+        "quiz_id": 1
+    },
+    {
+        "id": 7,
+        "question": "Bei Entscheidungen, priorisieren Sie:",
+        "quiz_id": 1
+    },
+    {
+        "id": 8,
+        "question": "Finden Sie es wichtiger zu sein:",
+        "quiz_id": 1
+    },
+    {
+        "id": 9,
+        "question": "In Konflikten, tun Sie:",
+        "quiz_id": 1
+    },
+    {
+        "id": 10,
+        "question": "Wenn es um die Planung geht, bevorzugen Sie:",
+        "quiz_id": 1
+    },
+    {
+        "id": 11,
+        "question": "Wie gehen Sie Aufgaben und Fristen an?",
+        "quiz_id": 1
+    },
+    {
+        "id": 12,
+        "question": "In Ihrem täglichen Leben, tun Sie:",
+        "quiz_id": 1
+    }
+]

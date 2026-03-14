@@ -1,0 +1,23 @@
+[
+    {
+      "choiceId": 1,
+      "choiceText": "Strongly Disagree"
+    },
+    {
+      "choiceId": 2,
+      "choiceText": "Disagree"
+    },
+    {
+      "choiceId": 3,
+      "choiceText": "Neutral"
+    },
+    {
+      "choiceId": 4,
+      "choiceText": "Agree"
+    },
+    {
+      "choiceId": 5,
+      "choiceText": "Strongly Agree"
+    }
+  ]
+  

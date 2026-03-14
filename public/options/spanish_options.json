@@ -1,0 +1,146 @@
+[
+    {
+        "id": 1,
+        "text": "¿Te sientes energizado al interactuar con muchas personas?",
+        "analytic_id": 1,
+        "question_id": 1
+    },
+    {
+        "id": 2,
+        "text": "¿Te sientes agotado después de un largo contacto social?",
+        "analytic_id": 2,
+        "question_id": 1
+    },
+    {
+        "id": 3,
+        "text": "Participar en actividades con amigos y familiares.",
+        "analytic_id": 1,
+        "question_id": 2
+    },
+    {
+        "id": 4,
+        "text": "Pasar tiempo solo o con un amigo cercano.",
+        "analytic_id": 2,
+        "question_id": 2
+    },
+    {
+        "id": 5,
+        "text": "Pensar en voz alta y discutir ideas con otros.",
+        "analytic_id": 1,
+        "question_id": 3
+    },
+    {
+        "id": 6,
+        "text": "Procesar internamente los pensamientos antes de compartirlos.",
+        "analytic_id": 2,
+        "question_id": 3
+    },
+    {
+        "id": 7,
+        "text": "Concentrarse en detalles y hechos.",
+        "analytic_id": 3,
+        "question_id": 4
+    },
+    {
+        "id": 8,
+        "text": "Comprender conceptos y teorías subyacentes.",
+        "analytic_id": 4,
+        "question_id": 4
+    },
+    {
+        "id": 9,
+        "text": "Concentrarse en lo que está sucediendo ahora y es realista.",
+        "analytic_id": 3,
+        "question_id": 5
+    },
+    {
+        "id": 10,
+        "text": "Reflexionar sobre posibilidades futuras y lo que podría ser.",
+        "analytic_id": 4,
+        "question_id": 5
+    },
+    {
+        "id": 11,
+        "text": "Confiar en experiencias pasadas y soluciones prácticas.",
+        "analytic_id": 3,
+        "question_id": 6
+    },
+    {
+        "id": 12,
+        "text": "Buscar nuevas ideas y soluciones innovadoras.",
+        "analytic_id": 4,
+        "question_id": 6
+    },
+    {
+        "id": 13,
+        "text": "Análisis lógico y criterios objetivos.",
+        "analytic_id": 5,
+        "question_id": 7
+    },
+    {
+        "id": 14,
+        "text": "Valores personales y el impacto en los demás.",
+        "analytic_id": 6,
+        "question_id": 7
+    },
+    {
+        "id": 15,
+        "text": "Ser firme y justo en tus juicios.",
+        "analytic_id": 5,
+        "question_id": 8
+    },
+    {
+        "id": 16,
+        "text": "Ser compasivo y considerado con los sentimientos de los demás.",
+        "analytic_id": 6,
+        "question_id": 8
+    },
+    {
+        "id": 17,
+        "text": "Centrarse en resolver el problema de manera lógica.",
+        "analytic_id": 5,
+        "question_id": 9
+    },
+    {
+        "id": 18,
+        "text": "Esforzarse por mantener la armonía y no herir a los demás.",
+        "analytic_id": 6,
+        "question_id": 9
+    },
+    {
+        "id": 19,
+        "text": "Tener un plan claro y ceñirse a él.",
+        "analytic_id": 7,
+        "question_id": 10
+    },
+    {
+        "id": 20,
+        "text": "Ser espontáneo y flexible con tus planes.",
+        "analytic_id": 8,
+        "question_id": 10
+    },
+    {
+        "id": 21,
+        "text": "Preferir hacer tareas con anticipación.",
+        "analytic_id": 7,
+        "question_id": 11
+    },
+    {
+        "id": 22,
+        "text": "Sentirse cómodo trabajando en el último minuto.",
+        "analytic_id": 8,
+        "question_id": 11
+    },
+    {
+        "id": 23,
+        "text": "Querer que las cosas estén decididas y finalizadas.",
+        "analytic_id": 7,
+        "question_id": 12
+    },
+    {
+        "id": 24,
+        "text": "Disfrutar de mantener las opciones abiertas y explorar nuevas posibilidades.",
+        "analytic_id": 8,
+        "question_id": 12
+    }
+]

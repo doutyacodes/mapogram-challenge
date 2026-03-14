@@ -1,0 +1,23 @@
+[
+    {
+      "choiceId": 1,
+      "choiceText": "पूर्णपणे असहमत"
+    },
+    {
+      "choiceId": 2,
+      "choiceText": "असहमत"
+    },
+    {
+      "choiceId": 3,
+      "choiceText": "तटस्थ"
+    },
+    {
+      "choiceId": 4,
+      "choiceText": "सहमत"
+    },
+    {
+      "choiceId": 5,
+      "choiceText": "पूर्णपणे सहमत"
+    }
+  ]
+  

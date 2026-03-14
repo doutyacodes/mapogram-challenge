@@ -1,0 +1,183 @@
+[
+    {
+      "id": 1,
+      "question_text": "مجھے اپنے ہاتھوں سے کام کرنا اور اوزاروں کا استعمال پسند ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 2,
+      "question_text": "مجھے گھر کی چیزوں کی مرمت اور درست کرنا پسند ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 3,
+      "question_text": "مجھے انڈور سرگرمیوں کے مقابلے میں آؤٹ ڈور سرگرمیاں پسند ہیں۔",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 4,
+      "question_text": "مجھے مشینری یا بھاری آلات چلانے میں دلچسپی ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 5,
+      "question_text": "مجھے تعمیر یا تعمیراتی سرگرمیوں میں دلچسپی ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 1
+    },
+    {
+      "id": 6,
+      "question_text": "مجھے پیچیدہ مسائل اور پہیلیاں حل کرنا پسند ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 7,
+      "question_text": "مجھے سائنسی نظریات اور اصولوں کے بارے میں سیکھنے میں دلچسپی ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 8,
+      "question_text": "مجھے تحقیقی منصوبوں یا تجربات پر کام کرنا پسند ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 9,
+      "question_text": "مجھے یہ جاننے کا تجسس ہے کہ چیزیں کیسے کام کرتی ہیں اور کیوں ہوتی ہیں۔",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 10,
+      "question_text": "مجھے وہ کام پسند ہیں جن میں تنقیدی سوچ اور تجزیہ کی ضرورت ہو۔",
+      "quiz_id": 2,
+      "personality_types_id": 2
+    },
+    {
+      "id": 11,
+      "question_text": "مجھے فن، موسیقی یا لکھنا پسند ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 12,
+      "question_text": "مجھے پرفارمنگ آرٹس جیسے اداکاری یا رقص میں دلچسپی ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 13,
+      "question_text": "مجھے مختلف تخلیقی طریقوں سے اپنا اظہار کرنا پسند ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 14,
+      "question_text": "مجھے مختلف ثقافتوں اور فنکارانہ طرزوں کی دریافت پسند ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 15,
+      "question_text": "مجھے ایسی سرگرمیاں پسند ہیں جو مجھے اپنی تخیل استعمال کرنے کی اجازت دیتی ہیں۔",
+      "quiz_id": 2,
+      "personality_types_id": 3
+    },
+    {
+      "id": 16,
+      "question_text": "مجھے دوسروں کی مدد کرنا اور ان کی زندگی میں فرق ڈالنا پسند ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 17,
+      "question_text": "مجھے دوسروں کو سکھانے یا رہنمائی کرنے میں دلچسپی ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 18,
+      "question_text": "مجھے ٹیموں میں کام کرنا اور دوسروں کے ساتھ تعاون کرنا پسند ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 19,
+      "question_text": "میں ہمدرد ہوں اور لوگوں کی پریشانیوں کو سننا پسند کرتا ہوں۔",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 20,
+      "question_text": "مجھے ایسی سرگرمیاں پسند ہیں جن میں لوگوں سے بات چیت کرنا اور ان کو تعاون دینا شامل ہو۔",
+      "quiz_id": 2,
+      "personality_types_id": 4
+    },
+    {
+      "id": 21,
+      "question_text": "مجھے منصوبوں کی قیادت کرنا اور دوسروں کو تحریک دینا پسند ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 22,
+      "question_text": "مجھے اپنا کاروبار یا وینچر شروع کرنے میں دلچسپی ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 23,
+      "question_text": "مجھے دوسروں کو اپنی نقطہ نظر سے قائل کرنا پسند ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 24,
+      "question_text": "میں مقابلہ پسند ہوں اور اہداف مقرر کرنے اور حاصل کرنے میں لطف اندوز ہوتا ہوں۔",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 25,
+      "question_text": "مجھے ایسی سرگرمیاں پسند ہیں جن میں فروخت، تشہیر یا مذاکرات شامل ہوں۔",
+      "quiz_id": 2,
+      "personality_types_id": 5
+    },
+    {
+      "id": 26,
+      "question_text": "مجھے معلومات کو منظم اور درجہ بندی کرنا پسند ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    },
+    {
+      "id": 27,
+      "question_text": "مجھے نمبروں، ڈیٹا یا شماریات کے ساتھ کام کرنے میں دلچسپی ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    },
+    {
+      "id": 28,
+      "question_text": "مجھے قائم شدہ طریقہ کار اور رہنما خطوط کی پیروی کرنا پسند ہے۔",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    },
+    {
+      "id": 29,
+      "question_text": "میں تفصیل پر مبنی ہوں اور مجھے ایسے کام پسند ہیں جن میں درستگی اور احتیاط کی ضرورت ہو۔",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    },
+    {
+      "id": 30,
+      "question_text": "مجھے منصوبہ بندی، شیڈولنگ یا ریکارڈ کیپنگ سے متعلق سرگرمیاں پسند ہیں۔",
+      "quiz_id": 2,
+      "personality_types_id": 6
+    }
+  ]
+  

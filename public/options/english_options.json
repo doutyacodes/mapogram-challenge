@@ -1,0 +1,146 @@
+[
+    {
+        "id": 1,
+        "text": "Feel energized by interacting with many people.",
+        "analytic_id": 1,
+        "question_id": 1
+    },
+    {
+        "id": 2,
+        "text": "Feel drained after socializing for a long time.",
+        "analytic_id": 2,
+        "question_id": 1
+    },
+    {
+        "id": 3,
+        "text": "Engaging in activities with friends and family.",
+        "analytic_id": 1,
+        "question_id": 2
+    },
+    {
+        "id": 4,
+        "text": "Spending time alone or with a close friend.",
+        "analytic_id": 2,
+        "question_id": 2
+    },
+    {
+        "id": 5,
+        "text": "Think out loud and discuss ideas with others.",
+        "analytic_id": 1,
+        "question_id": 3
+    },
+    {
+        "id": 6,
+        "text": "Process thoughts internally before sharing.",
+        "analytic_id": 2,
+        "question_id": 3
+    },
+    {
+        "id": 7,
+        "text": "Focusing on the details and facts.",
+        "analytic_id": 3,
+        "question_id": 4
+    },
+    {
+        "id": 8,
+        "text": "Understanding underlying concepts and theories.",
+        "analytic_id": 4,
+        "question_id": 4
+    },
+    {
+        "id": 9,
+        "text": "Focus on what is happening now and what is realistic.",
+        "analytic_id": 3,
+        "question_id": 5
+    },
+    {
+        "id": 10,
+        "text": "Think about future possibilities and what could be.",
+        "analytic_id": 4,
+        "question_id": 5
+    },
+    {
+        "id": 11,
+        "text": "Rely on past experiences and practical solutions.",
+        "analytic_id": 3,
+        "question_id": 6
+    },
+    {
+        "id": 12,
+        "text": "Look for new ideas and innovative solutions.",
+        "analytic_id": 4,
+        "question_id": 6
+    },
+    {
+        "id": 13,
+        "text": "Logical analysis and objective criteria.",
+        "analytic_id": 5,
+        "question_id": 7
+    },
+    {
+        "id": 14,
+        "text": "Personal values and the impact on others.",
+        "analytic_id": 6,
+        "question_id": 7
+    },
+    {
+        "id": 15,
+        "text": "Firm and fair in your judgments.",
+        "analytic_id": 5,
+        "question_id": 8
+    },
+    {
+        "id": 16,
+        "text": "Compassionate and considerate of people's feelings.",
+        "analytic_id": 6,
+        "question_id": 8
+    },
+    {
+        "id": 17,
+        "text": "Focus on resolving the issue logically.",
+        "analytic_id": 5,
+        "question_id": 9
+    },
+    {
+        "id": 18,
+        "text": "Aim to maintain harmony and avoid hurting others.",
+        "analytic_id": 6,
+        "question_id": 9
+    },
+    {
+        "id": 19,
+        "text": "Having a clear plan and sticking to it.",
+        "analytic_id": 7,
+        "question_id": 10
+    },
+    {
+        "id": 20,
+        "text": "Being spontaneous and flexible with your plans.",
+        "analytic_id": 8,
+        "question_id": 10
+    },
+    {
+        "id": 21,
+        "text": "Prefer to complete tasks ahead of time.",
+        "analytic_id": 7,
+        "question_id": 11
+    },
+    {
+        "id": 22,
+        "text": "Feel comfortable working close to the deadline.",
+        "analytic_id": 8,
+        "question_id": 11
+    },
+    {
+        "id": 23,
+        "text": "Like to have things decided and settled.",
+        "analytic_id": 7,
+        "question_id": 12
+    },
+    {
+        "id": 24,
+        "text": "Enjoy keeping options open and exploring new opportunities.",
+        "analytic_id": 8,
+        "question_id": 12
+    }
+]

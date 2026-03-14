@@ -1,0 +1,179 @@
+[
+    {
+      "id": 1,
+      "type_sequence": "ISTJ",
+      "description": "Dein Persönlichkeitstyp wird durch deine praktische, faktenorientierte und zuverlässige Natur definiert. Du bist sehr genau, blühst in strukturierten Umgebungen auf und bist bekannt für deinen methodischen Ansatz in Leben und Arbeit. Du bist introvertiert und verbringst lieber Zeit allein oder in der Gesellschaft enger Freunde oder Familie anstatt in großen Gruppen. Deine Entscheidungen basieren auf konkreten Fakten und logischer Argumentation, was dich in der Planung und Organisation hervorragend macht. Am Arbeitsplatz wirst du als verlässlicher Mitarbeiter gesehen, der seine Verpflichtungen einhält und sicherstellt, dass Projekte pünktlich und genau abgeschlossen werden. Du schätzt Tradition und hältst dich oft an etablierte Verfahren, was dazu führen kann, dass du von anderen als starr oder unflexibel wahrgenommen wirst. Diese Strukturtreue ermöglicht es dir jedoch, in Berufen zu glänzen, die Präzision und Detailgenauigkeit erfordern, wie z.B. Buchhaltung, Ingenieurwesen oder Datenanalyse. In deinem Privatleben bist du ein loyaler und engagierter Partner, der Stabilität und Beständigkeit in Beziehungen schätzt. Du hast möglicherweise Schwierigkeiten, deine Emotionen auszudrücken, da du dazu neigst, Logik über Gefühle zu stellen, aber deine Handlungen sprechen oft lauter als Worte. Insgesamt ist dein Persönlichkeitstyp durch ein starkes Pflichtbewusstsein, Verantwortungsbewusstsein und Zuverlässigkeit gekennzeichnet, was dich zu einem Grundpfeiler jeder Gemeinschaft macht.",
+      "strengths": "Zuverlässig und verantwortungsbewusst, Organisiert, Praktisch, Detailorientiert, Loyal",
+      "weaknesses": "Unflexibel, Überkritisch, Reserviert, Stur",
+      "opportunities": "Führungsrollen, Projektmanagement, Spezialisierte Berufe, Beratung",
+      "threats": "Widerstand gegen Veränderungen, Probleme beim Work-Life-Balance, Konflikte mit anderen",
+      "most_suitable_careers": "Buchhalter, Ingenieur, Projektmanager, Datenanalyst, Anwalt, Administrator, Prüfer",
+      "least_suitable_careers": "Kreativdirektor, Verkäufer, Sozialarbeiter, PR-Spezialist"
+    },
+    {
+      "id": 2,
+      "type_sequence": "ISFJ",
+      "description": "Dein Persönlichkeitstyp zeichnet sich durch deine warme, fürsorgliche und bedachte Natur aus. Du bist tief engagiert, anderen zu helfen, und gehst oft über deine eigenen Bedürfnisse hinaus, um das Wohl der Menschen um dich herum zu gewährleisten. Als introvertierte Person bist du eher zurückhaltend und privat und bevorzugst es, tiefe Verbindungen zu wenigen engen Freunden aufzubauen, anstatt einen großen Freundeskreis zu haben. Du bist sehr aufmerksam für die Bedürfnisse und Gefühle anderer und stellst oft das Wohl anderer über dein eigenes. Das macht dich zu einem ausgezeichneten Betreuer und unterstützenden Freund. Du bist praktisch und detailorientiert, mit einem starken Pflicht- und Verantwortungsbewusstsein. In Berufen, die ein hohes Maß an Detailtreue und Struktur erfordern, wie in der Krankenpflege, im Lehramt oder in der Verwaltung, glänzt du besonders.",
+      "strengths": "Mitfühlend und fürsorglich, Detailorientiert, Zuverlässig und verantwortungsbewusst, Organisiert, Loyal",
+      "weaknesses": "Zu selbstaufopfernd, Schwierigkeiten mit Veränderungen, Konflikte vermeidend, Kann Schwierigkeiten haben, eigene Bedürfnisse zu äußern",
+      "opportunities": "Pflegeberufe, Administrative Tätigkeiten, Gemeinnützige Arbeit, Unterstützungstätigkeiten",
+      "threats": "Gefahr des Burnouts durch Überlastung, Schwierigkeiten, sich an plötzliche Veränderungen anzupassen, Gefahr, ausgenutzt zu werden",
+      "most_suitable_careers": "Krankenpfleger, Lehrer, Sozialarbeiter, Berater, Bibliothekar, Verwaltungsassistent, Kundenservicemitarbeiter",
+      "least_suitable_careers": "Unternehmer, Hochdruck-Vertriebsrollen"
+    },
+    {
+      "id": 3,
+      "type_sequence": "INFJ",
+      "description": "Du bist bekannt für deine tiefen Einsichten und starke Empathie. Du hast eine einzigartige Fähigkeit, die Emotionen und Motivationen anderer zu verstehen und dich mit ihnen zu verbinden, was dich oft zu einer Quelle des Trostes und der Orientierung für deine Mitmenschen macht. Als introvertierte Person bist du nachdenklich und zurückhaltend, bevorzugst es, Zeit in der Reflexion oder in bedeutungsvollen Gesprächen mit wenigen engen Freunden zu verbringen. Du bist sehr intuitiv und vertraust auf dein Bauchgefühl, um durch das Leben zu navigieren. Berufe, die es dir ermöglichen, einen positiven Einfluss auf andere zu haben, wie Beratung, Sozialarbeit oder Schreiben, ziehen dich oft an.",
+      "strengths": "Einsichtig und intuitiv, Mitfühlend und fürsorglich, Idealistisch und prinzipientreu, Starkes Pflichtbewusstsein",
+      "weaknesses": "Zu idealistisch, Kann zurückhaltend und privat sein, Perfektionistisch, Schwierigkeiten, Grenzen zu setzen",
+      "opportunities": "Beratung und psychische Gesundheit, Kreative und künstlerische Berufe, Gemeinnützige Arbeit",
+      "threats": "Burnout durch Überforderung, Schwierigkeiten bei der Bewältigung von Konflikten",
+      "most_suitable_careers": "Berater, Schriftsteller, Sozialarbeiter, Gemeinnütziger Organisator, Lehrer, Kreativdirektor",
+      "least_suitable_careers": "Hochdruck-Vertriebsrollen, Hoch strukturierte oder repetitive Berufe"
+    },
+    {
+      "id": 4,
+      "type_sequence": "INTJ",
+      "description": "Du bist bekannt für deine analytische, strategische und unabhängige Natur. Du bist sehr intellektuell und angetrieben von dem Wunsch, komplexe Systeme und Ideen zu verstehen und zu meistern. Als introvertierte Person bist du eher zurückhaltend und introspektiv und bevorzugst es, Zeit allein oder in der Gesellschaft einiger weniger enger Freunde zu verbringen. Du bist sehr intuitiv und verlässt dich auf deine Einsichten und Instinkte, um deine Entscheidungen zu leiten. Berufe, die strategisches Denken und Problemlösung erfordern, wie Ingenieurwesen, Wissenschaft oder Wirtschaft, ziehen dich oft an.",
+      "strengths": "Strategisch und zukunftsorientiert, Unabhängig und selbstständig, Hoch analytisch und problemlösend",
+      "weaknesses": "Kann distanziert oder reserviert wirken, Schwierigkeiten mit zwischenmenschlichen Beziehungen, Kann zu kritisch oder anspruchsvoll sein",
+      "opportunities": "Führungs- und strategische Rollen, Forschung und Entwicklung",
+      "threats": "Gefahr des Burnouts durch Überarbeitung, Konflikte aufgrund hoher Standards und Kritik",
+      "most_suitable_careers": "Ingenieur, Wissenschaftler, Strategieberater",
+      "least_suitable_careers": "Kundendienst oder Support-Rollen, Vertriebsrollen mit intensiver persönlicher Interaktion"
+    },
+    {
+      "id": 5,
+      "type_sequence": "ISTP",
+      "description": "Du zeichnest dich durch deinen praktischen, lösungsorientierten Ansatz aus. Du bist sehr beobachtend und analytisch, konzentrierst dich darauf, zu verstehen, wie Dinge funktionieren. Als introvertierte Person bist du eher reserviert und unabhängig und bevorzugst es, Zeit allein oder mit einigen wenigen engen Freunden zu verbringen. Du bist hochqualifiziert in der Problemlösung und wirst oft von Berufen angezogen, die technisches Fachwissen und praktische Fähigkeiten erfordern, wie Mechanik, Ingenieurwesen oder Bauwesen.",
+      "strengths": "Praktisch und handlungsorientiert, Hervorragende Problemlösungsfähigkeiten, Anpassungsfähig und flexibel, Unabhängig und selbstständig",
+      "weaknesses": "Kann zurückhaltend oder distanziert sein, Schwierigkeiten bei der langfristigen Planung, Kann emotionale Gespräche meiden",
+      "opportunities": "Berufe, die technisches Können und Problemlösung erfordern, Karrieren mit Flexibilität und Vielfalt",
+      "threats": "Gefahr der Langeweile bei repetitiven Aufgaben, Konflikte in stark strukturierten Umgebungen",
+      "most_suitable_careers": "Mechaniker oder Techniker, Ingenieur, Architekt, Notfallhelfer (z.B. Feuerwehrmann, Sanitäter)",
+      "least_suitable_careers": "Berufe mit hohen emotionalen Anforderungen"
+    },
+    {
+      "id": 6,
+      "type_sequence": "ISFP",
+      "description": "Du bist bekannt für deine sanfte, sensible und kreative Natur. Du bist sehr feinfühlig gegenüber der Welt um dich herum und hast eine tiefe Wertschätzung für Schönheit und Ästhetik. Als introvertierte Person bist du eher zurückhaltend und privat und bevorzugst es, Zeit allein oder im Kreis deiner Familie oder enger Freunde zu verbringen. Du bist sehr empathisch und mitfühlend und stellst oft die Bedürfnisse anderer über deine eigenen. Berufe, die dir die Möglichkeit geben, deine Kreativität und künstlerischen Talente auszudrücken, ziehen dich oft an.",
+      "strengths": "Kreativ und künstlerisch, Mitfühlend und empathisch, Flexibel und anpassungsfähig",
+      "weaknesses": "Kann Konflikte oder schwierige Gespräche vermeiden, Zu sensibel für Kritik",
+      "opportunities": "Berufe, die kreative Ausdrucksmöglichkeiten bieten, Rollen in dynamischen und flexiblen Umgebungen",
+      "threats": "Gefahr, von starren Strukturen überwältigt zu werden",
+      "most_suitable_careers": "Künstler oder Designer, Musiker oder Darsteller, Sozialarbeiter oder Berater",
+      "least_suitable_careers": "Hochdruck-Vertriebsrollen, Berufe mit strengen Zeitplänen"
+    },
+    {
+      "id": 7,
+      "type_sequence": "INFP",
+      "description": "Du bist bekannt für deine tiefe Empathie, Kreativität und starken Werte. Du wirst von dem Wunsch getrieben, dich selbst und andere zu verstehen und suchst oft nach Sinn und Zweck in deinem Leben. Als introvertierte Person bist du nachdenklich und zurückhaltend und bevorzugst es, Zeit in der Reflexion oder in bedeutungsvollen Gesprächen mit engen Freunden zu verbringen. Du bist sehr intuitiv und verlässt dich auf deine innere Weisheit, um deine Entscheidungen zu treffen.",
+      "strengths": "Idealistisch und kreativ, Empathisch und mitfühlend, Starkes persönliches Wertesystem",
+      "weaknesses": "Kann zu idealistisch oder unrealistisch sein, Schwierigkeiten bei praktischen Angelegenheiten und Organisation",
+      "opportunities": "Karrieren, die kreativen Ausdruck und persönliches Wachstum ermöglichen",
+      "threats": "Gefahr des Burnouts durch Überverpflichtung",
+      "most_suitable_careers": "Schriftsteller, Künstler, Berater, Sozialarbeiter",
+      "least_suitable_careers": "Hochdruck-Vertriebsrollen"
+    },
+    {
+      "id": 8,
+      "type_sequence": "INTP",
+      "description": "Du zeichnest dich durch deine analytische, neugierige und erfinderische Natur aus. Du bist sehr intellektuell und angetrieben von dem Wunsch, komplexe Systeme und Ideen zu verstehen und zu meistern. Als introvertierte Person bist du eher zurückhaltend und introspektiv und bevorzugst es, Zeit allein oder mit engen Freunden zu verbringen. Du bist sehr intuitiv und vertraust auf deine Wahrnehmungen und Einsichten, um deine Entscheidungen zu treffen.",
+      "strengths": "Analytisch und logisch, Innovativ und kreativ",
+      "weaknesses": "Kann Schwierigkeiten mit praktischen Details und Durchhaltevermögen haben",
+      "opportunities": "Forschung und Entwicklung",
+      "threats": "Gefahr, von praktischen oder alltäglichen Aufgaben überwältigt zu werden",
+      "most_suitable_careers": "Wissenschaftler, Softwareentwickler, Ingenieur",
+      "least_suitable_careers": "Hochdruck-Vertriebsrollen"
+    },
+    {
+      "id": 9,
+      "type_sequence": "ESTP",
+      "description": "Du bist bekannt für deine energiegeladene, abenteuerliche und spontane Natur. Du bist sehr aufmerksam und analytisch und konzentrierst dich darauf, zu verstehen, wie Dinge funktionieren. Als Extrovertierter bist du gesellig und genießt dynamische Aktivitäten. Du bist ein problemlösender Typ und wirst oft von Karrieren angezogen, die technisches Fachwissen und praktische Fähigkeiten erfordern.",
+      "strengths": "Energiegeladen, Schnelle Problemlösung, Flexibel und praktisch",
+      "weaknesses": "Impulsiv, Schwierigkeiten bei langfristiger Planung",
+      "opportunities": "Rollen, die schnelle Entscheidungen und praktisches Arbeiten erfordern",
+      "threats": "Gefahr des Burnouts in stressigen Situationen",
+      "most_suitable_careers": "Notfallhelfer, Vertriebsmitarbeiter, Unternehmer",
+      "least_suitable_careers": "Rollen mit hohen emotionalen Anforderungen"
+    },
+    {
+      "id": 10,
+      "type_sequence": "ESFP",
+      "description": "Du zeichnest dich durch deine energiegeladene, spontane und gesellige Natur aus. Oft stehst du im Mittelpunkt und bringst Freude in dein Umfeld. Du genießt kreative und soziale Interaktionen, was dich ideal für künstlerische oder veranstaltungsbezogene Karrieren macht.",
+      "strengths": "Energiegeladen, Sehr gesellig, Empathisch und verständnisvoll",
+      "weaknesses": "Impulsiv, Schwierigkeiten bei langfristiger Planung",
+      "opportunities": "Karrieren, die soziale Interaktion und Kreativität erfordern",
+      "threats": "Gefahr des Burnouts durch zu viele Aktivitäten",
+      "most_suitable_careers": "Veranstaltungsplaner, Künstler, Sozialarbeiter",
+      "least_suitable_careers": "Technische oder analytische Berufe"
+    },
+    {
+      "id": 11,
+      "type_sequence": "ENFP",
+      "description": "Du bist bekannt für deine begeisterte, kreative und gesellige Natur. Du wirst von dem Wunsch angetrieben, dich mit anderen zu verbinden und neue Ideen zu erkunden. Du bist kreativ im Lösen von Problemen und im Aufbau von Beziehungen.",
+      "strengths": "Kreativ, Empathisch, Hervorragende Kommunikationsfähigkeiten",
+      "weaknesses": "Leicht ablenkbar, Schwierigkeiten mit Routine",
+      "opportunities": "Karrieren, die Innovation und persönliches Wachstum ermöglichen",
+      "threats": "Gefahr des Burnouts durch zu viele Verantwortungen",
+      "most_suitable_careers": "Kreativdirektor, Schriftsteller, Berater",
+      "least_suitable_careers": "Hoch strukturierte oder repetitive Berufe"
+    },
+    {
+      "id": 12,
+      "type_sequence": "ENTP",
+      "description": "Du zeichnest dich durch deine analytische, neugierige und erfinderische Natur aus. Du bist gesellig und diskutierst gerne Ideen. Strategische Rollen, die Innovation und Problemlösung erfordern, ziehen dich oft an.",
+      "strengths": "Innovativ, Problemlösungsfähig, Charismatisch",
+      "weaknesses": "Leicht ablenkbar, Kann routinemäßige Aufgaben vermeiden",
+      "opportunities": "Karrieren, die strategisches Denken erfordern",
+      "threats": "Gefahr des Burnouts durch zu viele Projekte",
+      "most_suitable_careers": "Unternehmer, Strategieberater",
+      "least_suitable_careers": "Hoch strukturierte Berufe"
+    },
+    {
+      "id": 13,
+      "type_sequence": "ESTJ",
+      "description": "Du bist bekannt für deine organisierte, praktische und entschlossene Natur. Du bist logisch und angetrieben von dem Wunsch, Ordnung in dein Leben zu bringen. Du glänzt in Führungs- und Managementrollen.",
+      "strengths": "Organisiert, Starke Führung, Effizient",
+      "weaknesses": "Kann als starr oder unflexibel wahrgenommen werden",
+      "opportunities": "Führungs- und Planungsrollen",
+      "threats": "Gefahr des Burnouts in stressigen Umgebungen",
+      "most_suitable_careers": "Manager, Betriebsleiter, Militärischer Offizier",
+      "least_suitable_careers": "Rollen mit viel Flexibilität"
+    },
+    {
+      "id": 14,
+      "type_sequence": "ESFJ",
+      "description": "Du zeichnest dich durch deine warme, mitfühlende und gesellige Natur aus. Du bist sehr empathisch und angetrieben von dem Wunsch, anderen zu helfen. Du glänzt in Rollen, die zwischenmenschliche Fähigkeiten erfordern.",
+      "strengths": "Mitfühlend, Hervorragende zwischenmenschliche Fähigkeiten, Zuverlässig",
+      "weaknesses": "Schwierigkeiten mit Kritik oder Konflikten",
+      "opportunities": "Karrieren, die anderen helfen",
+      "threats": "Gefahr des Burnouts durch zu viel Verantwortung",
+      "most_suitable_careers": "Krankenschwester, Sozialarbeiter, Veranstaltungsplaner",
+      "least_suitable_careers": "Technische oder analytische Berufe"
+    },
+    {
+      "id": 15,
+      "type_sequence": "ENFJ",
+      "description": "Du bist bekannt für deine charismatische, mitfühlende und inspirierende Natur. Du wirst von dem Wunsch angetrieben, Verbindungen zu anderen herzustellen und einen positiven Einfluss zu haben. Du glänzt in Führungsrollen und dabei, anderen zu helfen.",
+      "strengths": "Charismatisch, Empathisch, Hervorragende Führungskraft",
+      "weaknesses": "Zu idealistisch, Neigung, zu viele Verantwortungen zu übernehmen",
+      "opportunities": "Führungs- und Teammanagementrollen",
+      "threats": "Gefahr des Burnouts durch Überforderung",
+      "most_suitable_careers": "Berater, Non-Profit-Direktor, Veranstaltungsplaner",
+      "least_suitable_careers": "Rollen mit wenig sozialer Interaktion"
+    },
+    {
+      "id": 16,
+      "type_sequence": "ENTJ",
+      "description": "Du zeichnest dich durch deine analytische, strategische und entschlossene Natur aus. Du bist sehr intellektuell und interessierst dich für Führungs- und Planungsrollen.",
+      "strengths": "Starke Führung, Visionär, Effizient",
+      "weaknesses": "Kann als dominant oder zu aggressiv wahrgenommen werden",
+      "opportunities": "Karrieren im Bereich Führung und strategische Planung",
+      "threats": "Gefahr des Burnouts in stressigen Rollen",
+      "most_suitable_careers": "CEO, Strategieberater",
+      "least_suitable_careers": "Rollen mit wenig Flexibilität"
+    }
+  ]
+  
