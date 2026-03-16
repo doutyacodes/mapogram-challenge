@@ -1800,15 +1800,43 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                   >
                     <X size={14} />
                   </button>
-                  <div className="h-24 w-full relative">
+                  <div className="h-28 w-full relative">
                     <img src={markerData.image} alt={markerData.title} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                    
+                    {/* Category Badge */}
+                    <div className={`absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold text-white shadow-lg backdrop-blur-md border border-white/20 ${
+                      markerData.id.startsWith('c_') ? 'bg-orange-500/80' :
+                      markerData.id.startsWith('p_') ? 'bg-green-500/80' :
+                      markerData.id.startsWith('f_') ? 'bg-red-500/80' :
+                      markerData.id.startsWith('a_') ? 'bg-cyan-500/80' :
+                      markerData.id.startsWith('e_') ? 'bg-violet-500/80' : 'bg-gray-500/80'
+                    }`}>
+                      {markerData.id.startsWith('c_') ? <Target size={12} /> :
+                       markerData.id.startsWith('p_') ? <MapPin size={12} /> :
+                       markerData.id.startsWith('f_') ? <Utensils size={12} /> :
+                       markerData.id.startsWith('a_') ? <Activity size={12} /> :
+                       markerData.id.startsWith('e_') ? <Calendar size={12} /> : null}
+                      <span className="uppercase tracking-wider">
+                        {markerData.id.startsWith('c_') ? 'Challenge' :
+                         markerData.id.startsWith('p_') ? 'Place' :
+                         markerData.id.startsWith('f_') ? 'Food' :
+                         markerData.id.startsWith('a_') ? 'Activity' :
+                         markerData.id.startsWith('e_') ? 'Event' : ''}
+                      </span>
+                    </div>
+
                     <div className="absolute bottom-2 left-2 bg-white/90 text-yellow-600 px-2 py-0.5 rounded text-xs font-bold flex items-center gap-1 shadow-sm">
                       <Star size={10} fill="currentColor" /> {markerData.points} pts
                     </div>
                   </div>
                   <div className="p-3">
                     <h3 className="font-bold text-gray-800 text-sm mb-1 leading-tight">{markerData.title}</h3>
+                    {markerData.price && (
+                      <p className="text-sm font-black text-green-600 mb-1 flex items-center gap-1">
+                        {markerData.price}
+                      </p>
+                    )}
                     {markerData.hours && (
                       <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
                         <Clock size={10}/> {markerData.hours}

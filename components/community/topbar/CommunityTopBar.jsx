@@ -169,8 +169,8 @@ export default function CommunityTopBar() {
           {/* Left Section - Community Info */}
           <div className="flex items-center space-x-3">
             {/* Avatar */}
-            <div className="relative">
-              <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center overflow-hidden">
+            <div className="relative flex-shrink-0">
+              <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center overflow-hidden">
                 {communityData?.image_url ? (
                   <img 
                     src={
@@ -182,7 +182,7 @@ export default function CommunityTopBar() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className={`text-lg md:text-xl font-bold ${themeConfig.text}`}>
+                  <span className={`text-base md:text-xl font-bold ${themeConfig.text}`}>
                     {getInitials(communityData?.name)}
                   </span>
                 )}
@@ -190,63 +190,63 @@ export default function CommunityTopBar() {
             </div>
 
             {/* Name and Info */}
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-0">
               <div className="flex items-center">
-                <h1 className={`text-lg md:text-xl font-bold ${themeConfig.text}`}>
+                <h1 className={`text-base md:text-xl font-bold ${themeConfig.text} truncate`}>
                   {communityData?.name || 'Community'}
                 </h1>
-                {getRoleBadge()}
+                <div className="hidden sm:flex">{getRoleBadge()}</div>
               </div>
-              <span className={`${themeConfig.text} opacity-80 text-xs md:text-sm`}>
+              <span className={`${themeConfig.text} opacity-80 text-[10px] md:text-sm hidden sm:inline`}>
                 {communityData?.community_type_name || 'Community'}
                 {isOwner && ' • You'}
               </span>
+              {/* Show role badge on mobile instead of full info */}
+              <div className="sm:hidden -mt-0.5">{getRoleBadge()}</div>
             </div>
           </div>
 
           {/* Right Section - Action Buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 md:gap-3">
             {/* Community Management Dropdown - Show for owners/moderators */}
-            {/* {(isOwner || isModerator) && ( */}
-              <CommunityManagementDropdown
-                selectedCommunity={communityData}
-                onCreateCommunity={() => {}} // You can keep this or remove if not needed
-                className="text-white"
-              />
-            {/* )} */}
+            <CommunityManagementDropdown
+              selectedCommunity={communityData}
+              onCreateCommunity={() => {}}
+              className="text-white"
+            />
 
             {/* Create Post / Report Issue Button */}
             {isInfrastructureCommunity ? (
               <button
                 onClick={() => setIsIssueModalOpen(true)}
-                className="flex items-center gap-2 px-3 py-2 bg-red-500 hover:bg-red-600 rounded-full transition-all duration-200 border border-red-600 hover:border-red-700 shadow-lg hover:shadow-xl"
+                className="flex items-center justify-center w-9 h-9 sm:w-auto sm:px-3 sm:py-2 bg-red-500 hover:bg-red-600 rounded-full transition-all duration-200 border border-red-600 hover:border-red-700 shadow-lg"
               >
                 <AlertTriangle className="w-4 h-4 text-white" />
-                <span className="text-white font-medium text-sm hidden sm:inline">
+                <span className="text-white font-medium text-sm hidden sm:inline ml-2">
                   Report Issue
                 </span>
-                <Plus className="w-4 h-4 text-white" />
+                <Plus className="w-3.5 h-3.5 text-white sm:ml-1" />
               </button>
             ) : (
               <button
                 onClick={() => setShowPostModal(true)}
-                className="flex items-center gap-2 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-full transition-all duration-200 border border-white/30 hover:border-white/40 backdrop-blur-sm"
+                className="flex items-center justify-center w-9 h-9 sm:w-auto sm:px-3 sm:py-2 bg-white/20 hover:bg-white/30 rounded-full transition-all duration-200 border border-white/30 backdrop-blur-sm"
               >
                 <FileText className="w-4 h-4 text-white" />
-                <span className="text-white font-medium text-sm hidden sm:inline">
+                <span className="text-white font-medium text-sm hidden sm:inline ml-2">
                   Create Post
                 </span>
-                <Plus className="w-4 h-4 text-white" />
+                <Plus className="w-3.5 h-3.5 text-white sm:ml-1" />
               </button>
             )}
 
             {/* Members Count */}
-            <div className="flex items-center gap-2 px-3 py-2 bg-white/20 rounded-full backdrop-blur-sm">
-              <Users className="w-4 h-4 text-white" />
-              <span className={`font-bold text-sm md:text-base ${themeConfig.text}`}>
+            <div className="flex items-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 bg-white/20 rounded-full backdrop-blur-sm">
+              <Users className="w-3.5 h-3.5 text-white" />
+              <span className={`font-bold text-xs sm:text-base ${themeConfig.text}`}>
                 {membersCount}
               </span>
-              <span className={`${themeConfig.text} opacity-80 text-xs md:text-sm hidden md:inline`}>
+              <span className={`${themeConfig.text} opacity-80 text-xs hidden md:inline`}>
                 Members
               </span>
             </div>
