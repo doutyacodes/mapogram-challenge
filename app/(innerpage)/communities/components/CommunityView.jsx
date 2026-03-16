@@ -12,10 +12,11 @@ import {
     X,
     Briefcase,
     FileText,
-    Calendar,
     AlertTriangle,
     Target,
     Utensils,
+    Activity,
+    Calendar,
     Star,
     Clock
 } from "lucide-react";
@@ -356,6 +357,8 @@ export default function CommunityView({ infrastructureId, isOwner }) {
   // Static State Community functionality
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [selectedStateCategory, setSelectedStateCategory] = useState(null); // 'Challenges', 'Places', 'Food'
+  const [isDistrictFilterOpen, setIsDistrictFilterOpen] = useState(false);
+  const [districtSearchQuery, setDistrictSearchQuery] = useState("");
 
   const [countryCenter, setCountryCenter] = useState(center);
 
@@ -456,6 +459,12 @@ export default function CommunityView({ infrastructureId, isOwner }) {
     } else if (category === 'Food') {
       color = '#ef4444'; // red
       path = '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>';
+    } else if (category === 'Activity') {
+      color = '#06b6d4'; // cyan
+      path = '<path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>';
+    } else if (category === 'Events') {
+      color = '#8b5cf6'; // violet
+      path = '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>';
     }
 
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="${isSelected ? 48 : 36}" height="${isSelected ? 48 : 36}">
@@ -493,7 +502,16 @@ export default function CommunityView({ infrastructureId, isOwner }) {
         const centerLng = (minLng + maxLng) / 2;
         
         const distData = stateData[distName] || {};
-        const categoriesToShow = selectedStateCategory ? [selectedStateCategory] : ['Challenges', 'Places', 'Food'];
+        
+        // Define which categories to show based on district selection
+        let categoriesToShow = [];
+        if (selectedStateCategory) {
+          categoriesToShow = [selectedStateCategory];
+        } else if (selectedDistrict) {
+          categoriesToShow = ['Challenges', 'Places', 'Food', 'Activity', 'Events'];
+        } else {
+          categoriesToShow = ['Challenges']; // default to challenges statewide
+        }
         
         categoriesToShow.forEach((cat, catIdx) => {
           const items = distData[cat] || [];
@@ -1044,109 +1062,147 @@ export default function CommunityView({ infrastructureId, isOwner }) {
     updateMarkersAsync();
   }, [mapRef, groupedPosts, selectedCategories, readPostIds, isInfrastructureCommunity, layerType, selectedDistrict]);
 
-  // Geofence setup using Infrastructure approach
+  // Unified geofence effect: Handles fitBounds, polygon rendering, and state-specific logic
   useEffect(() => {
     if (!mapRef || !geofenceData) return;
     
+    // 1. Calculate and Fit Bounds
+    const bounds = new google.maps.LatLngBounds();
+    let hasCoords = false;
     let allPaths = [];
-    const bounds = new window.google.maps.LatLngBounds();
 
     if (geofenceData.type === 'FeatureCollection') {
       geofenceData.features.forEach(feature => {
         const geometry = feature.geometry;
         if (geometry.type === 'Polygon') {
-          const path = geometry.coordinates[0].map(coord => ({ lat: coord[1], lng: coord[0] }));
-          allPaths.push(path);
-          path.forEach(p => bounds.extend(p));
+          geometry.coordinates.forEach(ring => {
+            const path = ring.map(coord => ({ lat: coord[1], lng: coord[0] }));
+            allPaths.push(path);
+            path.forEach(p => {
+              bounds.extend(p);
+              hasCoords = true;
+            });
+          });
         } else if (geometry.type === 'MultiPolygon') {
           geometry.coordinates.forEach(polygon => {
-            const path = polygon[0].map(coord => ({ lat: coord[1], lng: coord[0] }));
-            allPaths.push(path);
-            path.forEach(p => bounds.extend(p));
+            polygon.forEach(ring => {
+              const path = ring.map(coord => ({ lat: coord[1], lng: coord[0] }));
+              allPaths.push(path);
+              path.forEach(p => {
+                bounds.extend(p);
+                hasCoords = true;
+              });
+            });
           });
         }
       });
-    } else {
-      // Handle the generic geometry object from original mapogram geofences
-      if (geofenceData.type === 'Polygon') {
-        const path = geofenceData.coordinates[0].map(coord => ({ lat: coord[1], lng: coord[0] }));
+    } else if (geofenceData.type === 'Polygon') {
+      geofenceData.coordinates.forEach(ring => {
+        const path = ring.map(coord => ({ lat: coord[1], lng: coord[0] }));
         allPaths.push(path);
-        path.forEach(p => bounds.extend(p));
-      } else if (geofenceData.type === 'MultiPolygon') {
-        geofenceData.coordinates.forEach(polygon => {
-          const path = polygon[0].map(coord => ({ lat: coord[1], lng: coord[0] }));
-          allPaths.push(path);
-          path.forEach(p => bounds.extend(p));
+        path.forEach(p => {
+          bounds.extend(p);
+          hasCoords = true;
         });
-      } else if (geofenceData.coordinates) {
-        // Fallback for non-standard original code
-        const path = geofenceData.coordinates[0].map(coord => ({ lat: coord[1], lng: coord[0] }));
-        allPaths.push(path);
-        path.forEach(p => bounds.extend(p));
+      });
+    } else if (geofenceData.type === 'MultiPolygon') {
+      geofenceData.coordinates.forEach(polygon => {
+        polygon.forEach(ring => {
+          const path = ring.map(coord => ({ lat: coord[1], lng: coord[0] }));
+          allPaths.push(path);
+          path.forEach(p => {
+            bounds.extend(p);
+            hasCoords = true;
+          });
+        });
+      });
+    }
+
+    if (hasCoords) {
+      // Logic for Infrastructure communities (keep original restriction behavior)
+      if (isInfrastructureCommunity) {
+        const worldBounds = [
+          { lat: -85, lng: -180 },
+          { lat: 85, lng: -180 },
+          { lat: 85, lng: 180 },
+          { lat: -85, lng: 180 },
+          { lat: -85, lng: -0.1 }
+        ];
+        const holePaths = allPaths.map(path => [...path].reverse());
+        const overlayPolygon = new window.google.maps.Polygon({
+          paths: [worldBounds, ...holePaths],
+          strokeColor: 'transparent',
+          strokeOpacity: 0,
+          strokeWeight: 0,
+          fillColor: '#6B7280',
+          fillOpacity: 0.4,
+          clickable: false,
+          map: mapRef
+        });
+
+        const ne = bounds.getNorthEast();
+        const sw = bounds.getSouthWest();
+        mapRef.setCenter({ lat: (ne.lat() + sw.lat()) / 2, lng: (ne.lng() + sw.lng()) / 2 });
+        mapRef.setZoom(16.5);
+        mapRef.setOptions({
+          restriction: { latLngBounds: bounds, strictBounds: true },
+          minZoom: 16.5,
+          maxZoom: 22
+        });
+        setMinZoomLevel(16.5);
+
+        return () => overlayPolygon.setMap(null);
+      } else {
+        // Restore geofence highlighting for static/state communities
+        const geofencePolygons = allPaths.map(path => new window.google.maps.Polygon({
+          paths: path,
+          strokeColor: '#3B82F6',
+          strokeOpacity: 0.8,
+          strokeWeight: 3,
+          fillColor: '#3B82F6',
+          fillOpacity: 0.1,
+          clickable: false,
+          map: mapRef
+        }));
+
+        const worldBounds = [
+          { lat: 85, lng: -180 },
+          { lat: 85, lng: 180 },
+          { lat: -85, lng: 180 },
+          { lat: -85, lng: -180 }
+        ];
+        
+        const holePaths = allPaths.map(path => [...path].reverse());
+        const overlayPolygon = new window.google.maps.Polygon({
+          paths: [worldBounds, ...holePaths],
+          strokeColor: 'transparent',
+          strokeOpacity: 0,
+          strokeWeight: 0,
+          fillColor: '#6B7280',
+          fillOpacity: 0.4,
+          clickable: false,
+          map: mapRef
+        });
+
+        mapRef.fitBounds(bounds);
+        mapRef.setOptions({
+          restriction: null,
+          minZoom: 2,
+          maxZoom: 18
+        });
+        setMinZoomLevel(2);
+        
+        const listener = google.maps.event.addListenerOnce(mapRef, "idle", () => {
+          if (mapRef.getZoom() > 14) mapRef.setZoom(14);
+        });
+
+        return () => {
+          geofencePolygons.forEach(p => p.setMap(null));
+          overlayPolygon.setMap(null);
+        };
       }
     }
-
-    // Create the geofence polygons (blue outlines)
-    const geofencePolygons = allPaths.map(path => new window.google.maps.Polygon({
-      paths: path,
-      strokeColor: '#3B82F6',
-      strokeOpacity: 0.8,
-      strokeWeight: 3,
-      fillColor: 'transparent',
-      fillOpacity: 0,
-      clickable: false,
-      map: mapRef
-    }));
-    
-    // Create the world bounds
-    const worldBounds = [
-      { lat: 85, lng: -180 },
-      { lat: 85, lng: 180 },
-      { lat: -85, lng: 180 },
-      { lat: -85, lng: -180 }
-    ];
-    
-    // Create the geofence holes (counter-clockwise for outer ring)
-    const holePaths = allPaths.map(path => [...path].reverse());
-    
-    // Create the inverse polygon (grey overlay outside geofence)
-    const overlayPolygon = new window.google.maps.Polygon({
-      paths: [worldBounds, ...holePaths],
-      strokeColor: 'transparent',
-      strokeOpacity: 0,
-      strokeWeight: 0,
-      fillColor: '#6B7280',
-      fillOpacity: 0.4,
-      clickable: false,
-      map: mapRef
-    });
-    
-    const ne = bounds.getNorthEast();
-    const sw = bounds.getSouthWest();
-    const centerLat = (ne.lat() + sw.lat()) / 2;
-    const centerLng = (ne.lng() + sw.lng()) / 2;
-
-    if (mapRef) {
-      mapRef.setCenter({ lat: centerLat, lng: centerLng });
-      mapRef.setZoom(16.5);
-      
-      mapRef.setOptions({
-        restriction: {
-          latLngBounds: bounds,
-          strictBounds: true,
-        },
-        minZoom: 16.5,
-        maxZoom: 22
-      });
-      
-      setMinZoomLevel(16.5);
-    }
-    
-    return () => {
-      geofencePolygons.forEach(p => p.setMap(null));
-      overlayPolygon.setMap(null);
-    };
-  }, [mapRef, geofenceData]);
+  }, [mapRef, geofenceData, isInfrastructureCommunity]);
 
   // Helper function to check if a point is inside a polygon (for Infrastructure right-click)
   const checkPointInPolygon = (point, polygon) => {
@@ -1458,45 +1514,78 @@ export default function CommunityView({ infrastructureId, isOwner }) {
         {/* Static State Community UI Elements */}
         {selectedCommunity?.source === 'static' && (
           <>
-            {/* District Selector - Bottom Left */}
-            <div className="absolute bottom-6 left-4 z-10 w-48 sm:w-64">
-              <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-                <div className="px-3 py-2 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-blue-500" />
-                  <span className="text-sm font-semibold text-gray-700">Filter by District</span>
+            {/* Modern District Selector - Bottom Left */}
+            <div className="absolute bottom-10 left-4 z-[110] flex flex-col gap-2">
+              <button
+                onClick={() => setIsDistrictFilterOpen(!isDistrictFilterOpen)}
+                className={`flex items-center gap-2 px-4 py-3 rounded-full shadow-2xl border transition-all duration-300 backdrop-blur-md ${
+                  isDistrictFilterOpen 
+                    ? 'bg-blue-600 text-white border-blue-500 scale-105' 
+                    : 'bg-white/90 text-gray-700 border-white/20 hover:bg-white hover:scale-105'
+                }`}
+              >
+                <MapPin className={`w-4 h-4 ${isDistrictFilterOpen ? 'text-white' : 'text-blue-500'}`} />
+                <span className="text-sm font-bold tracking-tight">
+                  {selectedDistrict || 'Select District'}
+                </span>
+                {isDistrictFilterOpen ? <ChevronRight className="w-4 h-4 rotate-90 transition-transform" /> : <ChevronRight className="w-4 h-4 transition-transform" />}
+              </button>
+
+              {isDistrictFilterOpen && (
+                <div className="w-64 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+                  <div className="p-3 border-b border-gray-100 flex items-center gap-2 bg-gray-50/50">
+                    <Search className="w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search district..."
+                      className="bg-transparent border-none outline-none text-sm w-full placeholder:text-gray-400 font-medium"
+                      value={districtSearchQuery}
+                      onChange={(e) => setDistrictSearchQuery(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+                  <div className="max-h-64 overflow-y-auto p-1.5 custom-scrollbar">
+                    <button
+                      onClick={() => {
+                        setSelectedDistrict(null);
+                        setIsDistrictFilterOpen(false);
+                        setDistrictSearchQuery("");
+                      }}
+                      className={`w-full text-left px-3 py-2.5 text-sm rounded-xl transition-all duration-200 flex items-center justify-between group ${
+                        !selectedDistrict 
+                          ? 'bg-blue-600 text-white shadow-md' 
+                          : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700'
+                      }`}
+                    >
+                      <span className="font-semibold">All Districts</span>
+                      {!selectedDistrict && <div className="w-1.5 h-1.5 rounded-full bg-white shadow-sm" />}
+                    </button>
+                    {geofenceData?.type === 'FeatureCollection' && 
+                      Array.from(new Set(geofenceData.features.map(f => f.properties.name)))
+                        .sort()
+                        .filter(name => name.toLowerCase().includes(districtSearchQuery.toLowerCase()))
+                        .map(districtName => (
+                          <button
+                            key={districtName}
+                            onClick={() => {
+                              setSelectedDistrict(districtName);
+                              setIsDistrictFilterOpen(false);
+                              setDistrictSearchQuery("");
+                            }}
+                            className={`w-full text-left px-3 py-2.5 text-sm rounded-xl transition-all duration-200 flex items-center justify-between mt-0.5 group ${
+                              selectedDistrict === districtName 
+                                ? 'bg-blue-600 text-white shadow-md' 
+                                : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700'
+                            }`}
+                          >
+                            <span className="font-semibold truncate pr-2">{districtName}</span>
+                            {selectedDistrict === districtName && <div className="w-1.5 h-1.5 rounded-full bg-white shadow-sm" />}
+                          </button>
+                        ))
+                    }
+                  </div>
                 </div>
-                <div className="max-h-48 overflow-y-auto p-1">
-                  <button
-                    onClick={() => setSelectedDistrict(null)}
-                    className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${
-                      !selectedDistrict 
-                        ? 'bg-blue-50 text-blue-700 font-medium' 
-                        : 'text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    All Districts
-                  </button>
-                  {/* We dynamically pull district names from the geofence data features */}
-                  {geofenceData?.type === 'FeatureCollection' && 
-                    // Get unique district names, sort alphabetically
-                    Array.from(new Set(geofenceData.features.map(f => f.properties.name)))
-                      .sort()
-                      .map(districtName => (
-                        <button
-                          key={districtName}
-                          onClick={() => setSelectedDistrict(districtName)}
-                          className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors truncate ${
-                            selectedDistrict === districtName 
-                              ? 'bg-blue-50 text-blue-700 font-medium' 
-                              : 'text-gray-600 hover:bg-gray-50'
-                          }`}
-                        >
-                          {districtName}
-                        </button>
-                      ))
-                  }
-                </div>
-              </div>
+              )}
             </div>
 
           </>
@@ -1540,6 +1629,9 @@ export default function CommunityView({ infrastructureId, isOwner }) {
           onClick={() => {
             if (contextMenu) {
               setContextMenu(null);
+            }
+            if (activeCategoryMarker) {
+              setActiveCategoryMarker(null);
             }
           }}
           onRightClick={(e) => {
@@ -1683,7 +1775,13 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                   maxWidth: 280
                 }}
               >
-                <div className="bg-white rounded-lg overflow-hidden font-sans">
+                <div className="bg-white rounded-lg overflow-hidden font-sans relative group">
+                  <button 
+                    onClick={() => setActiveCategoryMarker(null)}
+                    className="absolute top-1 right-1 z-10 bg-black/40 hover:bg-black/60 text-white p-1 rounded-full backdrop-blur-sm transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
                   <div className="h-24 w-full relative">
                     <img src={markerData.image} alt={markerData.title} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
@@ -1701,6 +1799,26 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                     {markerData.distance && (
                       <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
                         <MapPin size={10}/> {markerData.distance}
+                      </p>
+                    )}
+                    {markerData.hotels && (
+                      <div className="mb-2">
+                        <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-1">Recommended Hotels</p>
+                        <div className="flex flex-wrap gap-1">
+                          {markerData.hotels.map((hotel, hIdx) => (
+                            <span key={hIdx} className="bg-red-50 text-red-600 text-[10px] px-1.5 py-0.5 rounded border border-red-100">{hotel}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {markerData.duration && (
+                      <p className="text-xs text-blue-500 mb-1 flex items-center gap-1">
+                        <Activity size={10}/> {markerData.duration}
+                      </p>
+                    )}
+                    {markerData.date && (
+                      <p className="text-xs text-purple-500 mb-1 flex items-center gap-1">
+                        <Calendar size={10}/> {markerData.date}
                       </p>
                     )}
                     <p className="text-xs text-gray-600 line-clamp-3 mb-3">{markerData.description}</p>
@@ -1722,33 +1840,51 @@ export default function CommunityView({ infrastructureId, isOwner }) {
         {selectedCommunity?.source === 'static' && (
           <>
             {/* Category Cards - Bottom Center Array */}
+            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] pointer-events-auto flex gap-2 sm:gap-4 overflow-x-auto max-w-[calc(100vw-300px)] px-4 custom-scrollbar">
+              {[
+                { id: 'Challenges', icon: Target, color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200', ring: 'ring-orange-400', always: true },
+                { id: 'Places', icon: MapPin, color: 'text-green-500', bg: 'bg-green-50', border: 'border-green-200', ring: 'ring-green-400', always: false },
+                { id: 'Food', icon: Utensils, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-200', ring: 'ring-red-400', always: false },
+                { id: 'Activity', icon: Activity, color: 'text-cyan-500', bg: 'bg-cyan-50', border: 'border-cyan-200', ring: 'ring-cyan-400', always: false },
+                { id: 'Events', icon: Calendar, color: 'text-violet-500', bg: 'bg-violet-50', border: 'border-violet-200', ring: 'ring-violet-400', always: false },
+              ].filter(cat => cat.always || selectedDistrict).map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedStateCategory(cat.id === selectedStateCategory ? null : cat.id)}
+                  className={`flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg border bg-white whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                    selectedStateCategory === cat.id 
+                      ? `${cat.border} ring-2 ring-offset-1 ${cat.ring} scale-105` 
+                      : 'border-gray-200 hover:border-gray-300 hover:scale-105'
+                  }`}
+                >
+                  <div className={`p-2 rounded-lg ${cat.bg}`}>
+                    <cat.icon className={`w-5 h-5 ${cat.color}`} />
+                  </div>
+                  <span className={`font-semibold ${selectedStateCategory === cat.id ? 'text-gray-900' : 'text-gray-600'}`}>
+                    {cat.id}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Food Specials Floating Button */}
             {selectedDistrict && (
-              <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] pointer-events-auto flex gap-2 sm:gap-4 overflow-x-auto max-w-[calc(100vw-300px)] px-4 custom-scrollbar">
-                {[
-                  { id: 'Challenges', icon: Target, color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200', ring: 'ring-orange-400' },
-                  { id: 'Places', icon: MapPin, color: 'text-green-500', bg: 'bg-green-50', border: 'border-green-200', ring: 'ring-green-400' },
-                  { id: 'Food', icon: Utensils, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-200', ring: 'ring-red-400' },
-                ].map(cat => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setSelectedStateCategory(cat.id === selectedStateCategory ? null : cat.id)}
-                    className={`flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg border bg-white whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                      selectedStateCategory === cat.id 
-                        ? `${cat.border} ring-2 ring-offset-1 ${cat.ring} scale-105` 
-                        : 'border-gray-200 hover:border-gray-300 hover:scale-105'
-                    }`}
-                  >
-                    <div className={`p-2 rounded-lg ${cat.bg}`}>
-                      <cat.icon className={`w-5 h-5 ${cat.color}`} />
-                    </div>
-                    <span className={`font-semibold ${selectedStateCategory === cat.id ? 'text-gray-900' : 'text-gray-600'}`}>
-                      {cat.id}
-                    </span>
-                  </button>
-                ))}
+              <div className="fixed bottom-24 right-4 z-[110] flex flex-col items-center gap-2">
+                <button
+                  onClick={() => setSelectedStateCategory(selectedStateCategory === 'Food' ? null : 'Food')}
+                  className={`group relative flex items-center justify-center w-14 h-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 ${
+                    selectedStateCategory === 'Food' 
+                      ? 'bg-red-600 text-white ring-4 ring-red-200' 
+                      : 'bg-white text-red-600 border-2 border-red-100 hover:border-red-200'
+                  }`}
+                >
+                  <Utensils className={`w-6 h-6 ${selectedStateCategory === 'Food' ? 'animate-bounce' : ''}`} />
+                  <span className="absolute -top-10 right-0 bg-gray-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl border border-gray-800">
+                    Find Hotels & Biryani
+                  </span>
+                </button>
               </div>
             )}
-
           </>
         )}
 
