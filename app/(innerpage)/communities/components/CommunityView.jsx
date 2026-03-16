@@ -18,7 +18,16 @@ import {
     Activity,
     Calendar,
     Star,
-    Clock
+    Clock,
+    Fish,
+    Trophy,
+    Bike,
+    Waves,
+    Music,
+    Palette,
+    Cpu,
+    ShoppingBag,
+    ArrowLeft
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { applyGoogleMapsControlStyle } from "@/utils/googleMapsStyles";
@@ -359,6 +368,9 @@ export default function CommunityView({ infrastructureId, isOwner }) {
   const [selectedStateCategory, setSelectedStateCategory] = useState(null); // 'Challenges', 'Places', 'Food'
   const [isDistrictFilterOpen, setIsDistrictFilterOpen] = useState(false);
   const [districtSearchQuery, setDistrictSearchQuery] = useState("");
+  const [isDiscoveryMenuOpen, setIsDiscoveryMenuOpen] = useState(false);
+  const [selectedSubCategory, setSelectedSubCategory] = useState(null);
+  const [activeDiscoveryCategory, setActiveDiscoveryCategory] = useState(null);
 
   const [countryCenter, setCountryCenter] = useState(center);
 
@@ -514,7 +526,13 @@ export default function CommunityView({ infrastructureId, isOwner }) {
         }
         
         categoriesToShow.forEach((cat, catIdx) => {
-          const items = distData[cat] || [];
+          let items = distData[cat] || [];
+          
+          // Apply sub-category filter if selected
+          if (selectedSubCategory) {
+            items = items.filter(item => item.tags?.includes(selectedSubCategory));
+          }
+          
           items.forEach((item, index) => {
             const angle = (index + catIdx * 2.5) * (Math.PI / 2.5);
             // Smaller radius to keep markers clustered per district
@@ -533,7 +551,7 @@ export default function CommunityView({ infrastructureId, isOwner }) {
     } else {
       setCategoryMarkers([]);
     }
-  }, [selectedStateCategory, selectedDistrict, geofenceData, selectedCommunity]);
+  }, [selectedStateCategory, selectedDistrict, geofenceData, selectedCommunity, selectedSubCategory]);
 
   // Helper function to check if user can access community posts
   const canAccessCommunityPosts = (community) => {
@@ -1839,52 +1857,131 @@ export default function CommunityView({ infrastructureId, isOwner }) {
 
         {selectedCommunity?.source === 'static' && (
           <>
-            {/* Category Cards - Bottom Center Array */}
-            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] pointer-events-auto flex gap-2 sm:gap-4 overflow-x-auto max-w-[calc(100vw-300px)] px-4 custom-scrollbar">
-              {[
-                { id: 'Challenges', icon: Target, color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200', ring: 'ring-orange-400', always: true },
-                { id: 'Places', icon: MapPin, color: 'text-green-500', bg: 'bg-green-50', border: 'border-green-200', ring: 'ring-green-400', always: false },
-                { id: 'Food', icon: Utensils, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-200', ring: 'ring-red-400', always: false },
-                { id: 'Activity', icon: Activity, color: 'text-cyan-500', bg: 'bg-cyan-50', border: 'border-cyan-200', ring: 'ring-cyan-400', always: false },
-                { id: 'Events', icon: Calendar, color: 'text-violet-500', bg: 'bg-violet-50', border: 'border-violet-200', ring: 'ring-violet-400', always: false },
-              ].filter(cat => cat.always || selectedDistrict).map(cat => (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedStateCategory(cat.id === selectedStateCategory ? null : cat.id)}
-                  className={`flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg border bg-white whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                    selectedStateCategory === cat.id 
-                      ? `${cat.border} ring-2 ring-offset-1 ${cat.ring} scale-105` 
-                      : 'border-gray-200 hover:border-gray-300 hover:scale-105'
-                  }`}
-                >
-                  <div className={`p-2 rounded-lg ${cat.bg}`}>
-                    <cat.icon className={`w-5 h-5 ${cat.color}`} />
-                  </div>
-                  <span className={`font-semibold ${selectedStateCategory === cat.id ? 'text-gray-900' : 'text-gray-600'}`}>
-                    {cat.id}
-                  </span>
-                </button>
-              ))}
-            </div>
+            {/* Unified Discovery FAB - Bottom Right */}
+            <div className={`fixed z-[120] flex flex-col items-end gap-3 transition-all duration-300 ${
+              isMobile ? 'bottom-32 right-3' : 'bottom-6 right-6'
+            }`}>
+              {/* Expanded Menu Items */}
+              {isDiscoveryMenuOpen && (
+                <div className="flex flex-col items-end gap-3 mb-2 animate-in fade-in slide-in-from-bottom-5 duration-300">
+                  {activeDiscoveryCategory ? (
+                    // Sub-category Sub-menu
+                    <>
+                      <button 
+                        onClick={() => setActiveDiscoveryCategory(null)}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-gray-100/80 hover:bg-gray-200/80 rounded-full text-[10px] font-bold text-gray-600 transition-colors backdrop-blur-sm self-end mb-1"
+                      >
+                        <ArrowLeft size={12} /> Back
+                      </button>
+                      {[
+                        { id: 'Biryani', icon: Utensils, color: 'text-red-500', label: 'Biryani Special' },
+                        { id: 'Mandi', icon: Utensils, color: 'text-orange-600', label: 'Mandi & Arabian' },
+                        { id: 'Seafood', icon: Fish, color: 'text-blue-500', label: 'Seafood Coast' },
+                        { id: 'Football', icon: Trophy, color: 'text-green-500', label: 'Football Turfs' },
+                        { id: 'Cricket', icon: Trophy, color: 'text-blue-500', label: 'Cricket Nets' },
+                        { id: 'Yoga', icon: Activity, color: 'text-purple-500', label: 'Yoga & Health' },
+                        { id: 'Cycling', icon: Bike, color: 'text-orange-500', label: 'Cycling Clubs' },
+                        { id: 'Kayaking', icon: Waves, color: 'text-cyan-500', label: 'Kayaking Spots' },
+                        { id: 'Music', icon: Music, color: 'text-pink-500', label: 'Live Music' },
+                        { id: 'Art', icon: Palette, color: 'text-indigo-500', label: 'Art Galleries' },
+                        { id: 'Tech', icon: Cpu, color: 'text-gray-600', label: 'Tech Meetups' },
+                        { id: 'Market', icon: ShoppingBag, color: 'text-amber-500', label: 'Local Markets' }
+                      ].filter(sub => {
+                        if (activeDiscoveryCategory === 'Food') return ['Biryani', 'Mandi', 'Seafood'].includes(sub.id);
+                        if (activeDiscoveryCategory === 'Activity') return ['Football', 'Cricket', 'Yoga', 'Cycling', 'Kayaking'].includes(sub.id);
+                        if (activeDiscoveryCategory === 'Events') return ['Music', 'Art', 'Tech', 'Market'].includes(sub.id);
+                        return false;
+                      }).map((sub) => (
+                        <div key={sub.id} className="flex items-center gap-3 animate-in fade-in slide-in-from-right-4 duration-300">
+                          <span className="bg-white/90 backdrop-blur-md text-gray-800 text-[10px] font-bold px-2 py-1.5 rounded-lg shadow-xl uppercase tracking-widest border border-gray-100">
+                            {sub.label}
+                          </span>
+                          <button
+                            onClick={() => {
+                              setSelectedStateCategory(activeDiscoveryCategory);
+                              setSelectedSubCategory(sub.id === selectedSubCategory ? null : sub.id);
+                              setIsDiscoveryMenuOpen(false);
+                            }}
+                            className={`w-11 h-11 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 backdrop-blur-md ${
+                              selectedSubCategory === sub.id 
+                                ? 'bg-blue-600 text-white ring-4 ring-blue-100 font-bold' 
+                                : 'bg-white/95 text-gray-700 border border-white/20'
+                            }`}
+                          >
+                            <sub.icon className={`w-4.5 h-4.5 ${selectedSubCategory === sub.id ? 'text-white' : sub.color}`} />
+                          </button>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    // Main Category Menu
+                    [
+                      { id: 'Challenges', icon: Target, color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200', ring: 'ring-orange-400', always: true, label: 'Challenges', hasSub: false },
+                      { id: 'Places', icon: MapPin, color: 'text-green-500', bg: 'bg-green-50', border: 'border-green-200', ring: 'ring-green-400', always: false, label: 'Places', hasSub: false },
+                      { id: 'Food', icon: Utensils, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-200', ring: 'ring-red-400', always: false, label: 'Food Specials', hasSub: true },
+                      { id: 'Activity', icon: Activity, color: 'text-cyan-500', bg: 'bg-cyan-50', border: 'border-cyan-200', ring: 'ring-cyan-400', always: false, label: 'Activities', hasSub: true },
+                      { id: 'Events', icon: Calendar, color: 'text-violet-500', bg: 'bg-violet-50', border: 'border-violet-200', ring: 'ring-violet-400', always: false, label: 'Events', hasSub: true },
+                    ].filter(cat => cat.always || selectedDistrict).reverse().map((cat) => (
+                      <div key={cat.id} className="flex items-center gap-3">
+                        <span className="bg-gray-900/90 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1.5 rounded-lg shadow-2xl uppercase tracking-widest border border-white/10">
+                          {cat.label}
+                        </span>
+                        <button
+                          onClick={() => {
+                            if (cat.hasSub) {
+                              setActiveDiscoveryCategory(cat.id);
+                            } else {
+                              setSelectedStateCategory(cat.id === selectedStateCategory ? null : cat.id);
+                              setSelectedSubCategory(null);
+                              setIsDiscoveryMenuOpen(false);
+                            }
+                          }}
+                          className={`w-12 h-12 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 backdrop-blur-md ${
+                            selectedStateCategory === cat.id && !selectedSubCategory
+                              ? 'bg-blue-600 text-white ring-4 ring-blue-100' 
+                              : 'bg-white/95 text-gray-700 border border-white/20'
+                          }`}
+                        >
+                          <cat.icon className={`w-5 h-5 ${selectedStateCategory === cat.id && !selectedSubCategory ? 'text-white' : cat.color}`} />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
 
-            {/* Food Specials Floating Button */}
-            {selectedDistrict && (
-              <div className="fixed bottom-24 right-4 z-[110] flex flex-col items-center gap-2">
-                <button
-                  onClick={() => setSelectedStateCategory(selectedStateCategory === 'Food' ? null : 'Food')}
-                  className={`group relative flex items-center justify-center w-14 h-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 ${
-                    selectedStateCategory === 'Food' 
-                      ? 'bg-red-600 text-white ring-4 ring-red-200' 
-                      : 'bg-white text-red-600 border-2 border-red-100 hover:border-red-200'
-                  }`}
-                >
-                  <Utensils className={`w-6 h-6 ${selectedStateCategory === 'Food' ? 'animate-bounce' : ''}`} />
-                  <span className="absolute -top-10 right-0 bg-gray-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl border border-gray-800">
-                    Find Hotels & Biryani
-                  </span>
-                </button>
-              </div>
-            )}
+              {/* Main FAB Trigger */}
+              <button
+                onClick={() => {
+                  if (isDiscoveryMenuOpen) {
+                    setIsDiscoveryMenuOpen(false);
+                    // Don't reset activeDiscoveryCategory here to allow re-opening the sub-menu if needed? 
+                    // Actually, reset it to main on close for better UX
+                    setTimeout(() => setActiveDiscoveryCategory(null), 300);
+                  } else {
+                    setIsDiscoveryMenuOpen(true);
+                  }
+                }}
+                className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-500 hover:rotate-12 active:scale-90 z-[121] ${
+                  isDiscoveryMenuOpen 
+                    ? 'bg-red-500 text-white rotate-90 scale-110' 
+                    : 'bg-white text-blue-600 border-2 border-blue-50/50 hover:bg-blue-50'
+                }`}
+              >
+                {isDiscoveryMenuOpen ? (
+                  <X className="w-8 h-8" />
+                ) : (
+                  <div className="relative">
+                    <Target className={`w-8 h-8 ${selectedStateCategory ? '' : 'animate-pulse'}`} />
+                    {(selectedStateCategory || selectedSubCategory) && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-600 rounded-full border-2 border-white shadow-sm flex items-center justify-center">
+                        <div className="w-2 h-2 bg-white rounded-full animate-ping" />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </button>
+            </div>
           </>
         )}
 

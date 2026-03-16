@@ -65,6 +65,7 @@ states.forEach(state => {
           description: 'Help keep the central streets of ' + distName + ' free of plastic waste.',
           points: getRandomPoints(),
           image: challengeImages[0],
+          tags: ['Environment']
         },
         {
           id: 'c_' + distName + '_2',
@@ -72,6 +73,7 @@ states.forEach(state => {
           description: 'Contribute to the green cover around ' + distName + ' local parks.',
           points: getRandomPoints(),
           image: challengeImages[1],
+          tags: ['Environment']
         },
         {
           id: 'c_' + distName + '_3',
@@ -79,6 +81,7 @@ states.forEach(state => {
           description: 'Help authorities identify bad road conditions in ' + distName + '.',
           points: getRandomPoints(),
           image: challengeImages[2],
+          tags: ['Infrastructure']
         }
       ],
       'Places': [
@@ -89,6 +92,7 @@ states.forEach(state => {
           distance: '1.2 km',
           points: getRandomPoints(),
           image: placeImages[0],
+          tags: ['Culture', 'History']
         },
         {
           id: 'p_' + distName + '_2',
@@ -97,6 +101,7 @@ states.forEach(state => {
           distance: '3.4 km',
           points: getRandomPoints(),
           image: placeImages[1],
+          tags: ['Nature', 'Park']
         },
         {
           id: 'p_' + distName + '_3',
@@ -105,6 +110,7 @@ states.forEach(state => {
           distance: '8.5 km',
           points: getRandomPoints(),
           image: placeImages[2],
+          tags: ['Nature', 'Sightseeing']
         }
       ],
       'Food': [
@@ -116,7 +122,8 @@ states.forEach(state => {
           points: getRandomPoints(),
           rating: getRandomRating(),
           image: foodImages[0],
-          hotels: [distName + ' Heritage Hotel', 'Grand ' + distName + ' Residency']
+          hotels: [distName + ' Heritage Hotel', 'Grand ' + distName + ' Residency'],
+          tags: ['Biryani', 'South Indian']
         },
         {
           id: 'f_' + distName + '_2',
@@ -126,7 +133,8 @@ states.forEach(state => {
           points: getRandomPoints(),
           rating: getRandomRating(),
           image: foodImages[1],
-          hotels: ['Hotel ' + distName + ' International', distName + ' Garden Inn']
+          hotels: ['Hotel ' + distName + ' International', distName + ' Garden Inn'],
+          tags: ['Mandi', 'Arabian', 'North Indian']
         },
         {
           id: 'f_' + distName + '_3',
@@ -136,7 +144,8 @@ states.forEach(state => {
           points: getRandomPoints(),
           rating: getRandomRating(),
           image: foodImages[2],
-          hotels: ['Coastal Breeze Resort', distName + ' Sands Hotel']
+          hotels: ['Coastal Breeze Resort', distName + ' Sands Hotel'],
+          tags: ['Seafood', 'Coastal']
         }
       ],
       'Activity': [
@@ -147,6 +156,7 @@ states.forEach(state => {
           duration: '1 hour',
           points: getRandomPoints(),
           image: activityImages[0],
+          tags: ['Yoga', 'Wellbeing']
         },
         {
           id: 'a_' + distName + '_2',
@@ -155,14 +165,34 @@ states.forEach(state => {
           duration: '3 hours',
           points: getRandomPoints(),
           image: activityImages[1],
+          tags: ['Cycling', 'Adventure']
         },
         {
           id: 'a_' + distName + '_3',
-          title: 'Kayaking in ' + distName + ' Backwaters',
+          title: distName + ' Backwaters Kayaking',
           description: 'Paddle through the peaceful channels and experience ' + distName + ' from the water.',
           duration: '2 hours',
           points: getRandomPoints(),
           image: activityImages[2],
+          tags: ['Kayaking', 'Water Sports']
+        },
+        {
+          id: 'a_' + distName + '_4',
+          title: distName + ' Football Turf',
+          description: 'High-quality artificial turf for 5-a-side and 7-a-side football matches.',
+          duration: '1 hour',
+          points: getRandomPoints(),
+          image: activityImages[0],
+          tags: ['Football', 'Sports']
+        },
+        {
+          id: 'a_' + distName + '_5',
+          title: distName + ' Cricket Academy',
+          description: 'Net practice and local matches for cricket enthusiasts.',
+          duration: '2 hours',
+          points: getRandomPoints(),
+          image: activityImages[1],
+          tags: ['Cricket', 'Sports']
         }
       ],
       'Events': [
@@ -173,6 +203,7 @@ states.forEach(state => {
           date: 'Next Saturday',
           points: getRandomPoints(),
           image: eventImages[0],
+          tags: ['Music', 'Culture']
         },
         {
           id: 'e_' + distName + '_2',
@@ -181,6 +212,7 @@ states.forEach(state => {
           date: 'Coming Friday',
           points: getRandomPoints(),
           image: eventImages[1],
+          tags: ['Tech', 'Networking']
         },
         {
           id: 'e_' + distName + '_3',
@@ -189,6 +221,16 @@ states.forEach(state => {
           date: 'Every Sunday',
           points: getRandomPoints(),
           image: eventImages[2],
+          tags: ['Market', 'Shopping']
+        },
+        {
+          id: 'e_' + distName + '_4',
+          title: distName + ' Art Gallery Opening',
+          description: 'Exhibition featuring local artists and contemporary artworks.',
+          date: 'Next month',
+          points: getRandomPoints(),
+          image: eventImages[0],
+          tags: ['Art', 'Gallery']
         }
       ]
     };
