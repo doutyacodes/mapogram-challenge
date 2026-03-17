@@ -2115,7 +2115,7 @@ export default function CommunityView({ infrastructureId, isOwner }) {
               }`}
             >
               <span className="text-[9px] font-black uppercase tracking-widest truncate">
-                {item.title}
+                {item.title.length > 10 ? `${item.title.substring(0, 10)}...` : item.title}
               </span>
             </button>
           ))}
@@ -2130,7 +2130,7 @@ export default function CommunityView({ infrastructureId, isOwner }) {
               onClick={() => setIsDetailModalOpen(false)}
             />
             
-            <div className="w-[60%] h-[80%] my-auto mr-8 bg-white shadow-[-20px_0_60px_rgba(0,0,0,0.1)] pointer-events-auto animate-in slide-in-from-right duration-500 flex flex-col relative overflow-hidden rounded-[2.5rem] border border-gray-100/50">
+            <div className="w-[82%] md:w-[60%] h-[80%] my-auto mr-4 md:mr-8 bg-white shadow-[-20px_0_60px_rgba(0,0,0,0.1)] pointer-events-auto animate-in slide-in-from-right duration-500 flex flex-col relative overflow-hidden rounded-[2.5rem] border border-gray-100/50">
               {/* Close Button */}
               <button 
                 onClick={() => setIsDetailModalOpen(false)}
@@ -2147,7 +2147,7 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                   <p className="text-blue-400 font-bold uppercase tracking-[0.2em] text-[10px] mb-1">
                     {detailItem.category} {detailItem.tags?.[0] && `/ ${detailItem.tags[0]}`}
                   </p>
-                  <h2 className="text-white text-3xl font-black">{detailItem.title}</h2>
+                  <h2 className="text-white text-2xl md:text-3xl font-black">{detailItem.title}</h2>
                 </div>
               </div>
 
@@ -2177,14 +2177,14 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                     <p className="text-gray-600 text-lg leading-relaxed mb-8">{detailItem.description}</p>
                     
                     <div className="grid grid-cols-2 gap-4 mb-8">
-                       <div className="bg-blue-50 p-6 rounded-3xl border border-blue-100">
-                         <span className="text-[10px] uppercase font-black text-blue-400 tracking-widest block mb-2">Entry Fee</span>
-                         <span className="text-2xl font-black text-blue-700">{detailItem.entryFee}</span>
-                       </div>
-                       <div className="bg-yellow-50 p-6 rounded-3xl border border-yellow-100">
-                         <span className="text-[10px] uppercase font-black text-yellow-500 tracking-widest block mb-2">Prize Pool</span>
-                         <span className="text-2xl font-black text-yellow-700">{detailItem.prize}</span>
-                       </div>
+                        <div className="bg-blue-50 p-4 md:p-6 rounded-3xl border border-blue-100">
+                          <span className="text-[10px] uppercase font-black text-blue-400 tracking-widest block mb-2">Entry Fee</span>
+                          <span className="text-xl md:text-2xl font-black text-blue-700">{detailItem.entryFee}</span>
+                        </div>
+                        <div className="bg-yellow-50 p-4 md:p-6 rounded-3xl border border-yellow-100">
+                          <span className="text-[10px] uppercase font-black text-yellow-500 tracking-widest block mb-2">Prize Pool</span>
+                          <span className="text-xl md:text-2xl font-black text-yellow-700">{detailItem.prize}</span>
+                        </div>
                     </div>
 
                     {detailItem.id.startsWith('f_') && detailItem.price && (
@@ -2199,17 +2199,17 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                       <div className="grid grid-cols-2 gap-4 pt-10 border-t border-dashed border-gray-200">
                         <button 
                           onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${detailItem.lat},${detailItem.lng}`, '_blank')}
-                          className="flex flex-col items-center justify-center p-6 bg-slate-900 text-white rounded-3xl hover:bg-black transition-all gap-2"
+                          className="flex flex-col items-center justify-center p-4 md:p-6 bg-slate-900 text-white rounded-3xl hover:bg-black transition-all gap-2"
                         >
-                          <MapPin size={24} />
-                          <span className="font-bold text-sm">Show Route</span>
+                          <MapPin size={24} className="scale-75 md:scale-100" />
+                          <span className="font-bold text-xs md:text-sm">Show Route</span>
                         </button>
                         <button 
                           onClick={() => setIsQRModalOpen(true)}
-                          className="flex flex-col items-center justify-center p-6 bg-blue-600 text-white rounded-3xl hover:bg-blue-700 transition-all gap-2"
+                          className="flex flex-col items-center justify-center p-4 md:p-6 bg-blue-600 text-white rounded-3xl hover:bg-blue-700 transition-all gap-2"
                         >
-                          <Cpu size={24} />
-                          <span className="font-bold text-sm">Scan QR</span>
+                          <Cpu size={24} className="scale-75 md:scale-100" />
+                          <span className="font-bold text-xs md:text-sm">Scan QR</span>
                         </button>
                       </div>
                     )}
@@ -2268,7 +2268,7 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                         setDeniedItemIds(prev => new Set([...prev, detailItem.id]));
                         setIsDetailModalOpen(false);
                     }}
-                    className="py-4 rounded-2xl border-2 border-gray-200 text-gray-500 font-bold hover:bg-gray-50 transition-all"
+                    className="py-3 md:py-4 rounded-2xl border-2 border-gray-200 text-gray-500 font-bold text-sm md:text-base hover:bg-gray-50 transition-all"
                   >
                     Deny
                   </button>
@@ -2281,7 +2281,7 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                         setAcceptedItems(prev => [...prev, detailItem]);
                         setIsDetailModalOpen(false);
                     }}
-                    className="py-4 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all"
+                    className="py-3 md:py-4 rounded-2xl bg-blue-600 text-white font-black text-sm md:text-base hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all"
                   >
                     Accept
                   </button>
