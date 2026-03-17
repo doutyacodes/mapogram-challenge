@@ -2131,168 +2131,191 @@ export default function CommunityView({ infrastructureId, isOwner }) {
             />
             
             <div className="w-[82%] md:w-[60%] h-[80%] my-auto mr-4 md:mr-8 bg-white shadow-[-20px_0_60px_rgba(0,0,0,0.1)] pointer-events-auto animate-in slide-in-from-right duration-500 flex flex-col relative overflow-hidden rounded-[2.5rem] border border-gray-100/50">
-              {/* Close Button */}
-              <button 
-                onClick={() => setIsDetailModalOpen(false)}
-                className="absolute top-4 right-4 z-50 bg-gray-100 hover:bg-gray-200 p-2 rounded-full transition-colors"
-              >
-                <X size={20} />
-              </button>
-
-              {/* Modal Header */}
-              <div className="h-[25vh] relative overflow-hidden">
-                <img src={detailItem.image} className="w-full h-full object-cover" alt="" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                <div className="absolute bottom-6 left-6 right-16">
-                  <p className="text-blue-400 font-bold uppercase tracking-[0.2em] text-[10px] mb-1">
-                    {detailItem.category} {detailItem.tags?.[0] && `/ ${detailItem.tags[0]}`}
-                  </p>
-                  <h2 className="text-white text-2xl md:text-3xl font-black">{detailItem.title}</h2>
-                </div>
-              </div>
-
-              {/* Tabs Container */}
-              <div className="flex px-6 border-b border-gray-100 bg-gray-50/50">
-                {['Rules', 'People', 'Leaderboard'].map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveCardTab(tab)}
-                    className={`flex-1 py-4 text-xs font-black uppercase tracking-widest relative transition-all ${
-                      activeCardTab === tab ? 'text-blue-600' : 'text-gray-400'
-                    }`}
-                  >
-                    {tab}
-                    {activeCardTab === tab && (
-                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 rounded-t-full mx-4" />
-                    )}
-                  </button>
-                ))}
-              </div>
-
-              {/* Modal Content Area */}
-              <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-gray-200">
-                {/* Rules Tab Content */}
-                {activeCardTab === 'Rules' && (
-                  <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <p className="text-gray-600 text-lg leading-relaxed mb-8">{detailItem.description}</p>
-                    
-                    <div className="grid grid-cols-2 gap-4 mb-8">
-                        <div className="bg-blue-50 p-4 md:p-6 rounded-3xl border border-blue-100">
-                          <span className="text-[10px] uppercase font-black text-blue-400 tracking-widest block mb-2">Entry Fee</span>
-                          <span className="text-xl md:text-2xl font-black text-blue-700">{detailItem.entryFee}</span>
-                        </div>
-                        <div className="bg-yellow-50 p-4 md:p-6 rounded-3xl border border-yellow-100">
-                          <span className="text-[10px] uppercase font-black text-yellow-500 tracking-widest block mb-2">Prize Pool</span>
-                          <span className="text-xl md:text-2xl font-black text-yellow-700">{detailItem.prize}</span>
-                        </div>
-                    </div>
-
-                    {detailItem.id.startsWith('f_') && detailItem.price && (
-                      <div className="bg-green-50 p-6 rounded-3xl border border-green-100 flex items-center justify-between mb-8">
-                        <span className="text-[10px] uppercase font-black text-green-600 tracking-widest">Price / Recommended Budget</span>
-                        <span className="text-2xl font-black text-green-700">{detailItem.price}</span>
-                      </div>
-                    )}
-
-                    {/* Additional Options for Accepted Items */}
-                    {acceptedItems.find(i => i.id === detailItem.id) && (
-                      <div className="grid grid-cols-2 gap-4 pt-10 border-t border-dashed border-gray-200">
-                        <button 
-                          onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${detailItem.lat},${detailItem.lng}`, '_blank')}
-                          className="flex flex-col items-center justify-center p-4 md:p-6 bg-slate-900 text-white rounded-3xl hover:bg-black transition-all gap-2"
-                        >
-                          <MapPin size={24} className="scale-75 md:scale-100" />
-                          <span className="font-bold text-xs md:text-sm">Show Route</span>
-                        </button>
-                        <button 
-                          onClick={() => setIsQRModalOpen(true)}
-                          className="flex flex-col items-center justify-center p-4 md:p-6 bg-blue-600 text-white rounded-3xl hover:bg-blue-700 transition-all gap-2"
-                        >
-                          <Cpu size={24} className="scale-75 md:scale-100" />
-                          <span className="font-bold text-xs md:text-sm">Scan QR</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* People Tab Content - Reuse the simplified but larger version */}
-                {activeCardTab === 'People' && (
-                  <div className="space-y-6">
-                    {(detailItem.people || []).map((person, idx) => (
-                      <div key={idx} className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100">
-                         <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                              <img src={person.avatar} className="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="" />
-                              <div>
-                                <p className="font-bold text-gray-800">{person.name}</p>
-                                <p className="text-xs text-gray-400">{person.date}</p>
-                              </div>
-                            </div>
-                            <button className="bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold hover:bg-blue-700 transition-colors">Follow</button>
-                         </div>
-                         <p className="text-sm font-bold text-green-600 mb-4 flex items-center gap-2">
-                           <CheckCircle size={16} /> {person.description}
-                         </p>
-                         <img src={person.certification} className="w-full h-40 object-cover rounded-xl mb-4" alt="" />
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Leaderboard Tab Content - Reuse with better spacing */}
-                {activeCardTab === 'Leaderboard' && (
-                  <div className="space-y-4">
-                    {(detailItem.leaderboard || []).map((entry, idx) => (
-                       <div key={idx} className={`flex items-center justify-between p-4 rounded-2xl border ${idx === 0 ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-100'}`}>
-                          <div className="flex items-center gap-4">
-                            <span className={`text-xl font-black ${idx === 0 ? 'text-yellow-600' : 'text-gray-300'}`}>#{entry.rank}</span>
-                            <img src={entry.avatar} className="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="" />
-                            <span className="font-black text-gray-800">{entry.name}</span>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xl font-black text-blue-600">{entry.points}</p>
-                            <p className="text-[10px] uppercase font-bold text-gray-400 tracking-tighter">Points</p>
-                          </div>
-                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Modal Footer (Buttons) - Only if not already accepted */}
-              {!acceptedItems.find(i => i.id === detailItem.id) && !deniedItemIds.has(detailItem.id) && (
-                <div className="p-8 bg-white border-t border-gray-100 grid grid-cols-2 gap-4">
-                  <button 
-                    onClick={() => {
-                        setDeniedItemIds(prev => new Set([...prev, detailItem.id]));
-                        setIsDetailModalOpen(false);
-                    }}
-                    className="py-3 md:py-4 rounded-2xl border-2 border-gray-200 text-gray-500 font-bold text-sm md:text-base hover:bg-gray-50 transition-all"
-                  >
-                    Deny
-                  </button>
-                  <button 
-                    onClick={() => {
-                        if (acceptedItems.length >= 5) {
-                            alert("Maximum 5 active items allowed. Please complete or remove an item first.");
-                            return;
-                        }
-                        setAcceptedItems(prev => [...prev, detailItem]);
-                        setIsDetailModalOpen(false);
-                    }}
-                    className="py-3 md:py-4 rounded-2xl bg-blue-600 text-white font-black text-sm md:text-base hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all"
-                  >
-                    Accept
-                  </button>
-                </div>
-              )}
               
-              {deniedItemIds.has(detailItem.id) && (
-                <div className="p-8 bg-gray-100 text-center font-bold text-gray-400">
+              {/* 1. Top Header Refined */}
+              <div className="bg-white p-4 flex items-center justify-between border-b border-gray-50 flex-shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-full text-white shadow-sm ${
+                    detailItem.id.startsWith('c_') ? 'bg-orange-500' :
+                    detailItem.id.startsWith('p_') ? 'bg-green-500' :
+                    detailItem.id.startsWith('f_') ? 'bg-red-500' :
+                    detailItem.id.startsWith('a_') ? 'bg-cyan-500' :
+                    detailItem.id.startsWith('e_') ? 'bg-violet-500' : 'bg-blue-500'
+                  }`}>
+                    {detailItem.id.startsWith('c_') ? <Target size={16} /> :
+                     detailItem.id.startsWith('p_') ? <MapPin size={16} /> :
+                     detailItem.id.startsWith('f_') ? <Utensils size={16} /> :
+                     detailItem.id.startsWith('a_') ? <Activity size={16} /> :
+                     detailItem.id.startsWith('e_') ? <Calendar size={16} /> : <Star size={16} />}
+                  </div>
+                  <span className="font-black text-blue-600 text-[10px] md:text-xs tracking-[0.2em] uppercase">
+                    {detailItem.category} {detailItem.tags?.[0] && `/ ${detailItem.tags[0]}`}
+                  </span>
+                </div>
+                <button 
+                  onClick={() => setIsDetailModalOpen(false)}
+                  className="bg-gray-100 hover:bg-gray-200 p-2 rounded-full transition-colors"
+                >
+                  <X size={20} className="text-gray-500" />
+                </button>
+              </div>
+
+              {/* Scrollable Content Wrapper */}
+              <div className="flex-1 overflow-y-auto scrollbar-none">
+                {/* 2. Logo Section (Hotel Name focused) */}
+                <div className="py-6 flex flex-col items-center justify-center bg-white border-b border-gray-50/50">
+                  {detailItem.logo ? (
+                    <img src={detailItem.logo} className="h-10 md:h-14 object-contain mb-2" alt="brand-logo" />
+                  ) : null}
+                  <div className="text-sm md:text-base font-black text-blue-600 uppercase tracking-[0.3em] text-center px-4">
+                    {detailItem.title}
+                  </div>
+                </div>
+
+                {/* 3. Main Image */}
+                <div className="px-6">
+                  <div className="rounded-[2rem] overflow-hidden shadow-lg h-48 md:h-64 relative">
+                    <img src={detailItem.image} className="w-full h-full object-cover" alt="" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                  </div>
+                </div>
+
+                {/* 4. Title Section */}
+                {/* 4. Title Section (Food Name focused) */}
+                <div className="px-6 py-6 text-center">
+                  <h2 className="text-gray-900 text-2xl md:text-4xl font-black tracking-tight leading-tight uppercase">
+                    {detailItem.foodName || detailItem.title}
+                  </h2>
+                </div>
+
+                {/* 5. Tabs Layout (Client Style) */}
+                <div className="flex px-6 border-b border-gray-100 bg-gray-50/50">
+                  {['Rules', 'People', 'Leaderboard'].map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveCardTab(tab)}
+                      className={`flex-1 py-4 text-xs font-black uppercase tracking-widest relative transition-all ${
+                        activeCardTab === tab ? 'text-blue-600' : 'text-gray-400'
+                      }`}
+                    >
+                      {tab}
+                      {activeCardTab === tab && (
+                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 rounded-t-full mx-4" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="px-6 py-6 mb-8 min-h-[100px]">
+                  {activeCardTab === 'Rules' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      <p className="text-gray-600 text-lg leading-relaxed mb-8">{detailItem.description}</p>
+                      
+                      <div className="grid grid-cols-2 gap-4 mb-8">
+                          <div className="bg-blue-50 p-4 md:p-6 rounded-3xl border border-blue-100">
+                            <span className="text-[10px] uppercase font-black text-blue-400 tracking-widest block mb-2">Entry Fee</span>
+                            <span className="text-xl md:text-2xl font-black text-blue-700">{detailItem.entryFee}</span>
+                          </div>
+                          <div className="bg-yellow-50 p-4 md:p-6 rounded-3xl border border-yellow-100">
+                            <span className="text-[10px] uppercase font-black text-yellow-500 tracking-widest block mb-2">Prize Pool</span>
+                            <span className="text-xl md:text-2xl font-black text-yellow-700">{detailItem.prize}</span>
+                          </div>
+                      </div>
+                    </div>
+                  )}
+                  {activeCardTab === 'People' && (
+                    <div className="space-y-6">
+                      {(detailItem.people || []).map((person, idx) => (
+                        <div key={idx} className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100">
+                           <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center gap-3">
+                                <img src={person.avatar} className="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="" />
+                                <div>
+                                  <p className="font-bold text-gray-800">{person.name}</p>
+                                  <p className="text-xs text-gray-400">{person.date}</p>
+                                </div>
+                              </div>
+                              <button className="bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold hover:bg-blue-700 transition-colors">Follow</button>
+                           </div>
+                           <p className="text-sm font-bold text-green-600 mb-4 flex items-center gap-2">
+                             <CheckCircle size={16} /> {person.description}
+                           </p>
+                           <img src={person.certification} className="w-full h-40 object-cover rounded-xl mb-4" alt="" />
+                           <div className="flex items-center gap-6 text-gray-400">
+                              <button className="flex items-center gap-1.5 hover:text-red-500 transition-colors">
+                                <Heart size={16} /> <span className="text-xs font-black">{person.likes}</span>
+                              </button>
+                              <button className="flex items-center gap-1.5 hover:text-blue-500 transition-colors">
+                                <MessageCircle size={16} /> <span className="text-xs font-black">{person.comments}</span>
+                              </button>
+                           </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {activeCardTab === 'Leaderboard' && (
+                    <div className="space-y-4">
+                      {(detailItem.leaderboard || []).map((entry, idx) => (
+                         <div key={idx} className={`flex items-center justify-between p-4 rounded-2xl border ${idx === 0 ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-100'}`}>
+                            <div className="flex items-center gap-4">
+                              <span className={`text-xl font-black ${idx === 0 ? 'text-yellow-600' : 'text-gray-300'}`}>#{entry.rank}</span>
+                              <img src={entry.avatar} className="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="" />
+                              <span className="font-black text-gray-800">{entry.name}</span>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xl font-black text-blue-600">{entry.points}</p>
+                              <p className="text-[10px] uppercase font-bold text-gray-400 tracking-tighter">Points</p>
+                            </div>
+                         </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* 6. Info Blocks (Yellow boxes Refined) */}
+                <div className="grid grid-cols-2 gap-3 px-6 mb-8 mt-auto flex-shrink-0">
+                  <div className="bg-[#FFFCE4] border border-[#FFD700] p-3 md:p-5 rounded-3xl text-center shadow-sm">
+                    <p className="text-[9px] md:text-[10px] font-black text-gray-400 tracking-widest uppercase mb-1">DISTANCE</p>
+                    <p className="text-gray-900 text-lg md:text-xl font-black">{detailItem.distance || '0.50 km'}</p>
+                  </div>
+                  <div className="bg-[#FFFCE4] border border-[#FFD700] p-3 md:p-5 rounded-3xl text-center shadow-sm">
+                    <p className="text-[9px] md:text-[10px] font-black text-gray-400 tracking-widest uppercase mb-1">
+                      {detailItem.id.startsWith('f_') ? 'PRICE' : (detailItem.id.startsWith('c_') ? 'PRIZE' : 'ENTRY')}
+                    </p>
+                    <p className="text-gray-900 text-lg md:text-xl font-black">
+                      {detailItem.price || detailItem.prize || detailItem.entryFee}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 7. Full-width Sticky Footer */}
+              {!acceptedItems.find(i => i.id === detailItem.id) && !deniedItemIds.has(detailItem.id) ? (
+                <div className="flex h-14 md:h-20 flex-shrink-0">
+                  <button 
+                    onClick={() => {
+                      setAcceptedItems(prev => [...prev.filter(i => i.id !== detailItem.id), detailItem].slice(-5));
+                      setIsDetailModalOpen(false);
+                    }}
+                    className="flex-1 bg-[#00C853] hover:bg-[#00B248] text-white font-black text-base md:text-xl tracking-[0.1em] transition-colors"
+                  >
+                    ACCEPT
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setDeniedItemIds(prev => new Set([...prev, detailItem.id]));
+                      setIsDetailModalOpen(false);
+                    }}
+                    className="flex-1 bg-[#FF0000] hover:bg-[#E60000] text-white font-black text-base md:text-xl tracking-[0.1em] transition-colors"
+                  >
+                    HIDE
+                  </button>
+                </div>
+              ) : deniedItemIds.has(detailItem.id) ? (
+                <div className="p-8 bg-gray-50 text-center font-bold text-gray-400 border-t border-gray-100 flex-shrink-0">
                     This item has been declined.
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
         )}

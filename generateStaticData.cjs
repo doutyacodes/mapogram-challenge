@@ -90,12 +90,52 @@ states.forEach(state => {
       ];
     };
 
+    const getFoodItems = () => {
+      const dishes = [
+        { name: 'Biryani', type: 'Biryani Specials', image: foodImages[0] },
+        { name: 'Mandi & Arabian', type: 'Arabian Delights', image: foodImages[1] },
+        { name: 'Seafood', type: 'Fresh Catch', image: foodImages[2] },
+        { name: 'Appam & Chicken Perattu', type: 'Traditional', image: foodImages[0] },
+        { name: 'Puttum Beefum', type: 'Local Favorites', image: foodImages[1] },
+        { name: 'Kizhi Parotta', type: 'Local Favorites', image: foodImages[2] }
+      ];
+      
+      const hotels = [
+        { name: 'The Ghats Restaurant', logo: 'https://t3.ftcdn.net/jpg/03/07/94/80/360_F_307948085_v9L7m3i9C9XU8B3C3lQ0J9u9U1N3S7sE.jpg' },
+        { name: 'Paragon Restaurant', logo: 'https://cdn-icons-png.flaticon.com/512/854/854866.png' },
+        { name: 'Empire Hotel', logo: 'https://cdn-icons-png.flaticon.com/512/2907/2907253.png' },
+        { name: 'Grand Hyatt', logo: 'https://cdn-icons-png.flaticon.com/512/3652/3652191.png' },
+        { name: 'Kochi Kitchen', logo: 'https://cdn-icons-png.flaticon.com/512/10433/10433048.png' }
+      ];
+
+      return dishes.map((dish, dishIdx) => {
+        const hotel = hotels[dishIdx % hotels.length];
+        return {
+          id: 'f_' + distName + '_' + dishIdx,
+          title: hotel.name, // Establishment name on map/stack
+          foodName: dish.name, // Dish name for modal title
+          category: 'Food',
+          tags: [dish.type],
+          logo: hotel.logo,
+          image: dish.image,
+          description: `Experience the best ${dish.name} at ${hotel.name}. Our specialty ${dish.name} is prepared with authentic secret spices and tradition.`,
+          price: getRandomPrice(),
+          distance: (Math.random() * 5 + 1).toFixed(2) + ' km',
+          people: getFakePeople('Food', hotel.name),
+          leaderboard: getFakeLeaderboard(),
+          lat: feature.geometry.coordinates[1] + (Math.random() - 0.5) * 0.05,
+          lng: feature.geometry.coordinates[0] + (Math.random() - 0.5) * 0.05
+        };
+      });
+    };
+
     const challenges = [
       {
         id: 'c_' + distName + '_1',
         title: 'Clean ' + distName + ' Streets',
         description: 'Help keep the central streets of ' + distName + ' free of plastic waste.',
         points: getRandomPoints(),
+        logo: 'https://cdn-icons-png.flaticon.com/512/10433/10433048.png', 
         image: challengeImages[0],
         tags: ['Environment'],
         entryFee: getRandomEntryFee(),
@@ -108,6 +148,7 @@ states.forEach(state => {
         title: 'Plant Trees in ' + distName,
         description: 'Contribute to the green cover around ' + distName + ' local parks.',
         points: getRandomPoints(),
+        logo: 'https://cdn-icons-png.flaticon.com/512/10433/10433048.png',
         image: challengeImages[1],
         tags: ['Environment'],
         entryFee: getRandomEntryFee(),
@@ -120,6 +161,7 @@ states.forEach(state => {
         title: 'Report Potholes in ' + distName,
         description: 'Help authorities identify bad road conditions in ' + distName + '.',
         points: getRandomPoints(),
+        logo: 'https://cdn-icons-png.flaticon.com/512/10433/10433048.png',
         image: challengeImages[2],
         tags: ['Infrastructure'],
         entryFee: getRandomEntryFee(),
@@ -136,6 +178,8 @@ states.forEach(state => {
         description: 'Explore the rich history and artifacts from the ' + distName + ' region.',
         distance: '1.2 km',
         points: getRandomPoints(),
+        rating: getRandomRating(),
+        logo: 'https://cdn-icons-png.flaticon.com/512/854/854866.png',
         image: placeImages[0],
         tags: ['Culture', 'History'],
         entryFee: getRandomEntryFee(),
@@ -189,140 +233,72 @@ states.forEach(state => {
         });
       }
     }
-
-    const food = [
-      {
-        id: 'f_' + distName + '_1',
-        title: 'Biryani - ' + distName,
-        description: 'Famous for its aromatic Hyderabadi and Malabar Biryani with traditional spices.',
-        hours: '12:00 PM - 11:00 PM',
-        points: getRandomPoints(),
-        rating: getRandomRating(),
-        price: getRandomPrice(),
-        image: foodImages[0],
-        hotels: [distName + ' Heritage Hotel', 'Grand ' + distName + ' Residency', distName + ' Palace', 'The ' + distName + ' Hub', 'Central ' + distName + ' Suites'],
-        tags: ['Biryani', 'South Indian'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Food', 'Biryani - ' + distName),
-        leaderboard: getFakeLeaderboard()
-      },
-      {
-        id: 'f_' + distName + '_2',
-        title: 'Mandi & Arabian - ' + distName,
-        description: 'Premium dining experience featuring authentic Kuzhimandi and Arabian delicacies.',
-        hours: '07:00 AM - 11:00 PM',
-        points: getRandomPoints(),
-        rating: getRandomRating(),
-        price: getRandomPrice(),
-        image: foodImages[1],
-        hotels: ['Hotel ' + distName + ' International', distName + ' Garden Inn', 'Arabian ' + distName + ' Nights', 'Desert ' + distName + ' Grill', distName + ' Oasis Hotel'],
-        tags: ['Mandi', 'Arabian', 'North Indian'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Food', 'Mandi & Arabian - ' + distName),
-        leaderboard: getFakeLeaderboard()
-      },
-      {
-        id: 'f_' + distName + '_3',
-        title: 'Seafood Special - ' + distName,
-        description: 'Fresh catch of the day served in traditional coastal style recipes.',
-        hours: '11:00 AM - 10:00 PM',
-        points: getRandomPoints(),
-        rating: getRandomRating(),
-        price: getRandomPrice(),
-        image: foodImages[2],
-        hotels: ['Coastal Breeze Resort', distName + ' Sands Hotel', 'Blue ' + distName + ' Lagoons', 'Fishermans ' + distName + ' Corner', 'Sea ' + distName + ' Gate Residency'],
-        tags: ['Seafood', 'Coastal'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Food', 'Seafood Special - ' + distName),
-        leaderboard: getFakeLeaderboard()
-      },
-      {
-        id: 'f_' + distName + '_4',
-        title: 'Appam & Chicken Perattu - ' + distName,
-        description: 'Deliciously soft Appams served with spicy and slow-cooked Chicken Perattu.',
-        hours: '06:00 AM - 10:00 PM',
-        points: getRandomPoints(),
-        rating: getRandomRating(),
-        price: getRandomPrice(),
-        image: foodImages[0],
-        hotels: [distName + ' Bhavan', 'Hotel ' + distName + ' Saravana', 'The ' + distName + ' South Shore', 'Idli ' + distName + ' Point', 'South ' + distName + ' Grande'],
-        tags: ['Kerala Special', 'Appam', 'Local'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Food', 'Appam & Chicken Perattu - ' + distName),
-        leaderboard: getFakeLeaderboard()
-      },
-      {
-        id: 'f_' + distName + '_5',
-        title: 'Puttum Beefum - ' + distName,
-        description: 'Traditional Kerala steamed rice cakes served with spicy beef roast or curry.',
-        hours: '11:00 AM - 10:30 PM',
-        points: getRandomPoints(),
-        rating: getRandomRating(),
-        price: getRandomPrice(),
-        image: foodImages[1],
-        hotels: [distName + ' Spice House', 'Backwater ' + distName + ' Inn', 'Coconut ' + distName + ' Grove', 'Traditional ' + distName + ' Residency', distName + ' Village Stay'],
-        tags: ['Kerala Special', 'Puttu', 'Local'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Food', 'Puttum Beefum - ' + distName),
-        leaderboard: getFakeLeaderboard()
-      },
-      {
-        id: 'f_' + distName + '_6',
-        title: 'Kizhi Parotta - ' + distName,
-        description: 'Parottas wrapped in banana leaves with rich gravy and meat, steamed to perfection.',
-        hours: '12:00 PM - 11:30 PM',
-        points: getRandomPoints(),
-        rating: getRandomRating(),
-        price: getRandomPrice(),
-        image: foodImages[2],
-        hotels: ['Dragon ' + distName + ' Lodge', distName + ' Wok', 'Red ' + distName + ' Lotus', 'Silk ' + distName + ' Road Hotel', 'Dynasty ' + distName + ' Suites'],
-        tags: ['Kerala Special', 'Parotta', 'Fast Food'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Food', 'Kizhi Parotta - ' + distName),
-        leaderboard: getFakeLeaderboard()
-      },
-      {
-        id: 'f_' + distName + '_7',
-        title: 'Sadhya Special - ' + distName,
-        description: 'Authentic Kerala multi-course vegetarian meal served on a banana leaf.',
-        hours: '10:00 AM - 11:00 PM',
-        points: getRandomPoints(),
-        rating: getRandomRating(),
-        price: getRandomPrice(),
-        image: foodImages[0],
-        hotels: [distName + ' Continental', 'Global ' + distName + ' Residency', 'The ' + distName + ' Westerner', 'Urban ' + distName + ' Stay', distName + ' Metro Hotel'],
-        tags: ['Kerala Special', 'Sadhya', 'Traditional'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Food', 'Sadhya Special - ' + distName),
-        leaderboard: getFakeLeaderboard()
-      }
+    const dishes = [
+      { name: 'Biryani', type: 'Biryani Specials', image: foodImages[0] },
+      { name: 'Mandi & Arabian', type: 'Arabian Delights', image: foodImages[1] },
+      { name: 'Seafood', type: 'Fresh Catch', image: foodImages[2] },
+      { name: 'Appam & Chicken Perattu', type: 'Traditional', image: foodImages[0] },
+      { name: 'Puttum Beefum', type: 'Local Favorites', image: foodImages[1] }
+    ];
+    
+    const hList = [
+      { name: 'The Ghats Restaurant', logo: 'https://t3.ftcdn.net/jpg/03/07/94/80/360_F_307948085_v9L7m3i9C9XU8B3C3lQ0J9u9U1N3S7sE.jpg' },
+      { name: 'Paragon Restaurant', logo: 'https://cdn-icons-png.flaticon.com/512/854/854866.png' },
+      { name: 'Empire Hotel', logo: 'https://cdn-icons-png.flaticon.com/512/2907/2907253.png' },
+      { name: 'Grand Hyatt', logo: 'https://cdn-icons-png.flaticon.com/512/3652/3652191.png' },
+      { name: 'Kochi Kitchen', logo: 'https://cdn-icons-png.flaticon.com/512/10433/10433048.png' }
     ];
 
+    const food = dishes.map((dish, dishIdx) => {
+      const hotel = hList[dishIdx % hList.length];
+      return {
+        id: 'f_' + distName + '_' + dishIdx,
+        title: hotel.name, // Establishment name on map/stack
+        foodName: dish.name, // Dish name for modal title
+        category: 'Food',
+        tags: [dish.type],
+        logo: hotel.logo,
+        image: dish.image,
+        description: `Experience the best ${dish.name} at ${hotel.name}. Our specialty ${dish.name} is prepared with authentic secret spices and tradition.`,
+        price: getRandomPrice(),
+        distance: (Math.random() * 5 + 1).toFixed(2) + ' km',
+        points: getRandomPoints(),
+        rating: getRandomRating(),
+        entryFee: getRandomEntryFee(),
+        prize: '100 Points',
+        people: getFakePeople('Food', hotel.name),
+        leaderboard: getFakeLeaderboard(),
+        lat: feature.geometry.coordinates[1] + (Math.random() - 0.5) * 0.05,
+        lng: feature.geometry.coordinates[0] + (Math.random() - 0.5) * 0.05
+      };
+    });
+
     if (distName === 'Kottayam') {
-      for (let i = 8; i <= 12; i++) {
-        const title = distName + ' Delicacy ' + i;
+      const kHotelNames = ['Kottayam Delicacy', 'Pepper Grove', 'Backwater Bites', 'Rubber Valley Inn', 'Meenachil Kitchen'];
+      const kDishNames = ['Fish Curry', 'Beef Roast', 'Karimeen Pollichathu', 'Appam & Stew', 'Kappa & Meen'];
+      
+      for (let i = 8; i <= 14; i++) {
+        const hotelName = kHotelNames[i % kHotelNames.length] + ' ' + i;
+        const dishName = kDishNames[i % kDishNames.length];
         food.push({
           id: 'f_' + distName + '_' + i,
-          title: title,
-          description: 'Authentic local ' + distName + ' food with unique flavors.',
-          hours: '10:00 AM - 9:00 PM',
+          title: hotelName,
+          foodName: dishName,
+          category: 'Food',
+          tags: ['Local Specialties'],
+          logo: 'https://cdn-icons-png.flaticon.com/512/10433/10433048.png',
+          image: foodImages[i % 3],
+          description: `Authentic local ${dishName} at ${hotelName}. A must-try experience in Kottayam.`,
+          price: getRandomPrice(),
+          distance: (Math.random() * 5 + 1).toFixed(2) + ' km',
           points: getRandomPoints(),
           rating: getRandomRating(),
-          price: getRandomPrice(),
-          image: foodImages[i % 3],
-          hotels: [distName + ' Inn', 'Central ' + distName + ' Lodge', distName + ' Residency', distName + ' Heights', distName + ' Grand'],
-          tags: i % 2 === 0 ? ['Biryani', 'Local'] : ['Seafood', 'Traditional'],
           entryFee: getRandomEntryFee(),
           prize: '100 Points',
-          people: getFakePeople('Food', title),
-          leaderboard: getFakeLeaderboard()
+          people: getFakePeople('Food', hotelName),
+          leaderboard: getFakeLeaderboard(),
+          lat: feature.geometry.coordinates[1] + (Math.random() - 0.5) * 0.05,
+          lng: feature.geometry.coordinates[0] + (Math.random() - 0.5) * 0.05
         });
       }
     }
