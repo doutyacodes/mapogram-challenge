@@ -27,7 +27,13 @@ import {
     Palette,
     Cpu,
     ShoppingBag,
-    ArrowLeft
+    ArrowLeft,
+    UserPlus,
+    Heart,
+    MessageCircle,
+    CheckCircle,
+    Users,
+    UsersRound
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { applyGoogleMapsControlStyle } from "@/utils/googleMapsStyles";
@@ -369,6 +375,7 @@ export default function CommunityView({ infrastructureId, isOwner }) {
   const [isDistrictFilterOpen, setIsDistrictFilterOpen] = useState(false);
   const [districtSearchQuery, setDistrictSearchQuery] = useState("");
   const [isDiscoveryMenuOpen, setIsDiscoveryMenuOpen] = useState(false);
+  const [activeCardTab, setActiveCardTab] = useState('Rules');
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
   const [activeDiscoveryCategory, setActiveDiscoveryCategory] = useState(null);
 
@@ -1787,37 +1794,40 @@ export default function CommunityView({ infrastructureId, isOwner }) {
             return (
               <InfoWindowF
                 position={{ lat: markerData.lat, lng: markerData.lng }}
-                onCloseClick={() => setActiveCategoryMarker(null)}
+                onCloseClick={() => { setActiveCategoryMarker(null); setActiveCardTab('Rules'); }}
                 options={{
                   pixelOffset: new window.google.maps.Size(0, -30),
-                  maxWidth: 280
+                  maxWidth: 320
                 }}
               >
-                <div className="bg-white rounded-lg overflow-hidden font-sans relative group">
+                <div className="bg-white rounded-xl overflow-hidden font-sans relative shadow-2xl border border-gray-100 min-w-[280px]">
+                  {/* Close Button */}
                   <button 
-                    onClick={() => setActiveCategoryMarker(null)}
-                    className="absolute top-1 right-1 z-10 bg-black/40 hover:bg-black/60 text-white p-1 rounded-full backdrop-blur-sm transition-colors"
+                    onClick={() => { setActiveCategoryMarker(null); setActiveCardTab('Rules'); }}
+                    className="absolute top-2 right-2 z-20 bg-black/20 hover:bg-black/40 text-white p-1 rounded-full backdrop-blur-md transition-all sm:hidden"
                   >
                     <X size={14} />
                   </button>
-                  <div className="h-28 w-full relative">
+
+                  {/* Header Image & Info */}
+                  <div className="h-24 w-full relative">
                     <img src={markerData.image} alt={markerData.title} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
                     
                     {/* Category Badge */}
-                    <div className={`absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold text-white shadow-lg backdrop-blur-md border border-white/20 ${
+                    <div className={`absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-full text-[9px] font-bold text-white shadow-lg backdrop-blur-md border border-white/20 ${
                       markerData.id.startsWith('c_') ? 'bg-orange-500/80' :
                       markerData.id.startsWith('p_') ? 'bg-green-500/80' :
                       markerData.id.startsWith('f_') ? 'bg-red-500/80' :
                       markerData.id.startsWith('a_') ? 'bg-cyan-500/80' :
                       markerData.id.startsWith('e_') ? 'bg-violet-500/80' : 'bg-gray-500/80'
                     }`}>
-                      {markerData.id.startsWith('c_') ? <Target size={12} /> :
-                       markerData.id.startsWith('p_') ? <MapPin size={12} /> :
-                       markerData.id.startsWith('f_') ? <Utensils size={12} /> :
-                       markerData.id.startsWith('a_') ? <Activity size={12} /> :
-                       markerData.id.startsWith('e_') ? <Calendar size={12} /> : null}
-                      <span className="uppercase tracking-wider">
+                      {markerData.id.startsWith('c_') ? <Target size={10} /> :
+                       markerData.id.startsWith('p_') ? <MapPin size={10} /> :
+                       markerData.id.startsWith('f_') ? <Utensils size={10} /> :
+                       markerData.id.startsWith('a_') ? <Activity size={10} /> :
+                       markerData.id.startsWith('e_') ? <Calendar size={10} /> : null}
+                      <span className="uppercase tracking-widest">
                         {markerData.id.startsWith('c_') ? 'Challenge' :
                          markerData.id.startsWith('p_') ? 'Place' :
                          markerData.id.startsWith('f_') ? 'Food' :
@@ -1826,56 +1836,155 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                       </span>
                     </div>
 
-                    <div className="absolute bottom-2 left-2 bg-white/90 text-yellow-600 px-2 py-0.5 rounded text-xs font-bold flex items-center gap-1 shadow-sm">
-                      <Star size={10} fill="currentColor" /> {markerData.points} pts
+                    <div className="absolute bottom-2 left-2 right-2">
+                       <h3 className="font-bold text-white text-sm leading-tight drop-shadow-md truncate">{markerData.title}</h3>
                     </div>
                   </div>
-                  <div className="p-3">
-                    <h3 className="font-bold text-gray-800 text-sm mb-1 leading-tight">{markerData.title}</h3>
-                    {markerData.price && (
-                      <p className="text-sm font-black text-green-600 mb-1 flex items-center gap-1">
-                        {markerData.price}
-                      </p>
+
+                  {/* Tab System */}
+                  <div className="flex border-b border-gray-100 bg-gray-50/50">
+                    {['Rules', 'People', 'Leaderboard'].map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setActiveCardTab(tab)}
+                        className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-all relative ${
+                          activeCardTab === tab 
+                            ? 'text-blue-600' 
+                            : 'text-gray-400 hover:text-gray-600'
+                        }`}
+                      >
+                        {tab === 'Rules' && <FileText size={10} className="inline mr-1 mb-0.5" />}
+                        {tab === 'People' && <UsersRound size={10} className="inline mr-1 mb-0.5" />}
+                        {tab === 'Leaderboard' && <Trophy size={10} className="inline mr-1 mb-0.5" />}
+                        {tab}
+                        {activeCardTab === tab && (
+                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full mx-2" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Content Area */}
+                  <div className="p-3 max-h-[220px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
+                    {activeCardTab === 'Rules' && (
+                      <div className="animate-in fade-in duration-300">
+                        <p className="text-xs text-gray-600 mb-3 leading-relaxed">{markerData.description}</p>
+                        
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100/50 text-center">
+                            <span className="block text-[8px] uppercase tracking-tighter text-blue-400 font-bold">Entry free</span>
+                            <span className="text-xs font-black text-blue-700">{markerData.entryFee || 'Free'}</span>
+                          </div>
+                          <div className="bg-yellow-50/50 p-2 rounded-lg border border-yellow-100/50 text-center">
+                            <span className="block text-[8px] uppercase tracking-tighter text-yellow-500 font-bold">Prize</span>
+                            <span className="text-xs font-black text-yellow-700">{markerData.prize || 'Points'}</span>
+                          </div>
+                        </div>
+
+                        {markerData.price && (
+                          <div className="flex items-center gap-2 mb-2 p-1.5 bg-green-50 rounded-md border border-green-100">
+                            <span className="text-[10px] font-bold text-green-700">Recommended Budget:</span>
+                            <span className="text-xs font-black text-green-600">{markerData.price}</span>
+                          </div>
+                        )}
+                      </div>
                     )}
-                    {markerData.hours && (
-                      <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
-                        <Clock size={10}/> {markerData.hours}
-                      </p>
+
+                    {activeCardTab === 'People' && (
+                      <div className="space-y-3 animate-in fade-in duration-300">
+                        {(markerData.people || []).map((person, idx) => (
+                          <div key={idx} className="bg-gray-50/50 rounded-xl p-2.5 border border-gray-100">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <img src={person.avatar} className="w-7 h-7 rounded-full border border-gray-200 shadow-sm" alt="" />
+                                <div>
+                                  <p className="text-[10px] font-bold text-gray-800 leading-none">{person.name}</p>
+                                  <p className="text-[8px] text-gray-400">{person.date}</p>
+                                </div>
+                              </div>
+                              <button className="text-[8px] font-bold border border-blue-200 text-blue-600 px-2 py-0.5 rounded-full hover:bg-blue-600 hover:text-white transition-all flex items-center gap-1">
+                                <UserPlus size={8} /> Follow
+                              </button>
+                            </div>
+                            
+                            <p className="text-[10px] text-gray-600 mb-2">
+                              <span className="font-bold text-green-600 flex items-center gap-1 inline-flex">
+                                <CheckCircle size={10} /> {person.description}
+                              </span>
+                            </p>
+                            
+                            <div className="relative rounded-lg overflow-hidden h-20 mb-2 border border-gray-100 shadow-inner group">
+                              <img src={person.certification} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" alt="" />
+                              <div className="absolute top-1 right-1 bg-white/90 backdrop-blur-sm p-0.5 rounded text-[8px] font-bold text-gray-500 shadow-sm flex items-center gap-0.5">
+                                <FileText size={8} /> Certificate
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-4 px-1">
+                              <button className="flex items-center gap-1 group">
+                                <Heart size={12} className="text-gray-400 group-hover:text-red-500 transition-colors" />
+                                <span className="text-[9px] font-bold text-gray-400 group-hover:text-gray-600">{person.likes}</span>
+                              </button>
+                              <button className="flex items-center gap-1 group">
+                                <MessageCircle size={12} className="text-gray-400 group-hover:text-blue-500 transition-colors" />
+                                <span className="text-[9px] font-bold text-gray-400 group-hover:text-gray-600">{person.comments}</span>
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
-                    {markerData.distance && (
-                      <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
-                        <MapPin size={10}/> {markerData.distance}
-                      </p>
-                    )}
-                    {markerData.hotels && (
-                      <div className="mb-2">
-                        <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-1">Recommended Hotels</p>
-                        <div className="flex flex-wrap gap-1">
-                          {markerData.hotels.map((hotel, hIdx) => (
-                            <span key={hIdx} className="bg-red-50 text-red-600 text-[10px] px-1.5 py-0.5 rounded border border-red-100">{hotel}</span>
-                          ))}
+
+                    {activeCardTab === 'Leaderboard' && (
+                      <div className="animate-in fade-in duration-300">
+                        <div className="bg-yellow-50 rounded-xl p-3 border border-yellow-100 mb-3 flex items-center justify-between shadow-inner">
+                          <div className="flex items-center gap-3">
+                            <div className="relative">
+                                <img src={(markerData.leaderboard || [])[0]?.avatar} className="w-10 h-10 rounded-full border-2 border-yellow-400 shadow-md" alt="" />
+                                <div className="absolute -top-1 -right-1 bg-yellow-400 text-white rounded-full p-0.5 shadow-sm">
+                                  <Trophy size={10} />
+                                </div>
+                            </div>
+                            <div>
+                              <p className="text-[10px] uppercase font-black text-yellow-600 tracking-wider">Rank #1 Champion</p>
+                              <p className="text-xs font-bold text-gray-800">{(markerData.leaderboard || [])[0]?.name}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                             <p className="text-sm font-black text-yellow-600">{(markerData.leaderboard || [])[0]?.points}</p>
+                             <p className="text-[8px] font-bold text-yellow-400 uppercase">Points</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5 px-0.5">
+                           {(markerData.leaderboard || []).slice(1).map((user, idx) => (
+                             <div key={idx} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-all border border-transparent hover:border-gray-100">
+                               <div className="flex items-center gap-3">
+                                 <span className="text-xs font-black text-gray-300 w-4 inline-block italic">#{user.rank}</span>
+                                 <img src={user.avatar} className="w-6 h-6 rounded-full border border-gray-200" alt="" />
+                                 <span className="text-[11px] font-semibold text-gray-700">{user.name}</span>
+                               </div>
+                               <span className="text-[11px] font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">{user.points} pts</span>
+                             </div>
+                           ))}
                         </div>
                       </div>
                     )}
-                    {markerData.duration && (
-                      <p className="text-xs text-blue-500 mb-1 flex items-center gap-1">
-                        <Activity size={10}/> {markerData.duration}
-                      </p>
-                    )}
-                    {markerData.date && (
-                      <p className="text-xs text-purple-500 mb-1 flex items-center gap-1">
-                        <Calendar size={10}/> {markerData.date}
-                      </p>
-                    )}
-                    <p className="text-xs text-gray-600 line-clamp-3 mb-3">{markerData.description}</p>
-                    <div className="flex gap-2">
-                       <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-1.5 rounded text-xs font-medium transition-colors" onClick={() => { alert('Accepted!'); setActiveCategoryMarker(null); }}>Accept</button>
-                       <button className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-1.5 rounded text-xs font-medium transition-colors" onClick={() => { alert('Denied!'); setActiveCategoryMarker(null); }}>Deny</button>
-                       <button className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-1.5 rounded text-xs font-medium transition-colors border border-red-100" onClick={() => {
-                          setCategoryMarkers(prev => prev.filter(m => m.id !== markerData.id));
-                          setActiveCategoryMarker(null);
-                       }}>Hide</button>
-                    </div>
+                  </div>
+
+                  {/* Accept Button Footer */}
+                  <div className="p-3 pt-0">
+                    <button 
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-200 transition-all active:scale-95 flex items-center justify-center gap-2 group" 
+                      onClick={() => { 
+                        alert('Exciting Journey Accepted!'); 
+                        setActiveCategoryMarker(null); 
+                        setActiveCardTab('Rules');
+                      }}
+                    >
+                      <CheckCircle size={14} className="group-hover:scale-110 transition-transform" />
+                      Accept the Challenge
+                    </button>
                   </div>
                 </div>
               </InfoWindowF>
@@ -1902,9 +2011,11 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                         <ArrowLeft size={12} /> Back
                       </button>
                       {[
-                        { id: 'Biryani', icon: Utensils, color: 'text-red-500', label: 'Biryani Special' },
+                        { id: 'Biryani', icon: Utensils, color: 'text-red-500', label: 'Biryani' },
                         { id: 'Mandi', icon: Utensils, color: 'text-orange-600', label: 'Mandi & Arabian' },
-                        { id: 'Seafood', icon: Fish, color: 'text-blue-500', label: 'Seafood Coast' },
+                        { id: 'Seafood', icon: Fish, color: 'text-blue-500', label: 'Seafood' },
+                        { id: 'Appam', icon: Utensils, color: 'text-amber-600', label: 'Appam & Chicken' },
+                        { id: 'Puttu', icon: Utensils, color: 'text-neutral-700', label: 'Puttum Beefum' },
                         { id: 'Football', icon: Trophy, color: 'text-green-500', label: 'Football Turfs' },
                         { id: 'Cricket', icon: Trophy, color: 'text-blue-500', label: 'Cricket Nets' },
                         { id: 'Yoga', icon: Activity, color: 'text-purple-500', label: 'Yoga & Health' },
@@ -1915,7 +2026,7 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                         { id: 'Tech', icon: Cpu, color: 'text-gray-600', label: 'Tech Meetups' },
                         { id: 'Market', icon: ShoppingBag, color: 'text-amber-500', label: 'Local Markets' }
                       ].filter(sub => {
-                        if (activeDiscoveryCategory === 'Food') return ['Biryani', 'Mandi', 'Seafood'].includes(sub.id);
+                        if (activeDiscoveryCategory === 'Food') return ['Biryani', 'Mandi', 'Seafood', 'Appam', 'Puttu'].includes(sub.id);
                         if (activeDiscoveryCategory === 'Activity') return ['Football', 'Cricket', 'Yoga', 'Cycling', 'Kayaking'].includes(sub.id);
                         if (activeDiscoveryCategory === 'Events') return ['Music', 'Art', 'Tech', 'Market'].includes(sub.id);
                         return false;
