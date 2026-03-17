@@ -430,6 +430,15 @@ export default function CommunityView({ infrastructureId, isOwner }) {
 
   const [layerType, setLayerType] = useState(null);
 
+  // Advanced Map Interaction Redesign States
+  const [acceptedItems, setAcceptedItems] = useState([]);
+  const [deniedItemIds, setDeniedItemIds] = useState(new Set());
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [detailItem, setDetailItem] = useState(null);
+  const [isQRModalOpen, setIsQRModalOpen] = useState(false);
+  const [qrScanning, setQrScanning] = useState(false);
+  const [qrSuccess, setQrSuccess] = useState(false);
+
   const { user, canCreatePost } = useUserRole();
 
   const searchParams = useSearchParams();
@@ -1800,190 +1809,45 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                   maxWidth: 320
                 }}
               >
-                <div className="bg-white rounded-xl overflow-hidden font-sans relative shadow-2xl border border-gray-100 min-w-[280px]">
-                  {/* Close Button */}
-                  <button 
-                    onClick={() => { setActiveCategoryMarker(null); setActiveCardTab('Rules'); }}
-                    className="absolute top-2 right-2 z-20 bg-black/20 hover:bg-black/40 text-white p-1 rounded-full backdrop-blur-md transition-all sm:hidden"
-                  >
-                    <X size={14} />
-                  </button>
-
-                  {/* Header Image & Info */}
-                  <div className="h-24 w-full relative">
+                <div className={`bg-white rounded-xl overflow-hidden font-sans relative shadow-2xl border border-gray-100 min-w-[280px] ${deniedItemIds.has(markerData.id) ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
+                  {/* Header Image */}
+                  <div className="h-32 w-full relative">
                     <img src={markerData.image} alt={markerData.title} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
                     
-                    {/* Category Badge */}
-                    <div className={`absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-full text-[9px] font-bold text-white shadow-lg backdrop-blur-md border border-white/20 ${
-                      markerData.id.startsWith('c_') ? 'bg-orange-500/80' :
-                      markerData.id.startsWith('p_') ? 'bg-green-500/80' :
-                      markerData.id.startsWith('f_') ? 'bg-red-500/80' :
-                      markerData.id.startsWith('a_') ? 'bg-cyan-500/80' :
-                      markerData.id.startsWith('e_') ? 'bg-violet-500/80' : 'bg-gray-500/80'
-                    }`}>
-                      {markerData.id.startsWith('c_') ? <Target size={10} /> :
-                       markerData.id.startsWith('p_') ? <MapPin size={10} /> :
-                       markerData.id.startsWith('f_') ? <Utensils size={10} /> :
-                       markerData.id.startsWith('a_') ? <Activity size={10} /> :
-                       markerData.id.startsWith('e_') ? <Calendar size={10} /> : null}
-                      <span className="uppercase tracking-widest">
-                        {markerData.id.startsWith('c_') ? 'Challenge' :
-                         markerData.id.startsWith('p_') ? 'Place' :
-                         markerData.id.startsWith('f_') ? 'Food' :
-                         markerData.id.startsWith('a_') ? 'Activity' :
-                         markerData.id.startsWith('e_') ? 'Event' : ''}
-                      </span>
-                    </div>
-
-                    <div className="absolute bottom-2 left-2 right-2">
-                       <h3 className="font-bold text-white text-sm leading-tight drop-shadow-md truncate">{markerData.title}</h3>
+                    <div className="absolute bottom-3 left-3 right-3">
+                       <p className="text-[10px] font-bold text-white/80 uppercase tracking-widest mb-1">
+                         {markerData.category} {markerData.tags?.[0] && `→ ${markerData.tags[0]}`}
+                       </p>
+                       <h3 className="font-bold text-white text-base leading-tight drop-shadow-md">{markerData.title}</h3>
                     </div>
                   </div>
 
-                  {/* Tab System */}
-                  <div className="flex border-b border-gray-100 bg-gray-50/50">
-                    {['Rules', 'People', 'Leaderboard'].map((tab) => (
-                      <button
-                        key={tab}
-                        onClick={() => setActiveCardTab(tab)}
-                        className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-all relative ${
-                          activeCardTab === tab 
-                            ? 'text-blue-600' 
-                            : 'text-gray-400 hover:text-gray-600'
-                        }`}
-                      >
-                        {tab === 'Rules' && <FileText size={10} className="inline mr-1 mb-0.5" />}
-                        {tab === 'People' && <UsersRound size={10} className="inline mr-1 mb-0.5" />}
-                        {tab === 'Leaderboard' && <Trophy size={10} className="inline mr-1 mb-0.5" />}
-                        {tab}
-                        {activeCardTab === tab && (
-                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full mx-2" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Content Area */}
-                  <div className="p-3 max-h-[220px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
-                    {activeCardTab === 'Rules' && (
-                      <div className="animate-in fade-in duration-300">
-                        <p className="text-xs text-gray-600 mb-3 leading-relaxed">{markerData.description}</p>
-                        
-                        <div className="grid grid-cols-2 gap-2 mb-3">
-                          <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100/50 text-center">
-                            <span className="block text-[8px] uppercase tracking-tighter text-blue-400 font-bold">Entry free</span>
-                            <span className="text-xs font-black text-blue-700">{markerData.entryFee || 'Free'}</span>
-                          </div>
-                          <div className="bg-yellow-50/50 p-2 rounded-lg border border-yellow-100/50 text-center">
-                            <span className="block text-[8px] uppercase tracking-tighter text-yellow-500 font-bold">Prize</span>
-                            <span className="text-xs font-black text-yellow-700">{markerData.prize || 'Points'}</span>
-                          </div>
-                        </div>
-
-                        {markerData.price && (
-                          <div className="flex items-center gap-2 mb-2 p-1.5 bg-green-50 rounded-md border border-green-100">
-                            <span className="text-[10px] font-bold text-green-700">Recommended Budget:</span>
-                            <span className="text-xs font-black text-green-600">{markerData.price}</span>
-                          </div>
-                        )}
+                  <div className="p-4">
+                    <div className="flex flex-col gap-3 mb-4">
+                      <div className="flex items-center justify-between bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                        <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Entry Fee</span>
+                        <span className="text-sm font-black text-gray-800">{markerData.entryFee || 'Free'}</span>
                       </div>
-                    )}
-
-                    {activeCardTab === 'People' && (
-                      <div className="space-y-3 animate-in fade-in duration-300">
-                        {(markerData.people || []).map((person, idx) => (
-                          <div key={idx} className="bg-gray-50/50 rounded-xl p-2.5 border border-gray-100">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                <img src={person.avatar} className="w-7 h-7 rounded-full border border-gray-200 shadow-sm" alt="" />
-                                <div>
-                                  <p className="text-[10px] font-bold text-gray-800 leading-none">{person.name}</p>
-                                  <p className="text-[8px] text-gray-400">{person.date}</p>
-                                </div>
-                              </div>
-                              <button className="text-[8px] font-bold border border-blue-200 text-blue-600 px-2 py-0.5 rounded-full hover:bg-blue-600 hover:text-white transition-all flex items-center gap-1">
-                                <UserPlus size={8} /> Follow
-                              </button>
-                            </div>
-                            
-                            <p className="text-[10px] text-gray-600 mb-2">
-                              <span className="font-bold text-green-600 flex items-center gap-1 inline-flex">
-                                <CheckCircle size={10} /> {person.description}
-                              </span>
-                            </p>
-                            
-                            <div className="relative rounded-lg overflow-hidden h-20 mb-2 border border-gray-100 shadow-inner group">
-                              <img src={person.certification} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" alt="" />
-                              <div className="absolute top-1 right-1 bg-white/90 backdrop-blur-sm p-0.5 rounded text-[8px] font-bold text-gray-500 shadow-sm flex items-center gap-0.5">
-                                <FileText size={8} /> Certificate
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center gap-4 px-1">
-                              <button className="flex items-center gap-1 group">
-                                <Heart size={12} className="text-gray-400 group-hover:text-red-500 transition-colors" />
-                                <span className="text-[9px] font-bold text-gray-400 group-hover:text-gray-600">{person.likes}</span>
-                              </button>
-                              <button className="flex items-center gap-1 group">
-                                <MessageCircle size={12} className="text-gray-400 group-hover:text-blue-500 transition-colors" />
-                                <span className="text-[9px] font-bold text-gray-400 group-hover:text-gray-600">{person.comments}</span>
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {activeCardTab === 'Leaderboard' && (
-                      <div className="animate-in fade-in duration-300">
-                        <div className="bg-yellow-50 rounded-xl p-3 border border-yellow-100 mb-3 flex items-center justify-between shadow-inner">
-                          <div className="flex items-center gap-3">
-                            <div className="relative">
-                                <img src={(markerData.leaderboard || [])[0]?.avatar} className="w-10 h-10 rounded-full border-2 border-yellow-400 shadow-md" alt="" />
-                                <div className="absolute -top-1 -right-1 bg-yellow-400 text-white rounded-full p-0.5 shadow-sm">
-                                  <Trophy size={10} />
-                                </div>
-                            </div>
-                            <div>
-                              <p className="text-[10px] uppercase font-black text-yellow-600 tracking-wider">Rank #1 Champion</p>
-                              <p className="text-xs font-bold text-gray-800">{(markerData.leaderboard || [])[0]?.name}</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                             <p className="text-sm font-black text-yellow-600">{(markerData.leaderboard || [])[0]?.points}</p>
-                             <p className="text-[8px] font-bold text-yellow-400 uppercase">Points</p>
-                          </div>
+                      
+                      {markerData.id.startsWith('f_') && markerData.price && (
+                        <div className="flex items-center justify-between bg-green-50/50 p-2.5 rounded-lg border border-green-100/50">
+                          <span className="text-[10px] uppercase font-bold text-green-600/70 tracking-wider">Price</span>
+                          <span className="text-sm font-black text-green-700">{markerData.price}</span>
                         </div>
+                      )}
+                    </div>
 
-                        <div className="space-y-1.5 px-0.5">
-                           {(markerData.leaderboard || []).slice(1).map((user, idx) => (
-                             <div key={idx} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-all border border-transparent hover:border-gray-100">
-                               <div className="flex items-center gap-3">
-                                 <span className="text-xs font-black text-gray-300 w-4 inline-block italic">#{user.rank}</span>
-                                 <img src={user.avatar} className="w-6 h-6 rounded-full border border-gray-200" alt="" />
-                                 <span className="text-[11px] font-semibold text-gray-700">{user.name}</span>
-                               </div>
-                               <span className="text-[11px] font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">{user.points} pts</span>
-                             </div>
-                           ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Accept Button Footer */}
-                  <div className="p-3 pt-0">
                     <button 
-                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-200 transition-all active:scale-95 flex items-center justify-center gap-2 group" 
-                      onClick={() => { 
-                        alert('Exciting Journey Accepted!'); 
-                        setActiveCategoryMarker(null); 
-                        setActiveCardTab('Rules');
+                      onClick={() => {
+                        setDetailItem(markerData);
+                        setIsDetailModalOpen(true);
+                        setActiveCategoryMarker(null);
+                        setActiveCardTab('Rules'); 
                       }}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2"
                     >
-                      <CheckCircle size={14} className="group-hover:scale-110 transition-transform" />
-                      Accept the Challenge
+                      Next <ChevronRight size={18} />
                     </button>
                   </div>
                 </div>
@@ -2227,6 +2091,288 @@ export default function CommunityView({ infrastructureId, isOwner }) {
         {error && (
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-red-100 text-red-700 py-2 px-4 rounded-full shadow-md z-10">
             {error}
+          </div>
+        )}
+
+        {/* --- Advanced Redesign UI Components --- */}
+
+        {/* 1. Left-side Accepted Items Stack */}
+        <div className="fixed left-4 top-24 z-50 flex flex-col gap-2 pointer-events-none">
+          {acceptedItems.map((item, idx) => (
+            <button
+              key={item.id}
+              onClick={() => {
+                setDetailItem(item);
+                setIsDetailModalOpen(true);
+                setActiveCardTab('Rules');
+              }}
+              className={`pointer-events-auto h-8 px-4 rounded-full shadow-lg border border-white flex items-center justify-center text-white transition-all transform hover:scale-105 active:scale-95 animate-in slide-in-from-left duration-300 max-w-[160px] group ${
+                item.id.startsWith('c_') ? 'bg-orange-600/90' :
+                item.id.startsWith('p_') ? 'bg-green-600/90' :
+                item.id.startsWith('f_') ? 'bg-red-600/90' :
+                item.id.startsWith('a_') ? 'bg-cyan-600/90' :
+                item.id.startsWith('e_') ? 'bg-violet-600/90' : 'bg-blue-600/90'
+              }`}
+            >
+              <span className="text-[9px] font-black uppercase tracking-widest truncate">
+                {item.title}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* 2. Right-side Sliding Modal (60% width) */}
+        {isDetailModalOpen && detailItem && (
+          <div className="fixed inset-0 z-[100] flex justify-end pointer-events-none">
+            {/* Backdrop click to close */}
+            <div 
+              className="absolute inset-0 bg-black/20 backdrop-blur-[2px] pointer-events-auto" 
+              onClick={() => setIsDetailModalOpen(false)}
+            />
+            
+            <div className="w-[60%] h-[80%] my-auto mr-8 bg-white shadow-[-20px_0_60px_rgba(0,0,0,0.1)] pointer-events-auto animate-in slide-in-from-right duration-500 flex flex-col relative overflow-hidden rounded-[2.5rem] border border-gray-100/50">
+              {/* Close Button */}
+              <button 
+                onClick={() => setIsDetailModalOpen(false)}
+                className="absolute top-4 right-4 z-50 bg-gray-100 hover:bg-gray-200 p-2 rounded-full transition-colors"
+              >
+                <X size={20} />
+              </button>
+
+              {/* Modal Header */}
+              <div className="h-[25vh] relative overflow-hidden">
+                <img src={detailItem.image} className="w-full h-full object-cover" alt="" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute bottom-6 left-6 right-16">
+                  <p className="text-blue-400 font-bold uppercase tracking-[0.2em] text-[10px] mb-1">
+                    {detailItem.category} {detailItem.tags?.[0] && `/ ${detailItem.tags[0]}`}
+                  </p>
+                  <h2 className="text-white text-3xl font-black">{detailItem.title}</h2>
+                </div>
+              </div>
+
+              {/* Tabs Container */}
+              <div className="flex px-6 border-b border-gray-100 bg-gray-50/50">
+                {['Rules', 'People', 'Leaderboard'].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveCardTab(tab)}
+                    className={`flex-1 py-4 text-xs font-black uppercase tracking-widest relative transition-all ${
+                      activeCardTab === tab ? 'text-blue-600' : 'text-gray-400'
+                    }`}
+                  >
+                    {tab}
+                    {activeCardTab === tab && (
+                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 rounded-t-full mx-4" />
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Modal Content Area */}
+              <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-gray-200">
+                {/* Rules Tab Content */}
+                {activeCardTab === 'Rules' && (
+                  <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <p className="text-gray-600 text-lg leading-relaxed mb-8">{detailItem.description}</p>
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-8">
+                       <div className="bg-blue-50 p-6 rounded-3xl border border-blue-100">
+                         <span className="text-[10px] uppercase font-black text-blue-400 tracking-widest block mb-2">Entry Fee</span>
+                         <span className="text-2xl font-black text-blue-700">{detailItem.entryFee}</span>
+                       </div>
+                       <div className="bg-yellow-50 p-6 rounded-3xl border border-yellow-100">
+                         <span className="text-[10px] uppercase font-black text-yellow-500 tracking-widest block mb-2">Prize Pool</span>
+                         <span className="text-2xl font-black text-yellow-700">{detailItem.prize}</span>
+                       </div>
+                    </div>
+
+                    {detailItem.id.startsWith('f_') && detailItem.price && (
+                      <div className="bg-green-50 p-6 rounded-3xl border border-green-100 flex items-center justify-between mb-8">
+                        <span className="text-[10px] uppercase font-black text-green-600 tracking-widest">Price / Recommended Budget</span>
+                        <span className="text-2xl font-black text-green-700">{detailItem.price}</span>
+                      </div>
+                    )}
+
+                    {/* Additional Options for Accepted Items */}
+                    {acceptedItems.find(i => i.id === detailItem.id) && (
+                      <div className="grid grid-cols-2 gap-4 pt-10 border-t border-dashed border-gray-200">
+                        <button 
+                          onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${detailItem.lat},${detailItem.lng}`, '_blank')}
+                          className="flex flex-col items-center justify-center p-6 bg-slate-900 text-white rounded-3xl hover:bg-black transition-all gap-2"
+                        >
+                          <MapPin size={24} />
+                          <span className="font-bold text-sm">Show Route</span>
+                        </button>
+                        <button 
+                          onClick={() => setIsQRModalOpen(true)}
+                          className="flex flex-col items-center justify-center p-6 bg-blue-600 text-white rounded-3xl hover:bg-blue-700 transition-all gap-2"
+                        >
+                          <Cpu size={24} />
+                          <span className="font-bold text-sm">Scan QR</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* People Tab Content - Reuse the simplified but larger version */}
+                {activeCardTab === 'People' && (
+                  <div className="space-y-6">
+                    {(detailItem.people || []).map((person, idx) => (
+                      <div key={idx} className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100">
+                         <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <img src={person.avatar} className="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="" />
+                              <div>
+                                <p className="font-bold text-gray-800">{person.name}</p>
+                                <p className="text-xs text-gray-400">{person.date}</p>
+                              </div>
+                            </div>
+                            <button className="bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold hover:bg-blue-700 transition-colors">Follow</button>
+                         </div>
+                         <p className="text-sm font-bold text-green-600 mb-4 flex items-center gap-2">
+                           <CheckCircle size={16} /> {person.description}
+                         </p>
+                         <img src={person.certification} className="w-full h-40 object-cover rounded-xl mb-4" alt="" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Leaderboard Tab Content - Reuse with better spacing */}
+                {activeCardTab === 'Leaderboard' && (
+                  <div className="space-y-4">
+                    {(detailItem.leaderboard || []).map((entry, idx) => (
+                       <div key={idx} className={`flex items-center justify-between p-4 rounded-2xl border ${idx === 0 ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-100'}`}>
+                          <div className="flex items-center gap-4">
+                            <span className={`text-xl font-black ${idx === 0 ? 'text-yellow-600' : 'text-gray-300'}`}>#{entry.rank}</span>
+                            <img src={entry.avatar} className="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="" />
+                            <span className="font-black text-gray-800">{entry.name}</span>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xl font-black text-blue-600">{entry.points}</p>
+                            <p className="text-[10px] uppercase font-bold text-gray-400 tracking-tighter">Points</p>
+                          </div>
+                       </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer (Buttons) - Only if not already accepted */}
+              {!acceptedItems.find(i => i.id === detailItem.id) && !deniedItemIds.has(detailItem.id) && (
+                <div className="p-8 bg-white border-t border-gray-100 grid grid-cols-2 gap-4">
+                  <button 
+                    onClick={() => {
+                        setDeniedItemIds(prev => new Set([...prev, detailItem.id]));
+                        setIsDetailModalOpen(false);
+                    }}
+                    className="py-4 rounded-2xl border-2 border-gray-200 text-gray-500 font-bold hover:bg-gray-50 transition-all"
+                  >
+                    Deny
+                  </button>
+                  <button 
+                    onClick={() => {
+                        if (acceptedItems.length >= 5) {
+                            alert("Maximum 5 active items allowed. Please complete or remove an item first.");
+                            return;
+                        }
+                        setAcceptedItems(prev => [...prev, detailItem]);
+                        setIsDetailModalOpen(false);
+                    }}
+                    className="py-4 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all"
+                  >
+                    Accept
+                  </button>
+                </div>
+              )}
+              
+              {deniedItemIds.has(detailItem.id) && (
+                <div className="p-8 bg-gray-100 text-center font-bold text-gray-400">
+                    This item has been declined.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 3. Center QR Scanning Modal (90% width/height) */}
+        {isQRModalOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" onClick={() => !qrScanning && setIsQRModalOpen(false)} />
+            
+            <div className="relative w-[90%] max-w-2xl bg-white rounded-[40px] overflow-hidden shadow-2xl animate-in zoom-in duration-300">
+               <button 
+                 onClick={() => setIsQRModalOpen(false)}
+                 className="absolute top-6 right-6 z-50 bg-gray-100 p-2 rounded-full"
+               >
+                 <X size={24} />
+               </button>
+
+               <div className="p-10 text-center">
+                  <h2 className="text-4xl font-black mb-2">Scan QR Code</h2>
+                  <p className="text-gray-500 mb-10 font-medium">Position the QR code within the frame to verify</p>
+                  
+                  {/* QR Simulation Frame */}
+                  <div className="relative aspect-square w-full max-w-sm mx-auto mb-10 overflow-hidden rounded-[2rem] border-4 border-dashed border-blue-500/30 p-4">
+                    <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                      <Cpu size={200} />
+                    </div>
+                    
+                    {qrScanning && (
+                      <div className="absolute top-0 left-0 w-full h-1 bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.8)] animate-pulse-scan" style={{
+                        animation: 'scan 2.5s infinite linear'
+                      }} />
+                    )}
+
+                    {qrSuccess ? (
+                      <div className="h-full w-full flex flex-col items-center justify-center bg-green-500 text-white animate-in zoom-in duration-500">
+                        <CheckCircle size={80} className="mb-4" />
+                        <h3 className="text-2xl font-bold">Verification Complete!</h3>
+                        <p className="font-bold opacity-80">Points credited successfully</p>
+                      </div>
+                    ) : (
+                      <div className="h-full w-full bg-gray-50 flex items-center justify-center text-gray-300">
+                        <Star size={100} className={qrScanning ? 'animate-pulse' : ''} />
+                      </div>
+                    )}
+                  </div>
+
+                  {!qrSuccess && (
+                    <button
+                      onClick={() => {
+                        setQrScanning(true);
+                        setTimeout(() => {
+                           setQrScanning(false);
+                           setQrSuccess(true);
+                           setTimeout(() => {
+                              // Success - remove from accepted items
+                              setAcceptedItems(prev => prev.filter(i => i.id !== detailItem.id));
+                              setQrSuccess(false);
+                              setIsQRModalOpen(false);
+                              setIsDetailModalOpen(false);
+                           }, 2000);
+                        }, 2500);
+                      }}
+                      disabled={qrScanning}
+                      className={`w-full py-5 rounded-3xl text-xl font-black transition-all ${
+                        qrScanning ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-2xl shadow-blue-200'
+                      }`}
+                    >
+                      {qrScanning ? 'Verifying...' : 'Simulate QR Scan'}
+                    </button>
+                  )}
+               </div>
+            </div>
+            
+            <style jsx>{`
+               @keyframes scan {
+                 0% { top: 0% }
+                 50% { top: 100% }
+                 100% { top: 0% }
+               }
+            `}</style>
           </div>
         )}
 
