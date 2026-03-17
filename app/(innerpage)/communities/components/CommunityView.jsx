@@ -2162,12 +2162,12 @@ export default function CommunityView({ infrastructureId, isOwner }) {
 
               {/* Scrollable Content Wrapper */}
               <div className="flex-1 overflow-y-auto scrollbar-none">
-                {/* 2. Logo Section (Hotel Name focused) */}
-                <div className="py-6 flex flex-col items-center justify-center bg-white border-b border-gray-50/50">
+                {/* 2. Logo Section (Hotel Name as Logo Text) */}
+                <div className="py-4 md:py-6 flex flex-col items-center justify-center bg-white border-b border-gray-50/50">
                   {detailItem.logo ? (
-                    <img src={detailItem.logo} className="h-10 md:h-14 object-contain mb-2" alt="brand-logo" />
+                    <img src={detailItem.logo} className="h-8 md:h-12 object-contain mb-1" alt="brand-logo" />
                   ) : null}
-                  <div className="text-sm md:text-base font-black text-blue-600 uppercase tracking-[0.3em] text-center px-4">
+                  <div className="text-xs md:text-sm font-black text-blue-600 uppercase tracking-[0.2em] text-center px-4 leading-tight opacity-80">
                     {detailItem.title}
                   </div>
                 </div>
@@ -2181,9 +2181,9 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                 </div>
 
                 {/* 4. Title Section */}
-                {/* 4. Title Section (Food Name focused) */}
-                <div className="px-6 py-6 text-center">
-                  <h2 className="text-gray-900 text-2xl md:text-4xl font-black tracking-tight leading-tight uppercase">
+                {/* 4. Title Section (Dish Name as Primary Title) */}
+                <div className="px-6 py-4 md:py-6 text-center">
+                  <h2 className="text-gray-900 text-xl md:text-3xl font-black tracking-tight leading-tight uppercase">
                     {detailItem.foodName || detailItem.title}
                   </h2>
                 </div>
@@ -2209,16 +2209,16 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                 <div className="px-6 py-6 mb-8 min-h-[100px]">
                   {activeCardTab === 'Rules' && (
                     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                      <p className="text-gray-600 text-lg leading-relaxed mb-8">{detailItem.description}</p>
+                      <p className="text-gray-600 text-base md:text-lg leading-relaxed mb-6">{detailItem.description}</p>
                       
-                      <div className="grid grid-cols-2 gap-4 mb-8">
-                          <div className="bg-blue-50 p-4 md:p-6 rounded-3xl border border-blue-100">
-                            <span className="text-[10px] uppercase font-black text-blue-400 tracking-widest block mb-2">Entry Fee</span>
-                            <span className="text-xl md:text-2xl font-black text-blue-700">{detailItem.entryFee}</span>
+                      <div className="grid grid-cols-2 gap-3 mb-6">
+                          <div className="bg-blue-50 p-4 rounded-[1.5rem] border border-blue-100 flex flex-col justify-center text-center">
+                            <span className="text-[9px] uppercase font-black text-blue-400 tracking-widest block mb-1">Price</span>
+                            <span className="text-lg md:text-xl font-black text-blue-700 leading-none">{detailItem.price || detailItem.entryFee}</span>
                           </div>
-                          <div className="bg-yellow-50 p-4 md:p-6 rounded-3xl border border-yellow-100">
-                            <span className="text-[10px] uppercase font-black text-yellow-500 tracking-widest block mb-2">Prize Pool</span>
-                            <span className="text-xl md:text-2xl font-black text-yellow-700">{detailItem.prize}</span>
+                          <div className="bg-yellow-50 p-4 rounded-[1.5rem] border border-yellow-100 flex flex-col justify-center text-center">
+                            <span className="text-[9px] uppercase font-black text-yellow-500 tracking-widest block mb-1">Prize</span>
+                            <span className="text-lg md:text-xl font-black text-yellow-700 leading-none">{detailItem.prize}</span>
                           </div>
                       </div>
                     </div>
@@ -2273,16 +2273,14 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                 </div>
 
                 {/* 6. Info Blocks (Yellow boxes Refined) */}
-                <div className="grid grid-cols-2 gap-3 px-6 mb-8 mt-auto flex-shrink-0">
-                  <div className="bg-[#FFFCE4] border border-[#FFD700] p-3 md:p-5 rounded-3xl text-center shadow-sm">
-                    <p className="text-[9px] md:text-[10px] font-black text-gray-400 tracking-widest uppercase mb-1">DISTANCE</p>
-                    <p className="text-gray-900 text-lg md:text-xl font-black">{detailItem.distance || '0.50 km'}</p>
+                <div className="grid grid-cols-2 gap-3 px-6 mb-6 mt-auto flex-shrink-0">
+                  <div className="bg-[#FFFCE4] border border-[#FFD700] p-3 rounded-[1.5rem] text-center shadow-sm">
+                    <p className="text-[9px] font-black text-gray-400 tracking-widest uppercase mb-1">DISTANCE</p>
+                    <p className="text-gray-900 text-base md:text-lg font-black">{detailItem.distance || '0.50 km'}</p>
                   </div>
-                  <div className="bg-[#FFFCE4] border border-[#FFD700] p-3 md:p-5 rounded-3xl text-center shadow-sm">
-                    <p className="text-[9px] md:text-[10px] font-black text-gray-400 tracking-widest uppercase mb-1">
-                      {detailItem.id.startsWith('f_') ? 'PRICE' : (detailItem.id.startsWith('c_') ? 'PRIZE' : 'ENTRY')}
-                    </p>
-                    <p className="text-gray-900 text-lg md:text-xl font-black">
+                  <div className="bg-[#FFFCE4] border border-[#FFD700] p-3 rounded-[1.5rem] text-center shadow-sm">
+                    <p className="text-[9px] font-black text-gray-400 tracking-widest uppercase mb-1">PRICE</p>
+                    <p className="text-gray-900 text-base md:text-lg font-black">
                       {detailItem.price || detailItem.prize || detailItem.entryFee}
                     </p>
                   </div>
