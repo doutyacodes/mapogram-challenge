@@ -1809,10 +1809,10 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                 onCloseClick={() => { setActiveCategoryMarker(null); setActiveCardTab('Rules'); }}
                 options={{
                   pixelOffset: new window.google.maps.Size(0, -30),
-                  maxWidth: 320
+                  maxWidth: 360
                 }}
               >
-                <div className={`bg-white rounded-[2rem] overflow-hidden font-sans relative shadow-2xl border border-gray-100 w-[280px] sm:w-[320px] transition-all duration-300 ${deniedItemIds.has(markerData.id) ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
+                <div className={`bg-white rounded-[2rem] overflow-hidden font-sans relative w-[280px] sm:w-[320px] max-w-[calc(100vw-60px)] transition-all duration-300 scrollbar-none overflow-x-hidden ${deniedItemIds.has(markerData.id) ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
                   {/* Refined Header (Reference Style) */}
                   <div className="px-5 py-4 flex items-center justify-between bg-white">
                     <div className="flex items-center gap-2">
@@ -1832,9 +1832,6 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                        <span className="text-[10px] font-black uppercase text-gray-900 tracking-widest">{markerData.category}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                       <button className="p-1 text-gray-300 hover:text-gray-600">
-                         <Share2 size={16} />
-                       </button>
                        <button 
                          onClick={() => { setActiveCategoryMarker(null); setActiveCardTab('Rules'); }}
                          className="p-1 text-gray-300 hover:text-gray-600"
@@ -1878,7 +1875,7 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                       }}
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3.5 rounded-xl shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2 tracking-widest text-xs uppercase"
                     >
-                      Next <ChevronRight size={16} />
+                      Next <ChevronRight size={16} className="ml-1" />
                     </button>
                   </div>
                 </div>
@@ -2069,7 +2066,10 @@ export default function CommunityView({ infrastructureId, isOwner }) {
               onClick={() => setIsDetailModalOpen(false)}
             />
             
-            <div className="w-[82%] md:w-[60%] h-[80%] my-auto mr-4 md:mr-8 bg-white shadow-[-20px_0_60px_rgba(0,0,0,0.1)] pointer-events-auto animate-in slide-in-from-right duration-500 flex flex-col relative overflow-hidden rounded-[2.5rem] border border-gray-100/50">
+            <div className={`
+              ${isMobile ? 'w-[85%] h-[85%] my-auto mr-0 rounded-l-[2.5rem]' : 'w-[25%] h-[80%] my-[10vh] mr-0 rounded-l-[3rem]'} 
+              bg-white shadow-[-20px_0_60px_rgba(0,0,0,0.1)] pointer-events-auto animate-in slide-in-from-right duration-500 flex flex-col relative overflow-hidden border border-gray-100/50
+            `}>
               
               {/* 1. Top Header Refined */}
               <div className="bg-white p-4 flex items-center justify-between border-b border-gray-50 flex-shrink-0">
