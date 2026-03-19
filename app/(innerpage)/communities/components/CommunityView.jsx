@@ -33,7 +33,10 @@ import {
     MessageCircle,
     CheckCircle,
     Users,
-    UsersRound
+    UsersRound,
+    Share2,
+    Navigation2,
+    QrCode
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { applyGoogleMapsControlStyle } from "@/utils/googleMapsStyles";
@@ -1809,35 +1812,63 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                   maxWidth: 320
                 }}
               >
-                <div className={`bg-white rounded-xl overflow-hidden font-sans relative shadow-2xl border border-gray-100 min-w-[280px] ${deniedItemIds.has(markerData.id) ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
-                  {/* Header Image */}
-                  <div className="h-32 w-full relative">
-                    <img src={markerData.image} alt={markerData.title} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                    
-                    <div className="absolute bottom-3 left-3 right-3">
-                       <p className="text-[10px] font-bold text-white/80 uppercase tracking-widest mb-1">
-                         {markerData.category} {markerData.tags?.[0] && `→ ${markerData.tags[0]}`}
-                       </p>
-                       <h3 className="font-bold text-white text-base leading-tight drop-shadow-md">{markerData.title}</h3>
+                <div className={`bg-white rounded-[2rem] overflow-hidden font-sans relative shadow-2xl border border-gray-100 w-[280px] sm:w-[320px] transition-all duration-300 ${deniedItemIds.has(markerData.id) ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
+                  {/* Refined Header (Reference Style) */}
+                  <div className="px-5 py-4 flex items-center justify-between bg-white">
+                    <div className="flex items-center gap-2">
+                       <div className={`p-1.5 rounded-lg text-white ${
+                         markerData.id.startsWith('c_') ? 'bg-orange-500' :
+                         markerData.id.startsWith('p_') ? 'bg-green-500' :
+                         markerData.id.startsWith('f_') ? 'bg-red-500' :
+                         markerData.id.startsWith('a_') ? 'bg-cyan-500' :
+                         markerData.id.startsWith('e_') ? 'bg-violet-500' : 'bg-blue-500'
+                       }`}>
+                         {markerData.id.startsWith('c_') ? <Target size={14} /> :
+                          markerData.id.startsWith('p_') ? <MapPin size={14} /> :
+                          markerData.id.startsWith('f_') ? <Utensils size={14} /> :
+                          markerData.id.startsWith('a_') ? <Activity size={14} /> :
+                          markerData.id.startsWith('e_') ? <Calendar size={14} /> : <Star size={14} />}
+                       </div>
+                       <span className="text-[10px] font-black uppercase text-gray-900 tracking-widest">{markerData.category}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <button className="p-1 text-gray-300 hover:text-gray-600">
+                         <Share2 size={16} />
+                       </button>
+                       <button 
+                         onClick={() => { setActiveCategoryMarker(null); setActiveCardTab('Rules'); }}
+                         className="p-1 text-gray-300 hover:text-gray-600"
+                       >
+                         <X size={18} />
+                       </button>
                     </div>
                   </div>
 
-                  <div className="p-4">
-                    <div className="flex flex-col gap-3 mb-4">
-                      <div className="flex items-center justify-between bg-gray-50 p-2.5 rounded-lg border border-gray-100">
-                        <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Entry Fee</span>
-                        <span className="text-sm font-black text-gray-800">{markerData.entryFee || 'Free'}</span>
-                      </div>
-                      
-                      {markerData.id.startsWith('f_') && markerData.price && (
-                        <div className="flex items-center justify-between bg-green-50/50 p-2.5 rounded-lg border border-green-100/50">
-                          <span className="text-[10px] uppercase font-bold text-green-600/70 tracking-wider">Price</span>
-                          <span className="text-sm font-black text-green-700">{markerData.price}</span>
-                        </div>
-                      )}
+                  {/* Body Content */}
+                  <div className="px-5 pb-5">
+                    {/* Image */}
+                    <div className="h-40 w-full rounded-2xl overflow-hidden mb-4 shadow-sm border border-gray-50">
+                      <img src={markerData.image} alt={markerData.title} className="w-full h-full object-cover" />
+                    </div>
+                    
+                    {/* Title */}
+                    <h3 className="font-black text-gray-900 text-lg leading-snug mb-2 tracking-tight">
+                      {markerData.title}
+                    </h3>
+
+                    {/* Meta Data (Optional fields) */}
+                    <div className="flex items-center gap-3 mb-4">
+                       <div className="flex items-center gap-1.5 bg-blue-50 px-2 py-1 rounded-md">
+                          <span className="text-[9px] font-black text-blue-600 uppercase tabular-nums">Entry: {markerData.entryFee || 'Free'}</span>
+                       </div>
+                       {markerData.price && (
+                         <div className="flex items-center gap-1.5 bg-green-50 px-2 py-1 rounded-md">
+                            <span className="text-[9px] font-black text-green-600 uppercase tabular-nums">Price: {markerData.price}</span>
+                         </div>
+                       )}
                     </div>
 
+                    {/* Footer Button (Reference Style) */}
                     <button 
                       onClick={() => {
                         setDetailItem(markerData);
@@ -1845,9 +1876,9 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                         setActiveCategoryMarker(null);
                         setActiveCardTab('Rules'); 
                       }}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3.5 rounded-xl shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2 tracking-widest text-xs uppercase"
                     >
-                      Next <ChevronRight size={18} />
+                      Next <ChevronRight size={16} />
                     </button>
                   </div>
                 </div>
@@ -1862,128 +1893,36 @@ export default function CommunityView({ infrastructureId, isOwner }) {
             <div className={`fixed z-[120] flex flex-col items-end gap-3 transition-all duration-300 ${
               isMobile ? 'bottom-32 right-3' : 'bottom-6 right-6'
             }`}>
-              {/* Expanded Menu Items */}
-              {isDiscoveryMenuOpen && (
-                <div className="flex flex-col items-end gap-3 mb-2 animate-in fade-in slide-in-from-bottom-5 duration-300">
-                  {activeDiscoveryCategory ? (
-                    // Sub-category Sub-menu
-                    <>
-                      <button 
-                        onClick={() => setActiveDiscoveryCategory(null)}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-gray-100/80 hover:bg-gray-200/80 rounded-full text-[10px] font-bold text-gray-600 transition-colors backdrop-blur-sm self-end mb-1"
-                      >
-                        <ArrowLeft size={12} /> Back
-                      </button>
-                      {[
-                        { id: 'Biryani', icon: Utensils, color: 'text-red-500', label: 'Biryani' },
-                        { id: 'Mandi', icon: Utensils, color: 'text-orange-600', label: 'Mandi & Arabian' },
-                        { id: 'Seafood', icon: Fish, color: 'text-blue-500', label: 'Seafood' },
-                        { id: 'Appam', icon: Utensils, color: 'text-amber-600', label: 'Appam & Chicken' },
-                        { id: 'Puttu', icon: Utensils, color: 'text-neutral-700', label: 'Puttum Beefum' },
-                        { id: 'Football', icon: Trophy, color: 'text-green-500', label: 'Football Turfs' },
-                        { id: 'Cricket', icon: Trophy, color: 'text-blue-500', label: 'Cricket Nets' },
-                        { id: 'Yoga', icon: Activity, color: 'text-purple-500', label: 'Yoga & Health' },
-                        { id: 'Cycling', icon: Bike, color: 'text-orange-500', label: 'Cycling Clubs' },
-                        { id: 'Kayaking', icon: Waves, color: 'text-cyan-500', label: 'Kayaking Spots' },
-                        { id: 'Music', icon: Music, color: 'text-pink-500', label: 'Live Music' },
-                        { id: 'Art', icon: Palette, color: 'text-indigo-500', label: 'Art Galleries' },
-                        { id: 'Tech', icon: Cpu, color: 'text-gray-600', label: 'Tech Meetups' },
-                        { id: 'Market', icon: ShoppingBag, color: 'text-amber-500', label: 'Local Markets' }
-                      ].filter(sub => {
-                        if (activeDiscoveryCategory === 'Food') return ['Biryani', 'Mandi', 'Seafood', 'Appam', 'Puttu'].includes(sub.id);
-                        if (activeDiscoveryCategory === 'Activity') return ['Football', 'Cricket', 'Yoga', 'Cycling', 'Kayaking'].includes(sub.id);
-                        if (activeDiscoveryCategory === 'Events') return ['Music', 'Art', 'Tech', 'Market'].includes(sub.id);
-                        return false;
-                      }).map((sub) => (
-                        <div key={sub.id} className="flex items-center gap-3 animate-in fade-in slide-in-from-right-4 duration-300">
-                          <span className="bg-white/90 backdrop-blur-md text-gray-800 text-[10px] font-bold px-2 py-1.5 rounded-lg shadow-xl uppercase tracking-widest border border-gray-100">
-                            {sub.label}
-                          </span>
-                          <button
-                            onClick={() => {
-                              setSelectedStateCategory(activeDiscoveryCategory);
-                              setSelectedSubCategory(sub.id === selectedSubCategory ? null : sub.id);
-                              setIsDiscoveryMenuOpen(false);
-                            }}
-                            className={`w-11 h-11 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 backdrop-blur-md ${
-                              selectedSubCategory === sub.id 
-                                ? 'bg-blue-600 text-white ring-4 ring-blue-100 font-bold' 
-                                : 'bg-white/95 text-gray-700 border border-white/20'
-                            }`}
-                          >
-                            <sub.icon className={`w-4.5 h-4.5 ${selectedSubCategory === sub.id ? 'text-white' : sub.color}`} />
-                          </button>
-                        </div>
-                      ))}
-                    </>
-                  ) : (
-                    // Main Category Menu
-                    [
-                      { id: 'Challenges', icon: Target, color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200', ring: 'ring-orange-400', always: true, label: 'Challenges', hasSub: false },
-                      { id: 'Places', icon: MapPin, color: 'text-green-500', bg: 'bg-green-50', border: 'border-green-200', ring: 'ring-green-400', always: false, label: 'Places', hasSub: false },
-                      { id: 'Food', icon: Utensils, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-200', ring: 'ring-red-400', always: false, label: 'Food Specials', hasSub: true },
-                      { id: 'Activity', icon: Activity, color: 'text-cyan-500', bg: 'bg-cyan-50', border: 'border-cyan-200', ring: 'ring-cyan-400', always: false, label: 'Activities', hasSub: true },
-                      { id: 'Events', icon: Calendar, color: 'text-violet-500', bg: 'bg-violet-50', border: 'border-violet-200', ring: 'ring-violet-400', always: false, label: 'Events', hasSub: true },
-                    ].filter(cat => cat.always || selectedDistrict).reverse().map((cat) => (
-                      <div key={cat.id} className="flex items-center gap-3">
-                        <span className="bg-gray-900/90 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1.5 rounded-lg shadow-2xl uppercase tracking-widest border border-white/10">
-                          {cat.label}
-                        </span>
-                        <button
-                          onClick={() => {
-                            if (cat.hasSub) {
-                              setActiveDiscoveryCategory(cat.id);
-                            } else {
-                              setSelectedStateCategory(cat.id === selectedStateCategory ? null : cat.id);
-                              setSelectedSubCategory(null);
-                              setIsDiscoveryMenuOpen(false);
-                            }
-                          }}
-                          className={`w-12 h-12 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 backdrop-blur-md ${
-                            selectedStateCategory === cat.id && !selectedSubCategory
-                              ? 'bg-blue-600 text-white ring-4 ring-blue-100' 
-                              : 'bg-white/95 text-gray-700 border border-white/20'
-                          }`}
-                        >
-                          <cat.icon className={`w-5 h-5 ${selectedStateCategory === cat.id && !selectedSubCategory ? 'text-white' : cat.color}`} />
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-
-              {/* Main FAB Trigger */}
-              <button
-                onClick={() => {
-                  if (isDiscoveryMenuOpen) {
-                    setIsDiscoveryMenuOpen(false);
-                    // Don't reset activeDiscoveryCategory here to allow re-opening the sub-menu if needed? 
-                    // Actually, reset it to main on close for better UX
-                    setTimeout(() => setActiveDiscoveryCategory(null), 300);
-                  } else {
-                    setIsDiscoveryMenuOpen(true);
-                  }
-                }}
-                className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-500 hover:rotate-12 active:scale-90 z-[121] ${
-                  isDiscoveryMenuOpen 
-                    ? 'bg-red-500 text-white rotate-90 scale-110' 
-                    : 'bg-white text-blue-600 border-2 border-blue-50/50 hover:bg-blue-50'
-                }`}
-              >
-                {isDiscoveryMenuOpen ? (
-                  <X className="w-8 h-8" />
-                ) : (
-                  <div className="relative">
-                    <Target className={`w-8 h-8 ${selectedStateCategory ? '' : 'animate-pulse'}`} />
-                    {(selectedStateCategory || selectedSubCategory) && (
-                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-600 rounded-full border-2 border-white shadow-sm flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full animate-ping" />
-                      </div>
-                    )}
+              {/* Context-Aware Category Icons (Persistent) */}
+              <div className="flex flex-col items-end gap-3 mb-2 animate-in fade-in slide-in-from-bottom-5 duration-300">
+                {[
+                  { id: 'Challenges', icon: Target, color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200', always: true, label: 'Challenges' },
+                  { id: 'Places', icon: MapPin, color: 'text-green-500', bg: 'bg-green-50', border: 'border-green-200', always: false, label: 'Places' },
+                  { id: 'Food', icon: Utensils, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-200', always: false, label: 'Food' },
+                  { id: 'Activity', icon: Activity, color: 'text-cyan-500', bg: 'bg-cyan-50', border: 'border-cyan-200', always: false, label: 'Activity' },
+                  { id: 'Events', icon: Calendar, color: 'text-violet-500', bg: 'bg-violet-50', border: 'border-violet-200', always: false, label: 'Events' },
+                ].filter(cat => cat.always || selectedDistrict).reverse().map((cat) => (
+                  <div key={cat.id} className="flex items-center gap-3 group">
+                    <span className="bg-gray-900/90 backdrop-blur-md text-white text-[9px] font-black px-3 py-1.5 rounded-full shadow-2xl uppercase tracking-[0.15em] border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      {cat.label}
+                    </span>
+                    <button
+                      onClick={() => {
+                        setSelectedStateCategory(cat.id === selectedStateCategory ? null : cat.id);
+                        setSelectedSubCategory(null);
+                        // Center map on selection if needed
+                      }}
+                      className={`w-12 h-12 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 backdrop-blur-md ${
+                        selectedStateCategory === cat.id
+                          ? 'bg-blue-600 text-white ring-4 ring-blue-100' 
+                          : 'bg-white/95 text-gray-700 border border-white/20'
+                      }`}
+                    >
+                      <cat.icon className={`w-5 h-5 ${selectedStateCategory === cat.id ? 'text-white' : cat.color}`} />
+                    </button>
                   </div>
-                )}
-              </button>
+                ))}
+              </div>
             </div>
           </>
         )}
@@ -2287,8 +2226,35 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                 </div>
               </div>
 
-              {/* 7. Full-width Sticky Footer */}
-              {!acceptedItems.find(i => i.id === detailItem.id) && !deniedItemIds.has(detailItem.id) ? (
+              {/* 7. Full-width Sticky Footer (Refined States) */}
+              {acceptedItems.find(i => i.id === detailItem.id) ? (
+                // State 1: Already Accepted - Show Scan and Route
+                <div className="flex h-16 md:h-20 flex-shrink-0 border-t border-gray-100">
+                  <button 
+                    onClick={() => {
+                      // Logic for route: open google maps
+                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${detailItem.lat},${detailItem.lng}`, '_blank');
+                    }}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black text-sm md:text-base tracking-widest flex items-center justify-center gap-2 transition-all"
+                  >
+                    <Navigation2 size={20} /> SHOW ROUTE
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setIsQRModalOpen(true);
+                    }}
+                    className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-black text-sm md:text-base tracking-widest flex items-center justify-center gap-2 transition-all border-l border-white/10"
+                  >
+                    <QrCode size={20} /> SCAN QR
+                  </button>
+                </div>
+              ) : deniedItemIds.has(detailItem.id) ? (
+                // State 2: Declined
+                <div className="p-6 bg-gray-50 text-center font-black text-[10px] uppercase tracking-widest text-gray-400 border-t border-gray-100 flex-shrink-0">
+                    Item Hidden
+                </div>
+              ) : (
+                // State 3: Default - Accept or Hide
                 <div className="flex h-14 md:h-20 flex-shrink-0">
                   <button 
                     onClick={() => {
@@ -2309,11 +2275,7 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                     HIDE
                   </button>
                 </div>
-              ) : deniedItemIds.has(detailItem.id) ? (
-                <div className="p-8 bg-gray-50 text-center font-bold text-gray-400 border-t border-gray-100 flex-shrink-0">
-                    This item has been declined.
-                </div>
-              ) : null}
+              )}
             </div>
           </div>
         )}
