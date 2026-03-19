@@ -2310,10 +2310,16 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                     )}
 
                     {qrSuccess ? (
-                      <div className="h-full w-full flex flex-col items-center justify-center bg-green-500 text-white animate-in zoom-in duration-500">
-                        <CheckCircle size={80} className="mb-4" />
-                        <h3 className="text-2xl font-bold">Verification Complete!</h3>
-                        <p className="font-bold opacity-80">Points credited successfully</p>
+                      <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-[#00C853] to-[#00E676] text-white animate-in zoom-in duration-500 rounded-[1.5rem] shadow-inner">
+                        <div className="relative mb-4">
+                           <CheckCircle size={80} className="relative z-10" />
+                           <div className="absolute inset-0 bg-white/20 blur-2xl rounded-full animate-pulse" />
+                        </div>
+                        <h3 className="text-3xl font-black mb-1 drop-shadow-md">SUCCESS!</h3>
+                        <p className="font-bold text-lg opacity-90 mb-4 tracking-wide">Verification Complete</p>
+                        <div className="bg-white/20 backdrop-blur-md px-6 py-2 rounded-full border border-white/30 animate-bounce">
+                           <span className="text-xl font-black">+ {detailItem.id.startsWith('c_') ? '500' : '200'} POINTS</span>
+                        </div>
                       </div>
                     ) : (
                       <div className="h-full w-full bg-gray-50 flex items-center justify-center text-gray-300">
