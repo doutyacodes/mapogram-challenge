@@ -513,6 +513,12 @@ export default function CommunityView({ infrastructureId, isOwner }) {
   useEffect(() => {
     setActiveCategoryMarker(null);
     if (selectedCommunity?.source === 'static' && geofenceData?.type === 'FeatureCollection') {
+      // Hide all markers if no district is selected
+      if (!selectedDistrict) {
+        setCategoryMarkers([]);
+        return;
+      }
+
       let markers = [];
       const stateName = selectedCommunity.name;
       const stateData = STATIC_DISTRICT_DATA[stateName] || {};
@@ -734,19 +740,7 @@ export default function CommunityView({ infrastructureId, isOwner }) {
         if (response.ok) {
           const data = await response.json();
           
-          if (districtName) {
-            // Filter by selected district
-            const filteredFeatures = data.features.filter(
-              f => f.properties.name.toLowerCase() === districtName.toLowerCase()
-            );
-            if (filteredFeatures.length > 0) {
-              setGeofenceData({
-                type: 'FeatureCollection',
-                features: filteredFeatures
-              });
-              return;
-            }
-          }
+
           
           setGeofenceData(data);
           return;
@@ -1106,15 +1100,16 @@ export default function CommunityView({ infrastructureId, isOwner }) {
     // 1. Calculate and Fit Bounds
     const bounds = new google.maps.LatLngBounds();
     let hasCoords = false;
-    let allPaths = [];
+    let districtPolygonsData = [];
 
     if (geofenceData.type === 'FeatureCollection') {
       geofenceData.features.forEach(feature => {
+        const distName = feature.properties.name || feature.properties.district;
         const geometry = feature.geometry;
         if (geometry.type === 'Polygon') {
           geometry.coordinates.forEach(ring => {
             const path = ring.map(coord => ({ lat: coord[1], lng: coord[0] }));
-            allPaths.push(path);
+            districtPolygonsData.push({ path, name: distName });
             path.forEach(p => {
               bounds.extend(p);
               hasCoords = true;
@@ -1124,7 +1119,7 @@ export default function CommunityView({ infrastructureId, isOwner }) {
           geometry.coordinates.forEach(polygon => {
             polygon.forEach(ring => {
               const path = ring.map(coord => ({ lat: coord[1], lng: coord[0] }));
-              allPaths.push(path);
+              districtPolygonsData.push({ path, name: distName });
               path.forEach(p => {
                 bounds.extend(p);
                 hasCoords = true;
@@ -1136,7 +1131,7 @@ export default function CommunityView({ infrastructureId, isOwner }) {
     } else if (geofenceData.type === 'Polygon') {
       geofenceData.coordinates.forEach(ring => {
         const path = ring.map(coord => ({ lat: coord[1], lng: coord[0] }));
-        allPaths.push(path);
+        districtPolygonsData.push({ path, name: 'Area' });
         path.forEach(p => {
           bounds.extend(p);
           hasCoords = true;
@@ -1146,7 +1141,7 @@ export default function CommunityView({ infrastructureId, isOwner }) {
       geofenceData.coordinates.forEach(polygon => {
         polygon.forEach(ring => {
           const path = ring.map(coord => ({ lat: coord[1], lng: coord[0] }));
-          allPaths.push(path);
+          districtPolygonsData.push({ path, name: 'Area' });
           path.forEach(p => {
             bounds.extend(p);
             hasCoords = true;
@@ -1165,7 +1160,7 @@ export default function CommunityView({ infrastructureId, isOwner }) {
           { lat: -85, lng: 180 },
           { lat: -85, lng: -0.1 }
         ];
-        const holePaths = allPaths.map(path => [...path].reverse());
+        const holePaths = districtPolygonsData.map(d => [...d.path].reverse());
         const overlayPolygon = new window.google.maps.Polygon({
           paths: [worldBounds, ...holePaths],
           strokeColor: 'transparent',
@@ -1190,17 +1185,37 @@ export default function CommunityView({ infrastructureId, isOwner }) {
 
         return () => overlayPolygon.setMap(null);
       } else {
-        // Restore geofence highlighting for static/state communities
-        const geofencePolygons = allPaths.map(path => new window.google.maps.Polygon({
-          paths: path,
-          strokeColor: '#3B82F6',
-          strokeOpacity: 0.8,
-          strokeWeight: 3,
-          fillColor: '#3B82F6',
-          fillOpacity: 0.1,
-          clickable: false,
-          map: mapRef
-        }));
+        // Create interactive polygons for each district
+        const geofencePolygons = districtPolygonsData.map(data => {
+          const isSelected = selectedDistrict && data.name.toLowerCase() === selectedDistrict.toLowerCase();
+          
+          const polygon = new window.google.maps.Polygon({
+            paths: data.path,
+            strokeColor: isSelected ? '#2563EB' : '#3B82F6',
+            strokeOpacity: isSelected ? 1 : 0.8,
+            strokeWeight: isSelected ? 4 : 2,
+            fillColor: isSelected ? '#3B82F6' : '#3B82F6',
+            fillOpacity: isSelected ? 0.2 : 0.1,
+            clickable: true,
+            map: mapRef,
+            zIndex: 1
+          });
+
+          // Add interactivity
+          google.maps.event.addListener(polygon, 'click', () => {
+             setSelectedDistrict(data.name);
+          });
+
+          google.maps.event.addListener(polygon, 'mouseover', () => {
+             polygon.setOptions({ fillOpacity: 0.3, strokeWeight: 4 });
+          });
+
+          google.maps.event.addListener(polygon, 'mouseout', () => {
+             polygon.setOptions({ fillOpacity: 0.1, strokeWeight: 2 });
+          });
+
+          return polygon;
+        });
 
         const worldBounds = [
           { lat: 85, lng: -180 },
@@ -1209,7 +1224,17 @@ export default function CommunityView({ infrastructureId, isOwner }) {
           { lat: -85, lng: -180 }
         ];
         
-        const holePaths = allPaths.map(path => [...path].reverse());
+        // Define which polygons should be "holes" in the gray overlay.
+        // If a district is selected, only that one is a hole (others are dimmed).
+        // If NO district is selected (State view), ALL districts are holes (others are dimmed).
+        let holesToDraw = [];
+        if (selectedDistrict) {
+          holesToDraw = districtPolygonsData.filter(d => d.name.toLowerCase() === selectedDistrict.toLowerCase());
+        } else {
+          holesToDraw = districtPolygonsData;
+        }
+
+        const holePaths = holesToDraw.map(d => [...d.path].reverse());
         const overlayPolygon = new window.google.maps.Polygon({
           paths: [worldBounds, ...holePaths],
           strokeColor: 'transparent',
@@ -1548,85 +1573,83 @@ export default function CommunityView({ infrastructureId, isOwner }) {
           </div>
         )}
 
-        {/* Static State Community UI Elements */}
+        {/* District Filter - Top Left */}
         {selectedCommunity?.source === 'static' && (
-          <>
-            {/* Modern District Selector - Bottom Left */}
-            <div className="absolute bottom-10 left-4 z-[110] flex flex-col gap-2">
-              <button
-                onClick={() => setIsDistrictFilterOpen(!isDistrictFilterOpen)}
-                className={`flex items-center gap-2 px-4 py-3 rounded-full shadow-2xl border transition-all duration-300 backdrop-blur-md ${
-                  isDistrictFilterOpen 
-                    ? 'bg-blue-600 text-white border-blue-500 scale-105' 
-                    : 'bg-white/90 text-gray-700 border-white/20 hover:bg-white hover:scale-105'
-                }`}
-              >
-                <MapPin className={`w-4 h-4 ${isDistrictFilterOpen ? 'text-white' : 'text-blue-500'}`} />
-                <span className="text-sm font-bold tracking-tight">
-                  {selectedDistrict || 'Select District'}
-                </span>
-                {isDistrictFilterOpen ? <ChevronRight className="w-4 h-4 rotate-90 transition-transform" /> : <ChevronRight className="w-4 h-4 transition-transform" />}
-              </button>
+          <div className="absolute top-3 left-4 z-[110] flex flex-col gap-2">
+            <button
+              onClick={() => setIsDistrictFilterOpen(!isDistrictFilterOpen)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg border transition-all duration-300 backdrop-blur-md ${
+                isDistrictFilterOpen 
+                  ? 'bg-blue-600 text-white border-blue-500 scale-105' 
+                  : 'bg-white/95 text-gray-700 border-white/20 hover:bg-white hover:scale-105'
+              }`}
+            >
+              <MapPin className={`w-3.5 h-3.5 ${isDistrictFilterOpen ? 'text-white' : 'text-blue-500'}`} />
+              <span className="text-sm font-bold tracking-tight">
+                {selectedDistrict || 'Select District'}
+              </span>
+              {isDistrictFilterOpen ? <ChevronRight className="w-4 h-4 rotate-90 transition-transform" /> : <ChevronRight className="w-4 h-4 transition-transform" />}
+            </button>
 
-              {isDistrictFilterOpen && (
-                <div className="w-64 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
-                  <div className="p-3 border-b border-gray-100 flex items-center gap-2 bg-gray-50/50">
-                    <Search className="w-4 h-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search district..."
-                      className="bg-transparent border-none outline-none text-sm w-full placeholder:text-gray-400 font-medium"
-                      value={districtSearchQuery}
-                      onChange={(e) => setDistrictSearchQuery(e.target.value)}
-                      autoFocus
-                    />
-                  </div>
-                  <div className="max-h-64 overflow-y-auto p-1.5 custom-scrollbar">
-                    <button
-                      onClick={() => {
-                        setSelectedDistrict(null);
-                        setIsDistrictFilterOpen(false);
-                        setDistrictSearchQuery("");
-                      }}
-                      className={`w-full text-left px-3 py-2.5 text-sm rounded-xl transition-all duration-200 flex items-center justify-between group ${
-                        !selectedDistrict 
-                          ? 'bg-blue-600 text-white shadow-md' 
-                          : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700'
-                      }`}
-                    >
-                      <span className="font-semibold">All Districts</span>
-                      {!selectedDistrict && <div className="w-1.5 h-1.5 rounded-full bg-white shadow-sm" />}
-                    </button>
-                    {geofenceData?.type === 'FeatureCollection' && 
-                      Array.from(new Set(geofenceData.features.map(f => f.properties.name)))
-                        .sort()
-                        .filter(name => name.toLowerCase().includes(districtSearchQuery.toLowerCase()))
-                        .map(districtName => (
-                          <button
-                            key={districtName}
-                            onClick={() => {
-                              setSelectedDistrict(districtName);
-                              setIsDistrictFilterOpen(false);
-                              setDistrictSearchQuery("");
-                            }}
-                            className={`w-full text-left px-3 py-2.5 text-sm rounded-xl transition-all duration-200 flex items-center justify-between mt-0.5 group ${
-                              selectedDistrict === districtName 
-                                ? 'bg-blue-600 text-white shadow-md' 
-                                : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700'
-                            }`}
-                          >
-                            <span className="font-semibold truncate pr-2">{districtName}</span>
-                            {selectedDistrict === districtName && <div className="w-1.5 h-1.5 rounded-full bg-white shadow-sm" />}
-                          </button>
-                        ))
-                    }
-                  </div>
+            {isDistrictFilterOpen && (
+              <div className="w-64 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
+                <div className="p-3 border-b border-gray-100 flex items-center gap-2 bg-gray-50/50">
+                  <Search className="w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search district..."
+                    className="bg-transparent border-none outline-none text-sm w-full placeholder:text-gray-400 font-medium"
+                    value={districtSearchQuery}
+                    onChange={(e) => setDistrictSearchQuery(e.target.value)}
+                    autoFocus
+                  />
                 </div>
-              )}
-            </div>
-
-          </>
+                <div className="max-h-64 overflow-y-auto p-1.5 custom-scrollbar">
+                  <button
+                    onClick={() => {
+                      setSelectedDistrict(null);
+                      setIsDistrictFilterOpen(false);
+                      setDistrictSearchQuery("");
+                    }}
+                    className={`w-full text-left px-3 py-2.5 text-sm rounded-xl transition-all duration-200 flex items-center justify-between group ${
+                      !selectedDistrict 
+                        ? 'bg-blue-600 text-white shadow-md' 
+                        : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700'
+                    }`}
+                  >
+                    <span className="font-semibold">All Districts</span>
+                    {!selectedDistrict && <div className="w-1.5 h-1.5 rounded-full bg-white shadow-sm" />}
+                  </button>
+                  {geofenceData?.type === 'FeatureCollection' && 
+                    Array.from(new Set(geofenceData.features.map(f => f.properties.name)))
+                      .sort()
+                      .filter(name => name.toLowerCase().includes(districtSearchQuery.toLowerCase()))
+                      .map(districtName => (
+                        <button
+                          key={districtName}
+                          onClick={() => {
+                            setSelectedDistrict(districtName);
+                            setIsDistrictFilterOpen(false);
+                            setDistrictSearchQuery("");
+                          }}
+                          className={`w-full text-left px-3 py-2.5 text-sm rounded-xl transition-all duration-200 flex items-center justify-between mt-0.5 group ${
+                            selectedDistrict === districtName 
+                              ? 'bg-blue-600 text-white shadow-md' 
+                              : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700'
+                          }`}
+                        >
+                          <span className="font-semibold truncate pr-2">{districtName}</span>
+                          {selectedDistrict === districtName && <div className="w-1.5 h-1.5 rounded-full bg-white shadow-sm" />}
+                        </button>
+                      ))
+                  }
+                </div>
+              </div>
+            )}
+          </div>
         )}
+
+
 
         <GoogleMap
           mapContainerStyle={containerStyle}
@@ -1898,7 +1921,7 @@ export default function CommunityView({ infrastructureId, isOwner }) {
                   { id: 'Food', icon: Utensils, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-200', always: false, label: 'Food' },
                   { id: 'Activity', icon: Activity, color: 'text-cyan-500', bg: 'bg-cyan-50', border: 'border-cyan-200', always: false, label: 'Activity' },
                   { id: 'Events', icon: Calendar, color: 'text-violet-500', bg: 'bg-violet-50', border: 'border-violet-200', always: false, label: 'Events' },
-                ].filter(cat => cat.always || selectedDistrict).reverse().map((cat) => (
+                ].filter(cat => selectedDistrict && (cat.always || selectedDistrict)).reverse().map((cat) => (
                   <div key={cat.id} className="flex items-center gap-3 group">
                     <span className="bg-gray-900/90 backdrop-blur-md text-white text-[9px] font-black px-3 py-1.5 rounded-full shadow-2xl uppercase tracking-[0.15em] border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       {cat.label}
