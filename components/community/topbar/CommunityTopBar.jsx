@@ -175,9 +175,9 @@ export default function CommunityTopBar({ selectedDistrict, tourismData }) {
                 <div className="relative flex-shrink-0">
                   <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-inner">
                     <img 
-                      src="https://placehold.co/40x40/2563EB/FFFFFF?text=Logo" 
+                      src="https://www.keralatourism.org/images/logo/logo.png" 
                       alt="Tourism Logo" 
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain p-1"
                     />
                   </div>
                 </div>
@@ -236,36 +236,40 @@ export default function CommunityTopBar({ selectedDistrict, tourismData }) {
 
           {/* Right Section - Action Buttons */}
           <div className="flex items-center gap-1.5 md:gap-3">
-            {/* Community Management Dropdown - Show for owners/moderators */}
-            <CommunityManagementDropdown
-              selectedCommunity={communityData}
-              onCreateCommunity={() => {}}
-              className="text-white"
-            />
+            {!isStatic && (
+              <>
+                {/* Community Management Dropdown - Show for owners/moderators */}
+                <CommunityManagementDropdown
+                  selectedCommunity={communityData}
+                  onCreateCommunity={() => {}}
+                  className="text-white"
+                />
 
-            {/* Create Post / Report Issue Button */}
-            {isInfrastructureCommunity ? (
-              <button
-                onClick={() => setIsIssueModalOpen(true)}
-                className="flex items-center justify-center w-9 h-9 sm:w-auto sm:px-3 sm:py-2 bg-red-500 hover:bg-red-600 rounded-full transition-all duration-200 border border-red-600 hover:border-red-700 shadow-lg"
-              >
-                <AlertTriangle className="w-4 h-4 text-white" />
-                <span className="text-white font-medium text-sm hidden sm:inline ml-2">
-                  Report Issue
-                </span>
-                <Plus className="w-3.5 h-3.5 text-white sm:ml-1" />
-              </button>
-            ) : (
-              <button
-                onClick={() => setShowPostModal(true)}
-                className="flex items-center justify-center w-9 h-9 sm:w-auto sm:px-3 sm:py-2 bg-white/20 hover:bg-white/30 rounded-full transition-all duration-200 border border-white/30 backdrop-blur-sm"
-              >
-                <FileText className="w-4 h-4 text-white" />
-                <span className="text-white font-medium text-sm hidden sm:inline ml-2">
-                  Create Post
-                </span>
-                <Plus className="w-3.5 h-3.5 text-white sm:ml-1" />
-              </button>
+                {/* Create Post / Report Issue Button */}
+                {isInfrastructureCommunity ? (
+                  <button
+                    onClick={() => setIsIssueModalOpen(true)}
+                    className="flex items-center justify-center w-9 h-9 sm:w-auto sm:px-3 sm:py-2 bg-red-500 hover:bg-red-600 rounded-full transition-all duration-200 border border-red-600 hover:border-red-700 shadow-lg"
+                  >
+                    <AlertTriangle className="w-4 h-4 text-white" />
+                    <span className="text-white font-medium text-sm hidden sm:inline ml-2">
+                      Report Issue
+                    </span>
+                    <Plus className="w-3.5 h-3.5 text-white sm:ml-1" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setShowPostModal(true)}
+                    className="flex items-center justify-center w-9 h-9 sm:w-auto sm:px-3 sm:py-2 bg-white/20 hover:bg-white/30 rounded-full transition-all duration-200 border border-white/30 backdrop-blur-sm"
+                  >
+                    <FileText className="w-4 h-4 text-white" />
+                    <span className="text-white font-medium text-sm hidden sm:inline ml-2">
+                      Create Post
+                    </span>
+                    <Plus className="w-3.5 h-3.5 text-white sm:ml-1" />
+                  </button>
+                )}
+              </>
             )}
 
             {/* Members Count / Tourism Points */}
