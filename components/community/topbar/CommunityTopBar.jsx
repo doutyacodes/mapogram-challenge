@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, Crown, Shield, AlertTriangle, Plus, FileText } from 'lucide-react';
+import { Users, Crown, Shield, AlertTriangle, Plus, FileText, Award } from 'lucide-react';
 import CommunityManagementDropdown from '../CommunityManagementDropdown';
 import CommunityPostCreation from '../CommunityPostCreation';
 import CreateCenterPostModal from '@/components/Navbar/CreateInfrastructurePostModal';
 
-export default function CommunityTopBar() {
+export default function CommunityTopBar({ selectedDistrict, tourismData }) {
+  const { isStatic, stateName, totalPoints } = tourismData || {};
   const [communityData, setCommunityData] = useState(null);
   const [membersCount, setMembersCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -168,42 +169,69 @@ export default function CommunityTopBar() {
         <div className="flex items-center justify-between">
           {/* Left Section - Community Info */}
           <div className="flex items-center space-x-3">
-            {/* Avatar */}
-            <div className="relative flex-shrink-0">
-              <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center overflow-hidden">
-                {communityData?.image_url ? (
-                  <img 
-                    src={
-                      communityData.image_url?.startsWith('http')
-                        ? communityData.image_url
-                        : `${process.env.NEXT_PUBLIC_BASE_IMG_URL}/${communityData.image_url}`
-                    }
-                    alt={communityData.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className={`text-base md:text-xl font-bold ${themeConfig.text}`}>
-                    {getInitials(communityData?.name)}
-                  </span>
-                )}
-              </div>
-            </div>
+            {isStatic ? (
+              <>
+                {/* Tourism Logo */}
+                <div className="relative flex-shrink-0">
+                  <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-inner">
+                    <img 
+                      src="https://placehold.co/40x40/2563EB/FFFFFF?text=Logo" 
+                      alt="Tourism Logo" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
 
-            {/* Name and Info */}
-            <div className="flex flex-col min-w-0">
-              <div className="flex items-center">
-                <h1 className={`text-base md:text-xl font-bold ${themeConfig.text} truncate`}>
-                  {communityData?.name || 'Community'}
-                </h1>
-                <div className="hidden sm:flex">{getRoleBadge()}</div>
-              </div>
-              <span className={`${themeConfig.text} opacity-80 text-[10px] md:text-sm hidden sm:inline`}>
-                {communityData?.community_type_name || 'Community'}
-                {isOwner && ' • You'}
-              </span>
-              {/* Show role badge on mobile instead of full info */}
-              <div className="sm:hidden -mt-0.5">{getRoleBadge()}</div>
-            </div>
+                {/* State/District Info */}
+                <div className="flex flex-col min-w-0">
+                   <span className="text-[10px] md:text-xs font-black text-white/90 uppercase tracking-[0.2em] leading-tight">
+                     {stateName} Tourism
+                   </span>
+                   <h1 className="text-lg md:text-2xl font-black text-white truncate leading-tight mt-0.5">
+                     {selectedDistrict || stateName}
+                   </h1>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Avatar */}
+                <div className="relative flex-shrink-0">
+                  <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center overflow-hidden">
+                    {communityData?.image_url ? (
+                      <img 
+                        src={
+                          communityData.image_url?.startsWith('http')
+                            ? communityData.image_url
+                            : `${process.env.NEXT_PUBLIC_BASE_IMG_URL}/${communityData.image_url}`
+                        }
+                        alt={communityData.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className={`text-base md:text-xl font-bold ${themeConfig.text}`}>
+                        {getInitials(communityData?.name)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Name and Info */}
+                <div className="flex flex-col min-w-0">
+                  <div className="flex items-center">
+                    <h1 className={`text-base md:text-xl font-bold ${themeConfig.text} truncate`}>
+                      {communityData?.name || 'Community'}
+                    </h1>
+                    <div className="hidden sm:flex">{getRoleBadge()}</div>
+                  </div>
+                  <span className={`${themeConfig.text} opacity-80 text-[10px] md:text-sm hidden sm:inline`}>
+                    {communityData?.community_type_name || 'Community'}
+                    {isOwner && ' • You'}
+                  </span>
+                  {/* Show role badge on mobile instead of full info */}
+                  <div className="sm:hidden -mt-0.5">{getRoleBadge()}</div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Right Section - Action Buttons */}
@@ -240,16 +268,26 @@ export default function CommunityTopBar() {
               </button>
             )}
 
-            {/* Members Count */}
-            <div className="flex items-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 bg-white/20 rounded-full backdrop-blur-sm">
-              <Users className="w-3.5 h-3.5 text-white" />
-              <span className={`font-bold text-xs sm:text-base ${themeConfig.text}`}>
-                {membersCount}
-              </span>
-              <span className={`${themeConfig.text} opacity-80 text-xs hidden md:inline`}>
-                Members
-              </span>
-            </div>
+            {/* Members Count / Tourism Points */}
+            {isStatic ? (
+              <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-2xl border border-white/30 shadow-lg animate-in zoom-in-95 duration-300">
+                <Award className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300" />
+                <div className="flex flex-col">
+                  <span className="text-[8px] sm:text-[10px] text-white/80 font-black uppercase tracking-widest leading-none">Your Points</span>
+                  <span className="font-black text-white text-sm sm:text-xl leading-none mt-1">{totalPoints}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 bg-white/20 rounded-full backdrop-blur-sm">
+                <Users className="w-3.5 h-3.5 text-white" />
+                <span className={`font-bold text-xs sm:text-base ${themeConfig.text}`}>
+                  {membersCount}
+                </span>
+                <span className={`${themeConfig.text} opacity-80 text-xs hidden md:inline`}>
+                  Members
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

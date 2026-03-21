@@ -347,7 +347,13 @@ const InfrastructureRolesBar = ({
   );
 };
 
-export default function CommunityView({ infrastructureId, isOwner }) {
+export default function CommunityView({ 
+  infrastructureId, 
+  isOwner,
+  selectedDistrict,
+  setSelectedDistrict,
+  onTourismUpdate
+}) {
   // State management
   const [postsItems, setPostsItems] = useState([]);
   const [activeQuickFilter, setActiveQuickFilter] = useState('all');
@@ -362,6 +368,17 @@ export default function CommunityView({ infrastructureId, isOwner }) {
   const [communities, setCommunities] = useState([]);
   const [selectedCommunity, setSelectedCommunity] = useState(null);
   const [communitiesLoading, setCommunitiesLoading] = useState(true);
+
+  useEffect(() => {
+    if (onTourismUpdate && selectedCommunity) {
+      onTourismUpdate({
+        isStatic: selectedCommunity.source === 'static',
+        stateName: selectedCommunity.name,
+        totalPoints: 1250 // maintain the mock
+      });
+    }
+  }, [selectedCommunity, onTourismUpdate]);
+
   const [showApprovalOverlay, setShowApprovalOverlay] = useState(false);
 
   const [showRequirementModal, setShowRequirementModal] = useState(false);
@@ -374,7 +391,6 @@ export default function CommunityView({ infrastructureId, isOwner }) {
   const [showFiltersDropdown, setShowFiltersDropdown] = useState(false);
 
   // Static State Community functionality
-  const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [selectedStateCategory, setSelectedStateCategory] = useState(null); // 'Challenges', 'Places', 'Food'
   const [isDistrictFilterOpen, setIsDistrictFilterOpen] = useState(false);
   const [districtSearchQuery, setDistrictSearchQuery] = useState("");
@@ -482,7 +498,7 @@ export default function CommunityView({ infrastructureId, isOwner }) {
   const [activeCategoryMarker, setActiveCategoryMarker] = useState(null);
   const [expandedCategory, setExpandedCategory] = useState(null);
   
-  // Mock total points for now
+  // Total points moved to parent, but keeping reference here for easy refactor if needed locally
   const totalPoints = 1250;
 
   const getMarkerIcon = useCallback((category, isSelected, isGroup = false) => {
@@ -1705,36 +1721,6 @@ export default function CommunityView({ infrastructureId, isOwner }) {
           </div>
         )}
 
-        {/* Tourism Header - Top Center/Left */}
-        {selectedCommunity?.source === 'static' && (
-          <div className="absolute top-4 left-4 right-4 z-[110] flex justify-between items-center bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-white/20 p-3 animate-in fade-in slide-in-from-top-4 duration-500 max-w-2xl mx-auto">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full overflow-hidden shadow-sm border border-gray-100 flex-shrink-0">
-                <img 
-                  src="https://placehold.co/40x40/2563EB/FFFFFF?text=Logo" 
-                  alt="Tourism Logo" 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-0.5">
-                  {selectedDistrict ? `${selectedCommunity.name} Tourism` : 'State Tourism'}
-                </span>
-                <h2 className="text-xl font-bold text-gray-800 leading-tight">
-                  {selectedDistrict || selectedCommunity.name}
-                </h2>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2 bg-blue-50/50 px-3 py-1.5 rounded-xl border border-blue-100 shadow-inner">
-              <Award className="w-4 h-4 text-amber-500" />
-              <div className="flex flex-col">
-                <span className="text-[10px] text-gray-500 font-medium uppercase leading-none">Your Points</span>
-                <span className="font-bold text-blue-700 leading-none mt-0.5">{totalPoints}</span>
-              </div>
-            </div>
-          </div>
-        )}
 
 
         <GoogleMap
