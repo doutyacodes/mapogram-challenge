@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useMediaQuery } from 'react-responsive';
 import { GoogleMap, InfoWindowF, MarkerF } from "@react-google-maps/api";
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
@@ -187,6 +187,72 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
       fetchGeofence(pageId);
     }
   }, [pageId, fetchGeofence]);
+
+  // Calculate actual center of selected district for marker grouping
+  const districtCenter = useMemo(() => {
+    if (!geofenceData || !selectedDistrict) return null;
+    const feature = geofenceData.features.find(f => (f.properties.name || f.properties.district) === selectedDistrict);
+    if (!feature) return null;
+
+    let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
+    
+    // Handle both Polygon and MultiPolygon
+    const coords = feature.geometry.type === 'MultiPolygon' 
+      ? feature.geometry.coordinates.flat(2) 
+      : feature.geometry.coordinates[0];
+
+    coords.forEach(coord => {
+      if (coord[1] < minLat) minLat = coord[1];
+      if (coord[1] > maxLat) maxLat = coord[1];
+      if (coord[0] < minLng) minLng = coord[0];
+      if (coord[0] > maxLng) maxLng = coord[0];
+    });
+
+    return {
+      lat: (minLat + maxLat) / 2,
+      lng: (minLng + maxLng) / 2
+    };
+  }, [geofenceData, selectedDistrict]);
+
+  // Unified tourism markers logic (Grouping vs Scattering)
+  const visibleTourismMarkers = useMemo(() => {
+    if (!isTourismPage || !selectedDistrict || !districtCenter) return [];
+
+    const categories = ['Challenges', 'Places', 'Food', 'Activity', 'Events'];
+    let finalMarkers = [];
+
+    categories.forEach((cat, idx) => {
+      // If category is filtered out by FAB, skip
+      if (activeDiscoveryCategory && activeDiscoveryCategory !== cat) return;
+
+      const items = categoryMarkers.filter(m => m.category === cat && !deniedItemIds.has(m.id));
+      if (items.length === 0) return;
+
+      if (expandedCategory === cat) {
+        // SCATTERED: Show individual markers at their real positions
+        finalMarkers.push(...items.map(item => ({
+          ...item,
+          isGroup: false
+        })));
+      } else {
+        // GROUPED: Show a single group marker at an offset from center
+        const angle = idx * (Math.PI / 2.5);
+        const radius = 0.03; // Latitude/Longitude offset radius
+        finalMarkers.push({
+          id: `group-${cat}`,
+          isGroup: true,
+          category: cat,
+          title: `${cat} Group`,
+          position: {
+            lat: districtCenter.lat + Math.sin(angle) * radius,
+            lng: districtCenter.lng + Math.cos(angle) * radius
+          }
+        });
+      }
+    });
+
+    return finalMarkers;
+  }, [isTourismPage, selectedDistrict, districtCenter, categoryMarkers, expandedCategory, activeDiscoveryCategory, deniedItemIds]);
 
   // Marker Icon Generator for Tourism
   const getMarkerIcon = (category, isSelected, isGroup = false) => {
@@ -1277,23 +1343,24 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
           </InfoWindowF>
         )}
 
-        {/* --- Tourism Static Markers --- */}
-        {isTourismPage && categoryMarkers
-          .filter(m => !deniedItemIds.has(m.id))
-          .filter(m => !activeDiscoveryCategory || m.category === activeDiscoveryCategory)
-          .map((marker, index) => (
+        {/* --- Tourism Static Markers (Grouped or Scattered) --- */}
+        {isTourismPage && visibleTourismMarkers.map((marker, index) => (
           <MarkerF
             key={`tourism-marker-${marker.id}-${index}`}
             position={marker.position}
-            zIndex={100}
+            zIndex={marker.isGroup ? 110 : 100}
             onClick={() => {
-              setActiveCategoryMarker(marker.id);
-              setActiveDiscoveryCategory(marker.category);
+              if (marker.isGroup) {
+                setExpandedCategory(marker.category);
+              } else {
+                setActiveCategoryMarker(marker.id);
+                setActiveDiscoveryCategory(marker.category);
+              }
             }}
             icon={{
-              url: getMarkerIcon(marker.category, activeCategoryMarker === marker.id, false),
-              scaledSize: new window.google.maps.Size(40, 40),
-              anchor: new window.google.maps.Point(20, 20)
+              url: getMarkerIcon(marker.category, activeCategoryMarker === marker.id, marker.isGroup),
+              scaledSize: marker.isGroup ? new window.google.maps.Size(46, 46) : new window.google.maps.Size(38, 38),
+              anchor: marker.isGroup ? new window.google.maps.Point(23, 23) : new window.google.maps.Point(19, 19)
             }}
           />
         ))}
@@ -1548,7 +1615,6 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
         </div>
       )}
 
-      {/* Add the modal at the very end, after the InfoWindowF closing tag */}
       {showRegistrationModal && (
         <PostRegistrationModal
           isOpen={showRegistrationModal}
