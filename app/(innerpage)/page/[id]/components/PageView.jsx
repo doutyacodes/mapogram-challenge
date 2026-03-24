@@ -187,61 +187,69 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
   }, [pageId, fetchGeofence]);
 
   // Marker Icon Generator for Tourism
-  const getMarkerIcon = (category, isActive, isGroup = false) => {
-    let color = '#3B82F6'; // Default Blue
-    let iconName = 'Star';
-
-    switch(category) {
-      case 'Challenges': color = '#F97316'; iconName = 'Target'; break;
-      case 'Places': color = '#10B981'; iconName = 'MapPin'; break;
-      case 'Food': color = '#EF4444'; iconName = 'Utensils'; break;
-      case 'Activity': color = '#8B5CF6'; iconName = 'Activity'; break;
-      case 'Events': color = '#6366F1'; iconName = 'Calendar'; break;
+  const getMarkerIcon = (category, isSelected, isGroup = false) => {
+    let color = '#f97316'; // orange for challenges
+    let path = '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>';
+    
+    if (category === 'Places') {
+      color = '#22c55e'; // green
+      path = '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>';
+    } else if (category === 'Food') {
+      color = '#ef4444'; // red
+      path = '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>';
+    } else if (category === 'Activity') {
+      color = '#06b6d4'; // cyan
+      path = '<path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>';
+    } else if (category === 'Events') {
+      color = '#8b5cf6'; // violet
+      path = '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>';
     }
 
-    const svg = createPostCategoryMarkerIcon(iconName, isActive ? '#000000' : color);
+    const size = isSelected ? 48 : (isGroup ? 44 : 36);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="${size}" height="${size}">
+      <circle cx="20" cy="20" r="18" fill="${color}" opacity="${isGroup ? '0.4' : '0.2'}"/>
+      <circle cx="20" cy="20" r="14" fill="${color}" stroke="white" stroke-width="2"/>
+      <g transform="translate(8, 8) scale(0.9)">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          ${path}
+        </svg>
+      </g>
+    </svg>`;
+
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
   };
 
   useEffect(() => {
-    console.log("Marker Gen - selectedDistrict:", selectedDistrict);
     if (!selectedDistrict || !STATIC_DISTRICT_DATA["Kerala"]?.[selectedDistrict]) {
-      console.log("Marker Gen - District not found or null");
       setCategoryMarkers([]);
       return;
     }
 
     const districtData = STATIC_DISTRICT_DATA["Kerala"][selectedDistrict];
-    console.log("Marker Gen - Found district data, categories:", Object.keys(districtData));
     const newMarkers = [];
 
-    // Flatten data for markers
+    // Flatten data for markers, filtering by activeDiscoveryCategory if set
     Object.entries(districtData).forEach(([category, items]) => {
+      // If a category is selected, only show markers for that category
+      if (activeDiscoveryCategory && category !== activeDiscoveryCategory) return;
+
       items.forEach(item => {
         if (deniedItemIds.has(item.id)) return;
         
-        // Use coordinates from item or generate dummy near center
-        // (For now using the ones from mockCategoryData)
-        if (item.lat && item.lng) {
+        // Use position object from generated data
+        if (item.position && item.position.lat && item.position.lng) {
           newMarkers.push({
             ...item,
             category,
-            position: { lat: parseFloat(item.lat), lng: parseFloat(item.lng) }
-          });
-        } else if (item.coordinates) {
-          // Some have coordinates string "lng,lat,..."
-          const coords = item.coordinates.split(',');
-          newMarkers.push({
-            ...item,
-            category,
-            position: { lat: parseFloat(coords[1]), lng: parseFloat(coords[0]) }
+            position: { lat: parseFloat(item.position.lat), lng: parseFloat(item.position.lng) }
           });
         }
       });
     });
 
     setCategoryMarkers(newMarkers);
-  }, [selectedDistrict, deniedItemIds]);
+    console.log(`[TOURISM] Generated ${newMarkers.length} markers for ${selectedDistrict} (Category: ${activeDiscoveryCategory || 'All'})`);
+  }, [selectedDistrict, deniedItemIds, activeDiscoveryCategory]);
 
   // --- Tourism Map Rendering ---
   
@@ -406,39 +414,8 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
       tourismMarkersRef.current = [];
       return;
     }
-
-    // Filter by active discovery category if set
-    const visibleMarkersData = activeDiscoveryCategory 
-      ? categoryMarkers.filter(m => m.category === activeDiscoveryCategory)
-      : categoryMarkers;
-
-    // Clear existing
-    tourismMarkersRef.current.forEach(m => m.setMap(null));
-    
-    const newMarkers = visibleMarkersData.map(data => {
-      const marker = new window.google.maps.Marker({
-        position: data.position,
-        map: mapRef,
-        icon: getMarkerIcon(data.category, activeCategoryMarker === data.id),
-        title: data.title,
-        zIndex: 10
-      });
-
-      marker.addListener('click', () => {
-        setActiveCategoryMarker(data.id);
-        setSelectedDetailItem(data);
-        setShowDetailModal(true);
-      });
-
-      return marker;
-    });
-
-    tourismMarkersRef.current = newMarkers;
-
-    return () => {
-      newMarkers.forEach(m => m.setMap(null));
-    };
-  }, [mapRef, categoryMarkers, activeDiscoveryCategory, activeCategoryMarker, selectedDistrict]);
+    // Cleanup handled by declarative MarkerF
+  }, [mapRef, selectedDistrict]);
 
   // Unified geofence effect
 
@@ -1311,6 +1288,7 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
           <MarkerF
             key={`tourism-marker-${marker.id}-${index}`}
             position={marker.position}
+            zIndex={100}
             onClick={() => {
               setActiveCategoryMarker(marker.id);
               setActiveDiscoveryCategory(marker.category);
@@ -1318,7 +1296,7 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
             icon={{
               url: getMarkerIcon(marker.category, activeCategoryMarker === marker.id, false),
               scaledSize: new window.google.maps.Size(40, 40),
-              anchor: new window.google.maps.Point(20, 40)
+              anchor: new window.google.maps.Point(20, 20)
             }}
           />
         ))}
