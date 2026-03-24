@@ -1,17 +1,37 @@
 "use client"
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useMediaQuery } from 'react-responsive';
-import { GoogleMap, InfoWindowF } from "@react-google-maps/api";
+import { GoogleMap, InfoWindowF, MarkerF } from "@react-google-maps/api";
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { 
     Briefcase,
     Loader2,
+    MapPin,
+    Search,
+    ChevronLeft,
+    ChevronRight,
+    X,
+    Target,
+    Utensils,
+    Activity,
+    Calendar,
+    Star,
+    Clock,
+    Heart,
+    MessageCircle,
+    Share2,
+    Navigation2,
+    QrCode,
+    Award,
+    CheckCircle
   } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { applyGoogleMapsControlStyle } from "@/utils/googleMapsStyles";
 import PostRegistrationModal from "@/components/map/posts/PostRegistrationModal";
 import { useUserRole } from "@/app/hooks/useUserRole";
 import PagePostCreation from "../../../../../components/map/posts/PagePostCreation";
+import StateCategoryContent from "../../../communities/components/StateCategoryContent";
+import { STATIC_DISTRICT_DATA } from "@/utils/mockCategoryData";
 import { createClusterRenderer } from "@/utils/map/createClusterRenderer";
 import MapCard from "@/components/map/MapCard";
 import { handleClusterClick } from "@/utils/map/handleClusterClick";
@@ -23,7 +43,7 @@ import ResetMapButton from "@/components/map/controls/ResetMapButton";
 import { center, containerStyle, DEFAULT_ZOOM, USER_LOCATION_ZOOM } from "@/lib/map/constants";
 import { createPostCategoryMarkerIcon, groupPostsByLocation, groupRegistrationsByLocation } from '@/utils/map/markerUtils';
 
-export default function PageView({pageId, isOwner}) {
+export default function PageView({pageId, isOwner, selectedDistrict, setSelectedDistrict, onTourismUpdate}) {
   const [postsItems, setPostsItems] = useState([]);
   const [groupedPosts, setGroupedPosts] = useState({});
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -71,6 +91,33 @@ export default function PageView({pageId, isOwner}) {
 
   const { user, canCreatePost } = useUserRole();
 
+  // --- Tourism Specific States ---
+  const [geofenceData, setGeofenceData] = useState(null);
+  const [categoryMarkers, setCategoryMarkers] = useState([]);
+  const [activeCategoryMarker, setActiveCategoryMarker] = useState(null);
+  const [expandedCategory, setExpandedCategory] = useState(null);
+  const [selectedSubCategory, setSelectedSubCategory] = useState(null);
+  const [activeDiscoveryCategory, setActiveDiscoveryCategory] = useState(null);
+  const [activeCardTab, setActiveCardTab] = useState('Rules');
+
+  const isTourismPage = Number(pageId) === 999991 || Number(pageId) === 999992;
+
+  
+  const [isDistrictFilterOpen, setIsDistrictFilterOpen] = useState(false);
+  const [districtSearchQuery, setDistrictSearchQuery] = useState("");
+  
+  const [acceptedItems, setAcceptedItems] = useState([]);
+  const [deniedItemIds, setDeniedItemIds] = useState(new Set());
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedDetailItem, setSelectedDetailItem] = useState(null);
+  const [activeDetailTab, setActiveDetailTab] = useState('rules');
+  
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [qrSuccess, setQRSuccess] = useState(false);
+
+  const geofenceSetupCompleteRef = useRef(false);
+  const tourismMarkersRef = useRef([]);
+
   const getCategoryByName = (categoryName) => {
     return postCategories.find(cat => cat.name === categoryName) || { name: 'Default', shape: 'pin', icon_name: 'MapPin', color: '#6b7280', class_name: '' };
   };
@@ -103,6 +150,297 @@ export default function PageView({pageId, isOwner}) {
       return updated;
     });
   }, []);
+
+  // --- Tourism Data Sync ---
+  useEffect(() => {
+    if (onTourismUpdate) {
+      onTourismUpdate({
+        selectedDistrict,
+        acceptedCount: acceptedItems.length
+      });
+    }
+  }, [selectedDistrict, acceptedItems.length, onTourismUpdate]);
+
+  // Fetch Geofence
+  const fetchGeofence = useCallback(async (id) => {
+    if (!id) return;
+    try {
+      // For now we use the same community geofence API
+      // In a real Page app, this might be /api/pages/[id]/geofence
+      const response = await fetch(`/api/communities/${id}/geofence`);
+      if (!response.ok) {
+        setGeofenceData(null);
+        return;
+      }
+      const data = await response.json();
+      setGeofenceData(data.geofence?.geojson || null);
+    } catch (err) {
+      console.error("Error fetching geofence:", err);
+      setGeofenceData(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (pageId && (pageId === "999991" || pageId === "999992")) {
+      fetchGeofence(pageId);
+    }
+  }, [pageId, fetchGeofence]);
+
+  // Marker Icon Generator for Tourism
+  const getMarkerIcon = (category, isActive, isGroup = false) => {
+    let color = '#3B82F6'; // Default Blue
+    let iconName = 'Star';
+
+    switch(category) {
+      case 'Challenges': color = '#F97316'; iconName = 'Target'; break;
+      case 'Places': color = '#10B981'; iconName = 'MapPin'; break;
+      case 'Food': color = '#EF4444'; iconName = 'Utensils'; break;
+      case 'Activity': color = '#8B5CF6'; iconName = 'Activity'; break;
+      case 'Events': color = '#6366F1'; iconName = 'Calendar'; break;
+    }
+
+    const svg = createPostCategoryMarkerIcon(iconName, isActive ? '#000000' : color);
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  };
+
+  useEffect(() => {
+    console.log("Marker Gen - selectedDistrict:", selectedDistrict);
+    if (!selectedDistrict || !STATIC_DISTRICT_DATA["Kerala"]?.[selectedDistrict]) {
+      console.log("Marker Gen - District not found or null");
+      setCategoryMarkers([]);
+      return;
+    }
+
+    const districtData = STATIC_DISTRICT_DATA["Kerala"][selectedDistrict];
+    console.log("Marker Gen - Found district data, categories:", Object.keys(districtData));
+    const newMarkers = [];
+
+    // Flatten data for markers
+    Object.entries(districtData).forEach(([category, items]) => {
+      items.forEach(item => {
+        if (deniedItemIds.has(item.id)) return;
+        
+        // Use coordinates from item or generate dummy near center
+        // (For now using the ones from mockCategoryData)
+        if (item.lat && item.lng) {
+          newMarkers.push({
+            ...item,
+            category,
+            position: { lat: parseFloat(item.lat), lng: parseFloat(item.lng) }
+          });
+        } else if (item.coordinates) {
+          // Some have coordinates string "lng,lat,..."
+          const coords = item.coordinates.split(',');
+          newMarkers.push({
+            ...item,
+            category,
+            position: { lat: parseFloat(coords[1]), lng: parseFloat(coords[0]) }
+          });
+        }
+      });
+    });
+
+    setCategoryMarkers(newMarkers);
+  }, [selectedDistrict, deniedItemIds]);
+
+  // --- Tourism Map Rendering ---
+  
+  // 1. Geofence Polygons & Overlay
+  useEffect(() => {
+    if (!mapRef || !geofenceData) return;
+    
+    const bounds = new window.google.maps.LatLngBounds();
+    let hasCoords = false;
+    let districtPolygonsData = [];
+
+    if (geofenceData.type === 'FeatureCollection') {
+      geofenceData.features.forEach(feature => {
+        const distName = feature.properties.name || feature.properties.district;
+        const geometry = feature.geometry;
+        const featureBounds = new window.google.maps.LatLngBounds();
+        
+        if (geometry.type === 'Polygon') {
+          geometry.coordinates.forEach(ring => {
+            const path = ring.map(coord => {
+              const p = { lat: coord[1], lng: coord[0] };
+              featureBounds.extend(p);
+              bounds.extend(p);
+              hasCoords = true;
+              return p;
+            });
+            districtPolygonsData.push({ path, name: distName, bounds: featureBounds });
+          });
+        } else if (geometry.type === 'MultiPolygon') {
+          geometry.coordinates.forEach(polygon => {
+            polygon.forEach(ring => {
+              const path = ring.map(coord => {
+                const p = { lat: coord[1], lng: coord[0] };
+                featureBounds.extend(p);
+                bounds.extend(p);
+                hasCoords = true;
+                return p;
+              });
+              districtPolygonsData.push({ path, name: distName, bounds: featureBounds });
+            });
+          });
+        }
+      });
+    }
+
+    if (hasCoords) {
+      // Interactive Polygons
+      const geofencePolygons = districtPolygonsData.map(data => {
+        const isSelected = selectedDistrict && data.name.toLowerCase() === selectedDistrict.toLowerCase();
+        
+        const polygon = new window.google.maps.Polygon({
+          paths: data.path,
+          strokeColor: isSelected ? '#2563EB' : '#3B82F6',
+          strokeOpacity: isSelected ? 1 : 0.8,
+          strokeWeight: isSelected ? 4 : 2,
+          fillColor: isSelected ? '#3B82F6' : '#3B82F6',
+          fillOpacity: isSelected ? 0.2 : 0.1,
+          clickable: true,
+          map: mapRef,
+          zIndex: 1
+        });
+
+        polygon.addListener('click', () => {
+          setSelectedDistrict(data.name);
+        });
+
+        return polygon;
+      });
+
+      // Overlay (Dimming other areas)
+      const worldBounds = [
+        { lat: 85, lng: -180 }, { lat: 85, lng: 180 }, 
+        { lat: -85, lng: 180 }, { lat: -85, lng: -180 }
+      ];
+      
+      let holesToDraw = selectedDistrict 
+        ? districtPolygonsData.filter(d => d.name.toLowerCase() === selectedDistrict.toLowerCase())
+        : districtPolygonsData;
+
+      const holePaths = holesToDraw.map(d => [...d.path].reverse());
+      const overlayPolygon = new window.google.maps.Polygon({
+        paths: [worldBounds, ...holePaths],
+        strokeColor: 'transparent',
+        fillColor: '#6B7280',
+        fillOpacity: 0.4,
+        clickable: false,
+        map: mapRef,
+        zIndex: 0
+      });
+
+      // Adjust View
+      if (selectedDistrict) {
+        const selectedData = districtPolygonsData.find(d => d.name.toLowerCase() === selectedDistrict.toLowerCase());
+        if (selectedData) {
+          mapRef.fitBounds(selectedData.bounds, { top: 80, bottom: 80, left: 40, right: 40 });
+        }
+      } else {
+        mapRef.fitBounds(bounds, { top: 80, bottom: 40, left: 40, right: 40 });
+      }
+
+      return () => {
+        geofencePolygons.forEach(p => p.setMap(null));
+        overlayPolygon.setMap(null);
+      };
+    }
+  }, [mapRef, geofenceData, selectedDistrict, setSelectedDistrict]);
+
+  // 2. Discovery Markers (Subtle circles)
+  useEffect(() => {
+    if (!mapRef || !geofenceData || selectedDistrict) return;
+
+    const discoveryMarkers = [];
+    if (geofenceData.type === 'FeatureCollection') {
+      geofenceData.features.forEach(feature => {
+        const distName = feature.properties.name || feature.properties.district;
+        const geometry = feature.geometry;
+        const districtBounds = new window.google.maps.LatLngBounds();
+        
+        if (geometry.type === 'Polygon') {
+          geometry.coordinates.forEach(ring => {
+            ring.forEach(coord => districtBounds.extend({ lat: coord[1], lng: coord[0] }));
+          });
+        } else if (geometry.type === 'MultiPolygon') {
+          geometry.coordinates.forEach(polygon => {
+            polygon.forEach(ring => {
+              ring.forEach(coord => districtBounds.extend({ lat: coord[1], lng: coord[0] }));
+            });
+          });
+        }
+
+        if (!districtBounds.isEmpty()) {
+          const marker = new window.google.maps.Marker({
+            position: districtBounds.getCenter(),
+            map: mapRef,
+            icon: {
+              path: window.google.maps.SymbolPath.CIRCLE,
+              scale: 6,
+              fillColor: '#FFFFFF',
+              fillOpacity: 0.9,
+              strokeColor: '#2563EB',
+              strokeWeight: 2
+            },
+            title: distName,
+            zIndex: 2
+          });
+
+          marker.addListener('click', () => {
+            setSelectedDistrict(distName);
+          });
+          discoveryMarkers.push(marker);
+        }
+      });
+    }
+
+    return () => discoveryMarkers.forEach(m => m.setMap(null));
+  }, [mapRef, geofenceData, selectedDistrict, setSelectedDistrict]);
+
+  // 3. Tourism Item Markers
+  useEffect(() => {
+    if (!mapRef || !selectedDistrict) {
+      tourismMarkersRef.current.forEach(m => m.setMap(null));
+      tourismMarkersRef.current = [];
+      return;
+    }
+
+    // Filter by active discovery category if set
+    const visibleMarkersData = activeDiscoveryCategory 
+      ? categoryMarkers.filter(m => m.category === activeDiscoveryCategory)
+      : categoryMarkers;
+
+    // Clear existing
+    tourismMarkersRef.current.forEach(m => m.setMap(null));
+    
+    const newMarkers = visibleMarkersData.map(data => {
+      const marker = new window.google.maps.Marker({
+        position: data.position,
+        map: mapRef,
+        icon: getMarkerIcon(data.category, activeCategoryMarker === data.id),
+        title: data.title,
+        zIndex: 10
+      });
+
+      marker.addListener('click', () => {
+        setActiveCategoryMarker(data.id);
+        setSelectedDetailItem(data);
+        setShowDetailModal(true);
+      });
+
+      return marker;
+    });
+
+    tourismMarkersRef.current = newMarkers;
+
+    return () => {
+      newMarkers.forEach(m => m.setMap(null));
+    };
+  }, [mapRef, categoryMarkers, activeDiscoveryCategory, activeCategoryMarker, selectedDistrict]);
+
+  // Unified geofence effect
 
   // HELPER FUNCTION TO CHECK IF ALL post AT A LOCATION ARE READ
   const areAllPostAtLocationRead = (locationKey) => {
@@ -617,6 +955,39 @@ export default function PageView({pageId, isOwner}) {
 
   const currentItem = showRegistrationDetails ? getCurrentRegistrationItem() : getCurrentPostItem();
 
+  // --- Tourism Specific Handlers ---
+  const handleAcceptItem = (item) => {
+    if (!acceptedItems.find(i => i.id === item.id)) {
+      setAcceptedItems(prev => [...prev, item]);
+    }
+    setShowDetailModal(false);
+    setActiveCategoryMarker(null);
+  };
+
+  const handleDenyItem = (itemId) => {
+    setDeniedItemIds(prev => new Set([...prev, itemId]));
+    setShowDetailModal(false);
+    setActiveCategoryMarker(null);
+  };
+
+  const handleQRScan = (item) => {
+    setQRSuccess(true);
+    setTimeout(() => {
+      setQRSuccess(false);
+      setShowQRModal(false);
+      setAcceptedItems(prev => prev.filter(i => i.id !== item.id));
+    }, 2000);
+  };
+
+  const handleShowRoute = (item) => {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${item.lat},${item.lng}`;
+    window.open(url, '_blank');
+  };
+
+  const filteredDistricts = (STATIC_DISTRICT_DATA["Kerala"] ? Object.keys(STATIC_DISTRICT_DATA["Kerala"]) : [])
+    .filter(d => d.toLowerCase().includes(districtSearchQuery.toLowerCase()));
+
+
   return (
     <div className="relative">
     
@@ -705,6 +1076,139 @@ export default function PageView({pageId, isOwner}) {
           </div>
         )}
       </>
+
+      {/* --- Tourism UI Components --- */}
+      
+      {/* 1. District Filter (Top Left) */}
+      <div className="absolute top-4 left-4 z-[100] flex flex-col gap-2">
+        <div className="relative group">
+          <button 
+            onClick={() => setIsDistrictFilterOpen(!isDistrictFilterOpen)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white/90 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl hover:bg-white transition-all duration-300 group"
+          >
+            <div className="p-1 px-2 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
+              <Search size={16} />
+            </div>
+            <span className="font-semibold text-gray-700 min-w-[120px] text-left">
+              {selectedDistrict || "Select District"}
+            </span>
+          </button>
+
+          {isDistrictFilterOpen && (
+            <div className="absolute top-full left-0 mt-2 w-64 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="p-3 border-b border-gray-100">
+                <input 
+                  type="text"
+                  placeholder="Search districts..."
+                  className="w-full px-4 py-2 bg-gray-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  value={districtSearchQuery}
+                  onChange={(e) => setDistrictSearchQuery(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              <div className="max-h-64 overflow-y-auto p-2 custom-scrollbar">
+                {filteredDistricts.map(dist => (
+                  <button
+                    key={dist}
+                    onClick={() => {
+                      setSelectedDistrict(dist);
+                      setIsDistrictFilterOpen(false);
+                      setDistrictSearchQuery("");
+                    }}
+                    className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                      selectedDistrict === dist 
+                        ? 'bg-blue-600 text-white shadow-lg' 
+                        : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600'
+                    }`}
+                  >
+                    {dist}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {selectedDistrict && (
+          <button 
+            onClick={() => setSelectedDistrict(null)}
+            className="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 border border-red-100 rounded-xl text-xs font-bold hover:bg-red-100 transition-colors w-fit shadow-md animate-in fade-in slide-in-from-left-2"
+          >
+            <X size={12} /> Clear Filter
+          </button>
+        )}
+      </div>
+
+      {/* 2. Accepted Items Stack (Left Side) */}
+      {acceptedItems.length > 0 && (
+        <div className="absolute left-4 top-24 z-[90] flex flex-col gap-3 pointer-events-none">
+          {acceptedItems.map((item, idx) => (
+            <div 
+              key={item.id}
+              className="pointer-events-auto group relative animate-in slide-in-from-left-8 duration-500"
+              style={{ transitionDelay: `${idx * 100}ms` }}
+            >
+              <button
+                onClick={() => {
+                  setSelectedDetailItem(item);
+                  setShowDetailModal(true);
+                }}
+                className={`w-14 h-14 rounded-2xl shadow-2xl border-2 p-1 overflow-hidden transition-all duration-300 hover:scale-110 active:scale-95 ${
+                  selectedDetailItem?.id === item.id ? 'border-orange-500 scale-105' : 'border-white'
+                }`}
+              >
+                <img src={item.image} className="w-full h-full object-cover rounded-xl" alt="" />
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
+                
+                {/* Status dot */}
+                <div className="absolute top-1 right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full shadow-sm" />
+              </button>
+              
+              {/* Tooltip */}
+              <div className="absolute left-full ml-4 top-1/2 -translate-y-1/2 bg-gray-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl border border-gray-800">
+                {item.title}
+                <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-2 bg-gray-900 rotate-45 border-l border-b border-gray-800" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 3. Tourism Category Filter (Vertical Stack on Right) */}
+      {selectedDistrict && (
+        <div className="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col gap-4 z-[50] pointer-events-none">
+          {[
+            { name: 'Challenges', icon: Target, color: 'text-orange-500' },
+            { name: 'Places', icon: MapPin, color: 'text-green-500' },
+            { name: 'Food', icon: Utensils, color: 'text-red-500' },
+            { name: 'Activity', icon: Activity, color: 'text-purple-500' },
+            { name: 'Events', icon: Calendar, color: 'text-indigo-500' }
+          ].map((cat) => (
+            <button
+              key={cat.name}
+              onClick={() => setActiveDiscoveryCategory(activeDiscoveryCategory === cat.name ? null : cat.name)}
+              title={cat.name}
+              className={`pointer-events-auto p-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 border-2 ${
+                activeDiscoveryCategory === cat.name 
+                  ? 'bg-gray-900 text-white border-gray-800 scale-110' 
+                  : 'bg-white text-gray-500 border-white hover:border-gray-100'
+              }`}
+            >
+              <cat.icon size={24} className={activeDiscoveryCategory === cat.name ? 'text-white' : cat.color} />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* 4. State Category Content (Floating window) */}
+      {activeDiscoveryCategory && (
+        <StateCategoryContent 
+          category={activeDiscoveryCategory}
+          district={selectedDistrict}
+          itemsData={categoryMarkers.filter(m => m.category === activeDiscoveryCategory)}
+          onClose={() => setActiveDiscoveryCategory(null)}
+        />
+      )}
 
       {/* Show message when community is selected but no posts */}
       {!isLoading && pageId && postsItems.length === 0 && (
@@ -802,6 +1306,68 @@ export default function PageView({pageId, isOwner}) {
           </InfoWindowF>
         )}
 
+        {/* --- Tourism Static Markers --- */}
+        {isTourismPage && categoryMarkers.map((marker, index) => (
+          <MarkerF
+            key={`tourism-marker-${marker.id}-${index}`}
+            position={marker.position}
+            onClick={() => {
+              setActiveCategoryMarker(marker.id);
+              setActiveDiscoveryCategory(marker.category);
+            }}
+            icon={{
+              url: getMarkerIcon(marker.category, activeCategoryMarker === marker.id, false),
+              scaledSize: new window.google.maps.Size(40, 40),
+              anchor: new window.google.maps.Point(20, 40)
+            }}
+          />
+        ))}
+
+        {/* --- Tourism InfoWindow --- */}
+        {isTourismPage && activeCategoryMarker && (() => {
+          const markerData = categoryMarkers.find(m => m.id === activeCategoryMarker);
+          if (!markerData) return null;
+          return (
+            <InfoWindowF
+              position={markerData.position}
+              onCloseClick={() => { setActiveCategoryMarker(null); }}
+              options={{
+                pixelOffset: new window.google.maps.Size(0, -35),
+                maxWidth: 320
+              }}
+            >
+              <div className="p-1 min-w-[200px]">
+                <div className="flex items-center gap-2 mb-2">
+                   <div className={`p-1 rounded text-white ${
+                     markerData.category === 'Challenges' ? 'bg-orange-500' :
+                     markerData.category === 'Places' ? 'bg-green-500' :
+                     markerData.category === 'Food' ? 'bg-red-500' :
+                     markerData.category === 'Activity' ? 'bg-purple-500' :
+                     markerData.category === 'Events' ? 'bg-indigo-500' : 'bg-blue-500'
+                   }`}>
+                     {markerData.category === 'Challenges' ? <Target size={14} /> :
+                      markerData.category === 'Places' ? <MapPin size={14} /> :
+                      markerData.category === 'Food' ? <Utensils size={14} /> :
+                      markerData.category === 'Activity' ? <Activity size={14} /> :
+                      markerData.category === 'Events' ? <Calendar size={14} /> : <Star size={14} />}
+                   </div>
+                   <span className="text-[10px] font-bold uppercase tracking-wider">{markerData.category}</span>
+                </div>
+                <h3 className="font-bold text-gray-900 text-sm mb-1">{markerData.title}</h3>
+                <p className="text-xs text-gray-600 mb-2">{markerData.description || "Historical and cultural landmark in Kerala."}</p>
+                <button 
+                  onClick={() => {
+                    // This will open the side panel
+                    setActiveDiscoveryCategory(markerData.category);
+                  }}
+                  className="w-full py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  View Details
+                </button>
+              </div>
+            </InfoWindowF>
+          );
+        })()}
       </GoogleMap>
 
       {/* Add the modal at the very end, after the InfoWindowF closing tag */}

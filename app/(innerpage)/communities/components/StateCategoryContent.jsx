@@ -26,6 +26,8 @@ const StateCategoryContent = ({ category, district, itemsData = [], onClose }) =
       case 'Challenges': return { icon: Target, title: 'Active Challenges', bgClass: 'bg-orange-50', textClass: 'text-orange-500', borderActive: 'border-orange-300 ring-orange-100 ring-1' };
       case 'Places':     return { icon: MapPin, title: 'Places to Visit', bgClass: 'bg-green-50', textClass: 'text-green-500', borderActive: 'border-green-300 ring-green-100 ring-1' };
       case 'Food':       return { icon: Utensils, title: 'Local Restaurants', bgClass: 'bg-red-50', textClass: 'text-red-500', borderActive: 'border-red-300 ring-red-100 ring-1' };
+      case 'Activity':   return { icon: MapIcon, title: 'Activities', bgClass: 'bg-purple-50', textClass: 'text-purple-500', borderActive: 'border-purple-300 ring-purple-100 ring-1' };
+      case 'Events':     return { icon: Clock, title: 'Upcoming Events', bgClass: 'bg-indigo-50', textClass: 'text-indigo-500', borderActive: 'border-indigo-300 ring-indigo-100 ring-1' };
       default:           return { icon: MapIcon, title: 'Category', bgClass: 'bg-blue-50', textClass: 'text-blue-500', borderActive: 'border-blue-300 ring-blue-100 ring-1' };
     }
   };

@@ -19,6 +19,18 @@ export async function GET(req, { params }) {
 
     const pageId = parseInt(params.id);
 
+    // Tourism Mock Bypass
+    if (pageId === 999991 || pageId === 999992) {
+      return NextResponse.json({
+        id: pageId,
+        name: pageId === 999991 ? "Kerala Tourism" : "Karnataka Tourism",
+        username: pageId === 999991 ? "keralatourism" : "karnatakatourism",
+        profilePic: "https://www.keralatourism.org/images/logo/logo.png",
+        bio: "Official tourism page",
+        pageType: "Tourism",
+      });
+    }
+
     const pageData = await db
       .select({
         id: PAGES.id,
@@ -39,7 +51,7 @@ export async function GET(req, { params }) {
 
     return NextResponse.json(pageData[0]);
   } catch (error) {
-    console.error("Error fetching page data:", error);
-    return NextResponse.json({ message: "Failed to fetch page data" }, { status: 500 });
+    console.error("Error fetching page data - [id] route:", error);
+    return NextResponse.json({ message: "Failed to fetch page data", error: error.message }, { status: 500 });
   }
 }

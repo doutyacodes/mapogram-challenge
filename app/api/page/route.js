@@ -41,6 +41,29 @@ export async function GET(req) {
     const pageId = url.searchParams.get("pageId");
     if (!pageId) return NextResponse.json({ posts: [], categories: [] });
 
+    // Tourism Mock Bypass
+    if (pageId === "999991" || pageId === "999992") {
+      const mockPage = {
+        id: parseInt(pageId),
+        name: pageId === "999991" ? "Kerala Tourism" : "Karnataka Tourism",
+        page_type_id: 1, // Assume 1 is a valid type for categories
+        created_at: new Date()
+      };
+      
+      const mockCategories = [
+        { id: 1, name: "Challenges", shape: "circle", icon_name: "Target", color: "#F97316" },
+        { id: 2, name: "Places", shape: "pin", icon_name: "MapPin", color: "#10B981" },
+        { id: 3, name: "Food", shape: "square", icon_name: "Utensils", color: "#EF4444" }
+      ];
+
+      return NextResponse.json({
+        posts: [],
+        categories: mockCategories,
+        registrations: [],
+        user: { id: viewerId, role: viewerRole }
+      });
+    }
+
     // Get page details
     const [pageData] = await db.select().from(PAGES).where(eq(PAGES.id, parseInt(pageId)));
     if (!pageData) return NextResponse.json({ message: "Page not found" }, { status: 404 });
@@ -609,7 +632,7 @@ export async function GET(req) {
     });
 
   } catch (err) {
-    console.error("Page API Error", err);
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    console.error("Page API Error - main route:", err);
+    return NextResponse.json({ message: "Internal Server Error", error: err.message }, { status: 500 });
   }
 }

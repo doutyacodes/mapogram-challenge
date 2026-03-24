@@ -10,6 +10,12 @@ import { useIdentityStore } from "@/stores/activeIdentityStore";
 export default function PageRoute() {
   const { id: pageId } = useParams();
   const [isPageAdmin, setIsPageAdmin] = useState(false);
+  const [selectedDistrict, setSelectedDistrict] = useState(null);
+  const [tourismData, setTourismData] = useState({
+    isStatic: false,
+    stateName: '',
+    totalPoints: 0
+  });
 
   const loggedInUserId = useIdentityStore(state => state.loggedInUserId);
   const isIdentityLoading = useIdentityStore(state => state.isIdentityLoading);
@@ -43,8 +49,16 @@ export default function PageRoute() {
         type="page" 
         id={pageId} 
         currentUserId={loggedInUserId} 
+        selectedDistrict={selectedDistrict}
+        tourismData={tourismData}
       />
-      <PageView pageId={pageId} isOwner={isPageAdmin} />
+      <PageView 
+        pageId={pageId} 
+        isOwner={isPageAdmin} 
+        selectedDistrict={selectedDistrict}
+        setSelectedDistrict={setSelectedDistrict}
+        onTourismUpdate={setTourismData}
+      />
     </div>
   );
 }

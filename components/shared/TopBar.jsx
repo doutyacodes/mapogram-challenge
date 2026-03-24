@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Heart, HeartOff, UserPlus, Users, Check, Clock, Layers, UserX } from 'lucide-react';
+import { Heart, HeartOff, UserPlus, Users, Check, Clock, Layers, UserX, Award } from 'lucide-react';
 import { useIdentityStore } from '@/stores/activeIdentityStore';
 import GuestSignupModal from './GuestSignupModal';
 
-export default function ModernTopBar({ type, id, currentUserId }) {
+export default function ModernTopBar({ type, id, currentUserId, selectedDistrict, tourismData }) {
+  const { isStatic, stateName, totalPoints } = tourismData || {};
   const [data, setData] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
@@ -272,47 +273,80 @@ export default function ModernTopBar({ type, id, currentUserId }) {
       <div className="flex items-center justify-between">
         {/* Left Section - Profile Info */}
         <div className="flex items-center space-x-3">
-          {/* Avatar */}
-          <div className="relative">
-            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center overflow-hidden">
-              {isLayer ? (
-                <Layers className="w-6 h-6 md:w-7 md:h-7 text-white" />
-              ) : data?.profilePic ? (
-                <img 
-                  src={data.profilePic} 
-                  alt={data.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className={`text-lg md:text-xl font-bold ${currentTheme.text}`}>
-                  {getInitials(data?.name)}
-                </span>
-              )}
-            </div>
-          </div>
+          {isStatic ? (
+            <>
+              {/* Tourism Logo */}
+              <div className="relative flex-shrink-0">
+                <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-inner">
+                  <img 
+                    src="https://www.keralatourism.org/images/logo/logo.png" 
+                    alt="Tourism Logo" 
+                    className="w-full h-full object-contain p-1"
+                  />
+                </div>
+              </div>
 
-          {/* Name and Info */}
-          <div className="flex flex-col">
-            <div className="flex items-center">
-              <h1 className={`text-lg md:text-xl font-bold ${currentTheme.text}`}>
-                {data?.name || 'Loading...'}
-              </h1>
-              {getAdminBadge()}
-            </div>
-            <span className={`${currentTheme.text} opacity-80 text-xs md:text-sm`}>
-              {getEntityTypeText()}
-              {isCurrentUserOwner && ' • You'}
-            </span>
-          </div>
+              {/* State/District Info */}
+              <div className="flex flex-col min-w-0">
+                 <span className="text-[10px] md:text-xs font-black text-white/90 uppercase tracking-[0.2em] leading-tight">
+                   {stateName || 'State'} Tourism
+                 </span>
+                 <h1 className="text-lg md:text-2xl font-black text-white truncate leading-tight mt-0.5">
+                   {selectedDistrict || stateName || 'Explore'}
+                 </h1>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Avatar */}
+              <div className="relative">
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center overflow-hidden">
+                  {isLayer ? (
+                    <Layers className="w-6 h-6 md:w-7 md:h-7 text-white" />
+                  ) : data?.profilePic ? (
+                    <img 
+                      src={data.profilePic} 
+                      alt={data.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className={`text-lg md:text-xl font-bold ${currentTheme.text}`}>
+                      {getInitials(data?.name)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Name and Info */}
+              <div className="flex flex-col">
+                <div className="flex items-center">
+                  <h1 className={`text-lg md:text-xl font-bold ${currentTheme.text}`}>
+                    {data?.name || 'Loading...'}
+                  </h1>
+                  {getAdminBadge()}
+                </div>
+                <span className={`${currentTheme.text} opacity-80 text-xs md:text-sm`}>
+                  {getEntityTypeText()}
+                  {isCurrentUserOwner && ' • You'}
+                </span>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Right Section - Stats and Actions */}
-        <div className="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-2 md:space-y-0">
-
-
-
-          {/* Action Buttons */}
-          {!isCurrentUserOwner && (
+        {isStatic ? (
+          <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-2xl border border-white/30 shadow-lg animate-in zoom-in-95 duration-300">
+            <Award className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300" />
+            <div className="flex flex-col">
+              <span className="text-[8px] sm:text-[10px] text-white/80 font-black uppercase tracking-widest leading-none">Your Points</span>
+              <span className="font-black text-white text-sm sm:text-xl leading-none mt-1">{totalPoints}</span>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-2 md:space-y-0">
+            {/* Action Buttons */}
+            {!isCurrentUserOwner && (
             <>
               <div className="flex items-center gap-1 text-sm md:text-base font-medium">
               {/* Followers/Friends Count */}
@@ -365,7 +399,8 @@ export default function ModernTopBar({ type, id, currentUserId }) {
             </button>
           )} */}
         </div>
-      </div>
+      )}
+    </div>
 
       {/* Guest Signup Modal */}
       <GuestSignupModal

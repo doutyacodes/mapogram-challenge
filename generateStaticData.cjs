@@ -14,45 +14,90 @@ function getRandomPoints() {
 }
 
 function getRandomEntryFee() {
-  return Math.random() > 0.5 ? 'Free' : '20 points';
+  const fees = ['Free', 'Free', 'Free', '20 points', '50 points', '10 points'];
+  return fees[Math.floor(Math.random() * fees.length)];
 }
 
 function getRandomRating() {
   return (Math.random() * 1.5 + 3.5).toFixed(1);
 }
 
+function getRandomPrice() {
+  return '₹' + (Math.floor(Math.random() * 600) + 150);
+}
+
 const challengeImages = [
   'https://images.unsplash.com/photo-1618477461853-cf6ed80fbea5?auto=format&fit=crop&q=80&w=800',
   'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=800',
-  'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&q=80&w=800'
+  'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&q=80&w=800',
+  'https://images.unsplash.com/photo-1596464716127-f2a829d4de30?auto=format&fit=crop&q=80&w=800',
+  'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&q=80&w=800'
 ];
 
 const placeImages = [
   'https://images.unsplash.com/photo-1566552881560-0be862a7c445?auto=format&fit=crop&q=80&w=800',
   'https://images.unsplash.com/photo-1588693959606-a8fa2390b1e4?auto=format&fit=crop&q=80&w=800',
-  'https://images.unsplash.com/photo-1572551532888-ca28ba89f282?auto=format&fit=crop&q=80&w=800'
+  'https://images.unsplash.com/photo-1572551532888-ca28ba89f282?auto=format&fit=crop&q=80&w=800',
+  'https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&q=80&w=800',
+  'https://images.unsplash.com/photo-1506461883276-594a12b11cf3?auto=format&fit=crop&q=80&w=800'
 ];
 
 const foodImages = [
   'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=800',
   'https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&q=80&w=800',
-  'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&q=80&w=800'
+  'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&q=80&w=800',
+  'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&q=80&w=800',
+  'https://images.unsplash.com/photo-1626777553735-48b47ca90695?auto=format&fit=crop&q=80&w=800'
 ];
 
 const activityImages = [
   'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=800',
   'https://images.unsplash.com/photo-1540553016722-983e48a2cd10?auto=format&fit=crop&q=80&w=800',
-  'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=800'
+  'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=800',
+  'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?auto=format&fit=crop&q=80&w=800'
 ];
 
 const eventImages = [
   'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800',
   'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&q=80&w=800',
-  'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=800'
+  'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=800',
+  'https://images.unsplash.com/photo-1472653431158-6364773b2a56?auto=format&fit=crop&q=80&w=800'
 ];
-function getRandomPrice() {
-  return '₹' + (Math.floor(Math.random() * 400) + 100);
-}
+
+const hotelNames = ['The Ghatis Restaurant', 'Empire Hotel', 'Grand Hyatt', 'Marriott', 'Paragon', 'Sea Shell Resort', 'Royal Palm', 'Spice Route', 'Kerala Kitchen', 'Southern Spice'];
+const dishNames = ['Biryani', 'Mandi', 'Appam & Beef', 'Dosa', 'Seafood Platter', 'Kappa & Meen', 'Parotta & Chicken', 'Sadhya', 'Fish Curry', 'Fried Rice'];
+
+const landmarkNames = ['Museum', 'Old Church', 'Ancient Temple', 'Hill View Point', 'Botanical Garden', 'Waterfall', 'Fort', 'Lighthouse', 'Heritage Walk', 'Craft Village'];
+
+const activityNames = ['Morning Yoga', 'Cycling Tour', 'Backwater Kayaking', 'Football Match', 'Cricket Nets', 'Jungle Trek', 'Bird Watching', 'Cooking Class', 'Spice Walk'];
+
+const eventNames = ['Cultural Fest', 'Food Festival', 'Music Night', 'Tech Meetup', 'Market Fair', 'Film Screening', 'Art Exhibition', 'Traditional Dance'];
+
+const getFakePeople = (type, title) => {
+  const userPresets = [
+    { name: 'Arjun K.', avatar: 'https://i.pravatar.cc/150?u=arjun', date: '2 hours ago', likes: 24, comments: 5 },
+    { name: 'Sneha M.', avatar: 'https://i.pravatar.cc/150?u=sneha', date: '5 hours ago', likes: 18, comments: 2 },
+    { name: 'Rahul V.', avatar: 'https://i.pravatar.cc/150?u=rahul', date: 'Yesterday', likes: 42, comments: 12 },
+    { name: 'Anjali S.', avatar: 'https://i.pravatar.cc/150?u=anjali', date: '2 days ago', likes: 31, comments: 8 },
+    { name: 'Kiran P.', avatar: 'https://i.pravatar.cc/150?u=kiran', date: '3 days ago', likes: 15, comments: 3 },
+    { name: 'Meera R.', avatar: 'https://i.pravatar.cc/150?u=meera', date: '4 days ago', likes: 56, comments: 15 }
+  ];
+  return userPresets.map(u => ({
+    ...u,
+    certification: 'https://images.unsplash.com/photo-1589330694653-ded6df03f754?auto=format&fit=crop&q=80&w=200',
+    description: `completed the ${title}`
+  }));
+};
+
+const getFakeLeaderboard = () => {
+  return [
+    { rank: 1, name: 'Rahul V.', points: 1250, avatar: 'https://i.pravatar.cc/150?u=rahul' },
+    { rank: 2, name: 'Meera R.', points: 1100, avatar: 'https://i.pravatar.cc/150?u=meera' },
+    { rank: 3, name: 'Anjali S.', points: 950, avatar: 'https://i.pravatar.cc/150?u=anjali' },
+    { rank: 4, name: 'Arjun K.', points: 880, avatar: 'https://i.pravatar.cc/150?u=arjun' },
+    { rank: 5, name: 'Sneha M.', points: 720, avatar: 'https://i.pravatar.cc/150?u=sneha' }
+  ];
+};
 
 states.forEach(state => {
   const geojsonFile = path.join(__dirname, 'public/geojson', state.file);
@@ -60,416 +105,132 @@ states.forEach(state => {
   
   STATIC_DISTRICT_DATA[state.name] = {};
   
-  data.features.forEach((feature, idx) => {
-    const distName = feature.properties.name || feature.properties.district;
-    if (!distName) return;
+  data.features.forEach((feature, fIndex) => {
+    const properties = feature.properties || {};
+    const distName = properties.name || properties.district || properties.DISTRICT;
+    if (!distName) {
+      console.log(`Skipping feature ${fIndex} in ${state.name} (no name)`);
+      return;
+    }
     
-    const getFakePeople = (type, title) => {
-      const users = [
-        { name: 'Arjun K.', avatar: 'https://i.pravatar.cc/150?u=arjun', date: '2 hours ago', likes: 24, comments: 5 },
-        { name: 'Sneha M.', avatar: 'https://i.pravatar.cc/150?u=sneha', date: '5 hours ago', likes: 18, comments: 2 },
-        { name: 'Rahul V.', avatar: 'https://i.pravatar.cc/150?u=rahul', date: 'Yesterday', likes: 42, comments: 12 },
-        { name: 'Anjali S.', avatar: 'https://i.pravatar.cc/150?u=anjali', date: '2 days ago', likes: 31, comments: 8 },
-        { name: 'Kiran P.', avatar: 'https://i.pravatar.cc/150?u=kiran', date: '3 days ago', likes: 15, comments: 3 },
-        { name: 'Meera R.', avatar: 'https://i.pravatar.cc/150?u=meera', date: '4 days ago', likes: 56, comments: 15 }
-      ];
-      return users.map(u => ({
-        ...u,
-        certification: 'https://images.unsplash.com/photo-1589330694653-ded6df03f754?auto=format&fit=crop&q=80&w=200',
-        description: `completed the ${title}`
-      }));
+    // console.log(`Processing ${state.name} -> ${distName}...`);
+    
+    // Robust bounds calculation
+    let coords = [];
+    if (feature.geometry.type === 'Polygon') {
+      coords = feature.geometry.coordinates[0];
+    } else if (feature.geometry.type === 'MultiPolygon') {
+      // Flatten all polygons to find absolute bounds
+      feature.geometry.coordinates.forEach(poly => {
+        coords.push(...poly[0]);
+      });
+    } else {
+      console.log(`Unsupported geometry type ${feature.geometry.type} for ${distName}`);
+      return;
+    }
+
+    if (!coords || coords.length === 0) {
+      console.log(`No coordinates found for ${distName}`);
+      return;
+    }
+
+    const lats = coords.map(c => c[1]);
+    const lngs = coords.map(c => c[0]);
+    const bounds = {
+      minLat: Math.min(...lats),
+      maxLat: Math.max(...lats),
+      minLng: Math.min(...lngs),
+      maxLng: Math.max(...lngs),
+      center: {
+        lat: (Math.min(...lats) + Math.max(...lats)) / 2,
+        lng: (Math.min(...lngs) + Math.max(...lngs)) / 2
+      }
     };
 
-    const getFakeLeaderboard = () => {
-      return [
-        { rank: 1, name: 'Rahul V.', points: 1250, avatar: 'https://i.pravatar.cc/150?u=rahul' },
-        { rank: 2, name: 'Meera R.', points: 1100, avatar: 'https://i.pravatar.cc/150?u=meera' },
-        { rank: 3, name: 'Anjali S.', points: 950, avatar: 'https://i.pravatar.cc/150?u=anjali' },
-        { rank: 4, name: 'Arjun K.', points: 880, avatar: 'https://i.pravatar.cc/150?u=arjun' },
-        { rank: 5, name: 'Sneha M.', points: 720, avatar: 'https://i.pravatar.cc/150?u=sneha' }
-      ];
-    };
+    const generateItems = (category, count) => {
+      return Array.from({ length: count }).map((_, i) => {
+        let title = '';
+        let description = '';
+        let tags = [];
+        let logo = '';
+        let image = '';
+        let extra = {};
 
-    const getFoodItems = () => {
-      const dishes = [
-        { name: 'Biryani', type: 'Biryani Specials', image: foodImages[0] },
-        { name: 'Mandi & Arabian', type: 'Arabian Delights', image: foodImages[1] },
-        { name: 'Seafood', type: 'Fresh Catch', image: foodImages[2] },
-        { name: 'Appam & Chicken Perattu', type: 'Traditional', image: foodImages[0] },
-        { name: 'Puttum Beefum', type: 'Local Favorites', image: foodImages[1] },
-        { name: 'Kizhi Parotta', type: 'Local Favorites', image: foodImages[2] }
-      ];
-      
-      const hotels = [
-        { name: 'The Ghats Restaurant', logo: 'https://t3.ftcdn.net/jpg/03/07/94/80/360_F_307948085_v9L7m3i9C9XU8B3C3lQ0J9u9U1N3S7sE.jpg' },
-        { name: 'Paragon Restaurant', logo: 'https://cdn-icons-png.flaticon.com/512/854/854866.png' },
-        { name: 'Empire Hotel', logo: 'https://cdn-icons-png.flaticon.com/512/2907/2907253.png' },
-        { name: 'Grand Hyatt', logo: 'https://cdn-icons-png.flaticon.com/512/3652/3652191.png' },
-        { name: 'Kochi Kitchen', logo: 'https://cdn-icons-png.flaticon.com/512/10433/10433048.png' }
-      ];
+        switch(category) {
+          case 'Challenges':
+            title = `Protect ${distName} ${landmarkNames[i % landmarkNames.length]}`;
+            description = `Join the community effort to preserve and maintain the ${title}. Participate and earn rewards.`;
+            tags = ['Environment', 'Heritage'];
+            image = challengeImages[i % challengeImages.length];
+            logo = 'https://cdn-icons-png.flaticon.com/512/10433/10433048.png';
+            break;
+          case 'Places':
+            title = `${distName} ${landmarkNames[i % landmarkNames.length]}`;
+            description = `A must-visit landmark in ${distName}. Discover its unique architecture and history.`;
+            tags = ['Nature', 'Sightseeing'];
+            image = placeImages[i % placeImages.length];
+            logo = 'https://cdn-icons-png.flaticon.com/512/854/854866.png';
+            extra = { distance: (Math.random() * 8 + 1).toFixed(1) + ' km', rating: getRandomRating() };
+            break;
+          case 'Food':
+            const hotel = hotelNames[i % hotelNames.length] + ' ' + (i + 1);
+            const dish = dishNames[i % dishNames.length];
+            title = hotel;
+            description = `Experience the legendary ${dish} of ${distName} at ${hotel}. Prepared with authentic spices.`;
+            tags = ['Local Cuisine', 'Food'];
+            image = foodImages[i % foodImages.length];
+            logo = 'https://cdn-icons-png.flaticon.com/512/10433/10433048.png';
+            extra = { foodName: dish, price: getRandomPrice(), rating: getRandomRating(), distance: (Math.random() * 5 + 0.5).toFixed(1) + ' km' };
+            break;
+          case 'Activity':
+            title = `${distName} ${activityNames[i % activityNames.length]}`;
+            description = `Join this exciting activity in ${distName}. Perfect for solo or group adventurers.`;
+            tags = ['Adventure', 'Outdoor'];
+            image = activityImages[i % activityImages.length];
+            logo = 'https://cdn-icons-png.flaticon.com/512/3652/3652191.png';
+            extra = { duration: (i % 3 + 1) + ' hours' };
+            break;
+          case 'Events':
+            title = `${distName} ${eventNames[i % eventNames.length]}`;
+            description = `An upcoming community event in ${distName}. Don't miss this opportunity to connect.`;
+            tags = ['Social', 'Community'];
+            image = eventImages[i % eventImages.length];
+            logo = 'https://cdn-icons-png.flaticon.com/512/2907/2907253.png';
+            extra = { date: ['This Sunday', 'Next Week', '25th Oct', 'Coming Friday'][i % 4] };
+            break;
+        }
 
-      return dishes.map((dish, dishIdx) => {
-        const hotel = hotels[dishIdx % hotels.length];
+        const itemTitle = title;
         return {
-          id: 'f_' + distName + '_' + dishIdx,
-          title: hotel.name, // Establishment name on map/stack
-          foodName: dish.name, // Dish name for modal title
-          category: 'Food',
-          tags: [dish.type],
-          logo: hotel.logo,
-          image: dish.image,
-          description: `Experience the best ${dish.name} at ${hotel.name}. Our specialty ${dish.name} is prepared with authentic secret spices and tradition.`,
-          price: getRandomPrice(),
-          distance: (Math.random() * 5 + 1).toFixed(2) + ' km',
-          people: getFakePeople('Food', hotel.name),
+          id: `static-${category.toLowerCase()}-${distName}-${i}`,
+          title: itemTitle,
+          description,
+          category,
+          tags,
+          logo,
+          image,
+          points: getRandomPoints(),
+          entryFee: getRandomEntryFee(),
+          prize: '100 Points',
+          people: getFakePeople(category, itemTitle),
           leaderboard: getFakeLeaderboard(),
-          lat: feature.geometry.coordinates[1] + (Math.random() - 0.5) * 0.05,
-          lng: feature.geometry.coordinates[0] + (Math.random() - 0.5) * 0.05
+          position: {
+            lat: bounds.center.lat + (Math.random() - 0.5) * (bounds.maxLat - bounds.minLat) * 0.7,
+            lng: bounds.center.lng + (Math.random() - 0.5) * (bounds.maxLng - bounds.minLng) * 0.7
+          },
+          ...extra
         };
       });
     };
 
-    const challenges = [
-      {
-        id: 'c_' + distName + '_1',
-        title: 'Clean ' + distName + ' Streets',
-        description: 'Help keep the central streets of ' + distName + ' free of plastic waste.',
-        points: getRandomPoints(),
-        logo: 'https://cdn-icons-png.flaticon.com/512/10433/10433048.png', 
-        image: challengeImages[0],
-        tags: ['Environment'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Challenge', 'Clean ' + distName + ' Streets'),
-        leaderboard: getFakeLeaderboard()
-      },
-      {
-        id: 'c_' + distName + '_2',
-        title: 'Plant Trees in ' + distName,
-        description: 'Contribute to the green cover around ' + distName + ' local parks.',
-        points: getRandomPoints(),
-        logo: 'https://cdn-icons-png.flaticon.com/512/10433/10433048.png',
-        image: challengeImages[1],
-        tags: ['Environment'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Challenge', 'Plant Trees in ' + distName),
-        leaderboard: getFakeLeaderboard()
-      },
-      {
-        id: 'c_' + distName + '_3',
-        title: 'Report Potholes in ' + distName,
-        description: 'Help authorities identify bad road conditions in ' + distName + '.',
-        points: getRandomPoints(),
-        logo: 'https://cdn-icons-png.flaticon.com/512/10433/10433048.png',
-        image: challengeImages[2],
-        tags: ['Infrastructure'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Challenge', 'Report Potholes in ' + distName),
-        leaderboard: getFakeLeaderboard()
-      }
-    ];
-
-    const places = [
-      {
-        id: 'p_' + distName + '_1',
-        title: distName + ' Heritage Museum',
-        description: 'Explore the rich history and artifacts from the ' + distName + ' region.',
-        distance: '1.2 km',
-        points: getRandomPoints(),
-        rating: getRandomRating(),
-        logo: 'https://cdn-icons-png.flaticon.com/512/854/854866.png',
-        image: placeImages[0],
-        tags: ['Culture', 'History'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Place', distName + ' Heritage Museum'),
-        leaderboard: getFakeLeaderboard()
-      },
-      {
-        id: 'p_' + distName + '_2',
-        title: distName + ' Botanical Gardens',
-        description: 'Enjoy a quiet stroll through lush greenery in the heart of ' + distName + '.',
-        distance: '3.4 km',
-        points: getRandomPoints(),
-        image: placeImages[1],
-        tags: ['Nature', 'Park'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Place', distName + ' Botanical Gardens'),
-        leaderboard: getFakeLeaderboard()
-      },
-      {
-        id: 'p_' + distName + '_3',
-        title: distName + ' Viewpoint',
-        description: 'Catch breath-taking panoramic views of ' + distName + ' and surrounding landscapes.',
-        distance: '8.5 km',
-        points: getRandomPoints(),
-        image: placeImages[2],
-        tags: ['Nature', 'Sightseeing'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Place', distName + ' Viewpoint'),
-        leaderboard: getFakeLeaderboard()
-      }
-    ];
-
-    if (distName === 'Kottayam') {
-      for (let i = 4; i <= 8; i++) {
-        const title = distName + ' Historical Site ' + i;
-        places.push({
-          id: 'p_' + distName + '_' + i,
-          title: title,
-          description: 'A beautiful historical site located in the heart of ' + distName + '.',
-          distance: (i * 2.1).toFixed(1) + ' km',
-          points: getRandomPoints(),
-          image: placeImages[i % 3],
-          tags: ['History', 'Sightseeing'],
-          entryFee: getRandomEntryFee(),
-          prize: '100 Points',
-          people: getFakePeople('Place', title),
-          leaderboard: getFakeLeaderboard()
-        });
-      }
-    }
-    const dishes = [
-      { name: 'Biryani', type: 'Biryani Specials', image: foodImages[0] },
-      { name: 'Mandi & Arabian', type: 'Arabian Delights', image: foodImages[1] },
-      { name: 'Seafood', type: 'Fresh Catch', image: foodImages[2] },
-      { name: 'Appam & Chicken Perattu', type: 'Traditional', image: foodImages[0] },
-      { name: 'Puttum Beefum', type: 'Local Favorites', image: foodImages[1] }
-    ];
+    const count = distName === 'Kottayam' ? 20 : 10;
     
-    const hList = [
-      { name: 'The Ghats Restaurant', logo: 'https://t3.ftcdn.net/jpg/03/07/94/80/360_F_307948085_v9L7m3i9C9XU8B3C3lQ0J9u9U1N3S7sE.jpg' },
-      { name: 'Paragon Restaurant', logo: 'https://cdn-icons-png.flaticon.com/512/854/854866.png' },
-      { name: 'Empire Hotel', logo: 'https://cdn-icons-png.flaticon.com/512/2907/2907253.png' },
-      { name: 'Grand Hyatt', logo: 'https://cdn-icons-png.flaticon.com/512/3652/3652191.png' },
-      { name: 'Kochi Kitchen', logo: 'https://cdn-icons-png.flaticon.com/512/10433/10433048.png' }
-    ];
-
-    const food = dishes.map((dish, dishIdx) => {
-      const hotel = hList[dishIdx % hList.length];
-      return {
-        id: 'f_' + distName + '_' + dishIdx,
-        title: hotel.name, // Establishment name on map/stack
-        foodName: dish.name, // Dish name for modal title
-        category: 'Food',
-        tags: [dish.type],
-        logo: hotel.logo,
-        image: dish.image,
-        description: `Experience the best ${dish.name} at ${hotel.name}. Our specialty ${dish.name} is prepared with authentic secret spices and tradition.`,
-        price: getRandomPrice(),
-        distance: (Math.random() * 5 + 1).toFixed(2) + ' km',
-        points: getRandomPoints(),
-        rating: getRandomRating(),
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Food', hotel.name),
-        leaderboard: getFakeLeaderboard(),
-        lat: feature.geometry.coordinates[1] + (Math.random() - 0.5) * 0.05,
-        lng: feature.geometry.coordinates[0] + (Math.random() - 0.5) * 0.05
-      };
-    });
-
-    if (distName === 'Kottayam') {
-      const kHotelNames = ['Kottayam Delicacy', 'Pepper Grove', 'Backwater Bites', 'Rubber Valley Inn', 'Meenachil Kitchen'];
-      const kDishNames = ['Fish Curry', 'Beef Roast', 'Karimeen Pollichathu', 'Appam & Stew', 'Kappa & Meen'];
-      
-      for (let i = 8; i <= 14; i++) {
-        const hotelName = kHotelNames[i % kHotelNames.length] + ' ' + i;
-        const dishName = kDishNames[i % kDishNames.length];
-        food.push({
-          id: 'f_' + distName + '_' + i,
-          title: hotelName,
-          foodName: dishName,
-          category: 'Food',
-          tags: ['Local Specialties'],
-          logo: 'https://cdn-icons-png.flaticon.com/512/10433/10433048.png',
-          image: foodImages[i % 3],
-          description: `Authentic local ${dishName} at ${hotelName}. A must-try experience in Kottayam.`,
-          price: getRandomPrice(),
-          distance: (Math.random() * 5 + 1).toFixed(2) + ' km',
-          points: getRandomPoints(),
-          rating: getRandomRating(),
-          entryFee: getRandomEntryFee(),
-          prize: '100 Points',
-          people: getFakePeople('Food', hotelName),
-          leaderboard: getFakeLeaderboard(),
-          lat: feature.geometry.coordinates[1] + (Math.random() - 0.5) * 0.05,
-          lng: feature.geometry.coordinates[0] + (Math.random() - 0.5) * 0.05
-        });
-      }
-    }
-
-    const activities = [
-      {
-        id: 'a_' + distName + '_1',
-        title: 'Morning Yoga at ' + distName + ' Park',
-        description: 'Gentle yoga session suitable for all levels to start your day fresh.',
-        duration: '1 hour',
-        points: getRandomPoints(),
-        image: activityImages[0],
-        tags: ['Yoga', 'Wellbeing'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Activity', 'Morning Yoga at ' + distName + ' Park'),
-        leaderboard: getFakeLeaderboard()
-      },
-      {
-        id: 'a_' + distName + '_2',
-        title: distName + ' Cycling Tour',
-        description: 'Explore the scenic routes and hidden gems of ' + distName + ' on two wheels.',
-        duration: '3 hours',
-        points: getRandomPoints(),
-        image: activityImages[1],
-        tags: ['Cycling', 'Adventure'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Activity', distName + ' Cycling Tour'),
-        leaderboard: getFakeLeaderboard()
-      },
-      {
-        id: 'a_' + distName + '_3',
-        title: distName + ' Backwaters Kayaking',
-        description: 'Paddle through the peaceful channels and experience ' + distName + ' from the water.',
-        duration: '2 hours',
-        points: getRandomPoints(),
-        image: activityImages[2],
-        tags: ['Kayaking', 'Water Sports'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Activity', distName + ' Backwaters Kayaking'),
-        leaderboard: getFakeLeaderboard()
-      },
-      {
-        id: 'a_' + distName + '_4',
-        title: distName + ' Football Turf',
-        description: 'High-quality artificial turf for 5-a-side and 7-a-side football matches.',
-        duration: '1 hour',
-        points: getRandomPoints(),
-        image: activityImages[0],
-        tags: ['Football', 'Sports'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Activity', distName + ' Football Turf'),
-        leaderboard: getFakeLeaderboard()
-      },
-      {
-        id: 'a_' + distName + '_5',
-        title: distName + ' Cricket Academy',
-        description: 'Net practice and local matches for cricket enthusiasts.',
-        duration: '2 hours',
-        points: getRandomPoints(),
-        image: activityImages[1],
-        tags: ['Cricket', 'Sports'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Activity', distName + ' Cricket Academy'),
-        leaderboard: getFakeLeaderboard()
-      }
-    ];
-
-    if (distName === 'Kottayam') {
-      for (let i = 6; i <= 10; i++) {
-        const title = distName + ' Adventure Activity ' + i;
-        activities.push({
-          id: 'a_' + distName + '_' + i,
-          title: title,
-          description: 'Thrilling ' + distName + ' activity for adventure seekers.',
-          duration: i + ' hours',
-          points: getRandomPoints(),
-          image: activityImages[i % 3],
-          tags: ['Adventure', 'Outdoor'],
-          entryFee: getRandomEntryFee(),
-          prize: '100 Points',
-          people: getFakePeople('Activity', title),
-          leaderboard: getFakeLeaderboard()
-        });
-      }
-    }
-
-    const events = [
-      {
-        id: 'e_' + distName + '_1',
-        title: distName + ' Cultural Fest',
-        description: 'A grand celebration showing traditional dance, music, and art of ' + state.name + '.',
-        date: 'Next Saturday',
-        points: getRandomPoints(),
-        image: eventImages[0],
-        tags: ['Music', 'Culture'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Event', distName + ' Cultural Fest'),
-        leaderboard: getFakeLeaderboard()
-      },
-      {
-        id: 'e_' + distName + '_2',
-        title: distName + ' Tech Meetup',
-        description: 'Networking event for developers and tech enthusiasts in ' + distName + '.',
-        date: 'Coming Friday',
-        points: getRandomPoints(),
-        image: eventImages[1],
-        tags: ['Tech', 'Networking'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Event', distName + ' Tech Meetup'),
-        leaderboard: getFakeLeaderboard()
-      },
-      {
-        id: 'e_' + distName + '_3',
-        title: distName + ' Sunday Market',
-        description: 'Buy fresh local produce and handmade crafts from ' + distName + ' artisans.',
-        date: 'Every Sunday',
-        points: getRandomPoints(),
-        image: eventImages[2],
-        tags: ['Market', 'Shopping'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Event', distName + ' Sunday Market'),
-        leaderboard: getFakeLeaderboard()
-      },
-      {
-        id: 'e_' + distName + '_4',
-        title: distName + ' Art Gallery Opening',
-        description: 'Exhibition featuring local artists and contemporary artworks.',
-        date: 'Next month',
-        points: getRandomPoints(),
-        image: eventImages[0],
-        tags: ['Art', 'Gallery'],
-        entryFee: getRandomEntryFee(),
-        prize: '100 Points',
-        people: getFakePeople('Event', distName + ' Art Gallery Opening'),
-        leaderboard: getFakeLeaderboard()
-      }
-    ];
-
-    if (distName === 'Kottayam') {
-      for (let i = 5; i <= 9; i++) {
-        const title = distName + ' Special Event ' + i;
-        events.push({
-          id: 'e_' + distName + '_' + i,
-          title: title,
-          description: 'An exciting community event happening in ' + distName + '.',
-          date: 'TBA',
-          points: getRandomPoints(),
-          image: eventImages[i % 3],
-          tags: ['Community', 'Social'],
-          entryFee: getRandomEntryFee(),
-          prize: '100 Points',
-          people: getFakePeople('Event', title),
-          leaderboard: getFakeLeaderboard()
-        });
-      }
-    }
-
     STATIC_DISTRICT_DATA[state.name][distName] = {
-      'Challenges': challenges,
-      'Places': places,
-      'Food': food,
-      'Activity': activities,
-      'Events': events
+      'Challenges': generateItems('Challenges', count),
+      'Places': generateItems('Places', count),
+      'Food': generateItems('Food', count),
+      'Activity': generateItems('Activity', count),
+      'Events': generateItems('Events', count)
     };
   });
 });
@@ -478,4 +239,4 @@ const fileContent = "// Auto-generated mock static data for districts\n" +
 "export const STATIC_DISTRICT_DATA = " + JSON.stringify(STATIC_DISTRICT_DATA, null, 2) + ";\n";
 
 fs.writeFileSync(path.join(__dirname, 'utils/mockCategoryData.js'), fileContent);
-console.log('Successfully generated utils/mockCategoryData.js');
+console.log('Successfully generated utils/mockCategoryData.js with high density data');
