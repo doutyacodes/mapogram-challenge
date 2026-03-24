@@ -110,10 +110,12 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
   const [deniedItemIds, setDeniedItemIds] = useState(new Set());
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedDetailItem, setSelectedDetailItem] = useState(null);
-  const [activeDetailTab, setActiveDetailTab] = useState('rules');
-  
   const [showQRModal, setShowQRModal] = useState(false);
+  const [qrScanning, setQrScanning] = useState(false);
   const [qrSuccess, setQRSuccess] = useState(false);
+  
+  // Detail Modal States
+  const [activeDetailTab, setActiveDetailTab] = useState('Rules');
 
   const geofenceSetupCompleteRef = useRef(false);
   const tourismMarkersRef = useRef([]);
@@ -1177,15 +1179,7 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
         </div>
       )}
 
-      {/* 4. State Category Content (Floating window) */}
-      {activeDiscoveryCategory && (
-        <StateCategoryContent 
-          category={activeDiscoveryCategory}
-          district={selectedDistrict}
-          itemsData={categoryMarkers.filter(m => m.category === activeDiscoveryCategory)}
-          onClose={() => setActiveDiscoveryCategory(null)}
-        />
-      )}
+      {/* 4. State Category Content Removed - Directly going to Details */}
 
       {/* Show message when community is selected but no posts */}
       {!isLoading && pageId && postsItems.length === 0 && (
@@ -1284,7 +1278,10 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
         )}
 
         {/* --- Tourism Static Markers --- */}
-        {isTourismPage && categoryMarkers.map((marker, index) => (
+        {isTourismPage && categoryMarkers
+          .filter(m => !deniedItemIds.has(m.id))
+          .filter(m => !activeDiscoveryCategory || m.category === activeDiscoveryCategory)
+          .map((marker, index) => (
           <MarkerF
             key={`tourism-marker-${marker.id}-${index}`}
             position={marker.position}
@@ -1314,39 +1311,242 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
                 maxWidth: 320
               }}
             >
-              <div className="p-1 min-w-[200px]">
-                <div className="flex items-center gap-2 mb-2">
-                   <div className={`p-1 rounded text-white ${
-                     markerData.category === 'Challenges' ? 'bg-orange-500' :
-                     markerData.category === 'Places' ? 'bg-green-500' :
-                     markerData.category === 'Food' ? 'bg-red-500' :
-                     markerData.category === 'Activity' ? 'bg-purple-500' :
-                     markerData.category === 'Events' ? 'bg-indigo-500' : 'bg-blue-500'
-                   }`}>
-                     {markerData.category === 'Challenges' ? <Target size={14} /> :
-                      markerData.category === 'Places' ? <MapPin size={14} /> :
-                      markerData.category === 'Food' ? <Utensils size={14} /> :
-                      markerData.category === 'Activity' ? <Activity size={14} /> :
-                      markerData.category === 'Events' ? <Calendar size={14} /> : <Star size={14} />}
-                   </div>
-                   <span className="text-[10px] font-bold uppercase tracking-wider">{markerData.category}</span>
+              <div className="bg-white rounded-[2rem] overflow-hidden font-sans relative w-[240px] sm:w-[280px] transition-all duration-300">
+                <div className="px-4 py-3 flex items-center justify-between bg-white border-b border-gray-50">
+                  <div className="flex items-center gap-2">
+                     <div className={`p-1 rounded text-white ${
+                       markerData.category === 'Challenges' ? 'bg-orange-500' :
+                       markerData.category === 'Places' ? 'bg-green-500' :
+                       markerData.category === 'Food' ? 'bg-red-500' :
+                       markerData.category === 'Activity' ? 'bg-purple-500' :
+                       markerData.category === 'Events' ? 'bg-indigo-500' : 'bg-blue-500'
+                     }`}>
+                       {markerData.category === 'Challenges' ? <Target size={12} /> :
+                        markerData.category === 'Places' ? <MapPin size={12} /> :
+                        markerData.category === 'Food' ? <Utensils size={12} /> :
+                        markerData.category === 'Activity' ? <Activity size={12} /> :
+                        markerData.category === 'Events' ? <Calendar size={12} /> : <Star size={12} />}
+                     </div>
+                     <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">{markerData.category}</span>
+                  </div>
+                  <button onClick={() => setActiveCategoryMarker(null)} className="text-gray-300 hover:text-gray-600">
+                    <X size={16} />
+                  </button>
                 </div>
-                <h3 className="font-bold text-gray-900 text-sm mb-1">{markerData.title}</h3>
-                <p className="text-xs text-gray-600 mb-2">{markerData.description || "Historical and cultural landmark in Kerala."}</p>
-                <button 
-                  onClick={() => {
-                    // This will open the side panel
-                    setActiveDiscoveryCategory(markerData.category);
-                  }}
-                  className="w-full py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  View Details
-                </button>
+                
+                <div className="p-4">
+                  <div className="h-32 w-full rounded-2xl overflow-hidden mb-3 shadow-inner">
+                    <img src={markerData.image} className="w-full h-full object-cover" alt="" />
+                  </div>
+                  <h3 className="font-black text-gray-900 text-sm mb-1 leading-tight">{markerData.title}</h3>
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded font-black uppercase">
+                      Entry: {markerData.entryFee || 'Free'}
+                    </span>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      setSelectedDetailItem(markerData);
+                      setShowDetailModal(true);
+                      setActiveDetailTab('Rules');
+                      setActiveCategoryMarker(null);
+                    }}
+                    className="w-full py-3 bg-blue-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-100"
+                  >
+                    Next <ChevronRight size={14} />
+                  </button>
+                </div>
               </div>
             </InfoWindowF>
           );
         })()}
       </GoogleMap>
+
+      {/* --- Detailed Sliding Modal (Ported from legacy setup) --- */}
+      {showDetailModal && selectedDetailItem && (
+        <div className="fixed inset-0 z-[100] flex justify-end pointer-events-none">
+          <div 
+            className="absolute inset-0 bg-black/20 backdrop-blur-[2px] pointer-events-auto" 
+            onClick={() => setShowDetailModal(false)}
+          />
+          
+          <div className={`
+            ${isMobile ? 'w-[85%] h-[85%] my-auto mr-0 rounded-l-[2.5rem]' : 'w-[30%] h-[85%] my-auto mr-0 rounded-l-[3rem]'} 
+            bg-white shadow-[-20px_0_60px_rgba(0,0,0,0.1)] pointer-events-auto animate-in slide-in-from-right duration-500 flex flex-col relative overflow-hidden border border-gray-100/50
+          `}>
+            {/* Header */}
+            <div className="bg-white p-6 flex items-center justify-between border-b border-gray-50 flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-full text-white ${
+                  selectedDetailItem.category === 'Challenges' ? 'bg-orange-500' :
+                  selectedDetailItem.category === 'Places' ? 'bg-green-500' :
+                  selectedDetailItem.category === 'Food' ? 'bg-red-500' :
+                  selectedDetailItem.category === 'Activity' ? 'bg-purple-500' :
+                  selectedDetailItem.category === 'Events' ? 'bg-indigo-500' : 'bg-blue-500'
+                }`}>
+                  {selectedDetailItem.category === 'Challenges' ? <Target size={16} /> :
+                   selectedDetailItem.category === 'Places' ? <MapPin size={16} /> :
+                   selectedDetailItem.category === 'Food' ? <Utensils size={16} /> :
+                   selectedDetailItem.category === 'Activity' ? <Activity size={16} /> :
+                   selectedDetailItem.category === 'Events' ? <Calendar size={16} /> : <Star size={16} />}
+                </div>
+                <span className="font-black text-blue-600 text-xs tracking-[0.2em] uppercase">
+                  {selectedDetailItem.category}
+                </span>
+              </div>
+              <button 
+                onClick={() => setShowDetailModal(false)}
+                className="bg-gray-100 hover:bg-gray-200 p-2 rounded-full transition-colors"
+              >
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto scrollbar-none pb-24">
+              <div className="px-6 py-4 text-center">
+                 <h2 className="text-gray-900 text-2xl font-black tracking-tight leading-tight uppercase mb-4">
+                  {selectedDetailItem.title}
+                </h2>
+                <div className="rounded-[2.5rem] overflow-hidden shadow-2xl h-56 relative mb-6">
+                  <img src={selectedDetailItem.image} className="w-full h-full object-cover" alt="" />
+                </div>
+              </div>
+
+              {/* Tabs */}
+              <div className="flex px-6 border-b border-gray-100 bg-gray-50/50 flex-shrink-0">
+                {['Rules', 'People', 'Leaderboard'].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveDetailTab(tab)}
+                    className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest relative transition-all ${
+                      activeDetailTab === tab ? 'text-blue-600' : 'text-gray-400'
+                    }`}
+                  >
+                    {tab}
+                    {activeDetailTab === tab && (
+                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 rounded-t-full mx-4" />
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              <div className="p-6">
+                {activeDetailTab === 'Rules' && (
+                  <div className="animate-in fade-in slide-in-from-bottom-2">
+                    <p className="text-gray-600 text-sm leading-relaxed mb-6">{selectedDetailItem.description || "Historical and cultural landmark."}</p>
+                    <div className="grid grid-cols-2 gap-3 mb-6">
+                        <div className="bg-blue-50 p-4 rounded-3xl border border-blue-100 text-center">
+                          <span className="text-[8px] uppercase font-black text-blue-400 block mb-1">Price</span>
+                          <span className="text-lg font-black text-blue-700">{selectedDetailItem.price || selectedDetailItem.entryFee || 'Free'}</span>
+                        </div>
+                        <div className="bg-yellow-50 p-4 rounded-3xl border border-yellow-100 text-center">
+                          <span className="text-[8px] uppercase font-black text-yellow-500 block mb-1">Prize</span>
+                          <span className="text-lg font-black text-yellow-700">100 Pts</span>
+                        </div>
+                    </div>
+                  </div>
+                )}
+                {/* Simplified People & Leaderboard for now */}
+                {(activeDetailTab === 'People' || activeDetailTab === 'Leaderboard') && (
+                  <div className="text-center py-10">
+                    <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">No data available yet</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="absolute bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-md border-t border-gray-50">
+               {acceptedItems.find(i => i.id === selectedDetailItem.id) ? (
+                 <div className="flex gap-3">
+                    <button 
+                      onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedDetailItem.position.lat},${selectedDetailItem.position.lng}`, '_blank')}
+                      className="flex-1 bg-blue-600 text-white font-black text-xs py-4 rounded-2xl flex items-center justify-center gap-2"
+                    >
+                      <Navigation2 size={16} /> ROUTE
+                    </button>
+                    <button 
+                      onClick={() => setShowQRModal(true)}
+                      className="flex-1 bg-orange-500 text-white font-black text-xs py-4 rounded-2xl flex items-center justify-center gap-2"
+                    >
+                      <QrCode size={16} /> SCAN
+                    </button>
+                 </div>
+               ) : deniedItemIds.has(selectedDetailItem.id) ? (
+                  <div className="text-center text-gray-400 font-black text-[10px] py-4 uppercase tracking-[0.2em]">Item Hidden</div>
+               ) : (
+                 <div className="flex gap-3">
+                    <button 
+                      onClick={() => {
+                        setAcceptedItems(prev => [...prev.filter(i => i.id !== selectedDetailItem.id), selectedDetailItem].slice(-5));
+                        setShowDetailModal(false);
+                      }}
+                      className="flex-1 bg-[#00C853] text-white font-black text-xs py-4 rounded-2xl"
+                    >
+                      ACCEPT
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setDeniedItemIds(prev => new Set([...prev, selectedDetailItem.id]));
+                        setShowDetailModal(false);
+                      }}
+                      className="flex-1 bg-red-600 text-white font-black text-xs py-4 rounded-2xl"
+                    >
+                      HIDE
+                    </button>
+                 </div>
+               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- QR Scan Simulation Modal --- */}
+      {showQRModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" onClick={() => !qrScanning && setShowQRModal(false)} />
+          <div className="relative w-full max-w-md bg-white rounded-[3rem] overflow-hidden shadow-2xl p-8 text-center animate-in zoom-in duration-300">
+             <h2 className="text-3xl font-black mb-2">Scan QR Code</h2>
+             <p className="text-gray-400 text-sm mb-8 font-bold">Verification processing...</p>
+             
+             <div className="aspect-square w-full max-w-[240px] mx-auto mb-8 rounded-[2.5rem] border-4 border-dashed border-blue-100 flex items-center justify-center relative overflow-hidden bg-gray-50">
+                {qrSuccess ? (
+                  <div className="h-full w-full flex flex-col items-center justify-center bg-green-500 text-white animate-in zoom-in">
+                    <CheckCircle size={80} className="mb-4" />
+                    <p className="font-black text-2xl uppercase tracking-widest">SUCCESS</p>
+                  </div>
+                ) : (
+                  <div className={`transition-opacity duration-300 ${qrScanning ? 'opacity-100' : 'opacity-20'}`}>
+                    <QrCode size={120} className={qrScanning ? 'animate-pulse' : ''} />
+                  </div>
+                )}
+                {qrScanning && <div className="absolute top-0 left-0 w-full h-1 bg-blue-500 shadow-[0_0_20px_blue] animate-bounce" style={{ top: '50%' }} />}
+             </div>
+
+             {!qrSuccess && (
+               <button 
+                 onClick={() => {
+                   setQrScanning(true);
+                   setTimeout(() => {
+                     setQrScanning(false);
+                     setQRSuccess(true);
+                     setTimeout(() => {
+                       setAcceptedItems(prev => prev.filter(i => i.id !== selectedDetailItem.id));
+                       setQRSuccess(false);
+                       setShowQRModal(false);
+                       setShowDetailModal(false);
+                     }, 2000);
+                   }, 2000);
+                 }}
+                 disabled={qrScanning}
+                 className="w-full bg-blue-600 text-white font-black py-5 rounded-3xl text-lg hover:bg-blue-700 transition-all disabled:bg-gray-100 disabled:text-gray-400"
+               >
+                 {qrScanning ? 'VERIFYING...' : 'SIMULATE SCAN'}
+               </button>
+             )}
+          </div>
+        </div>
+      )}
 
       {/* Add the modal at the very end, after the InfoWindowF closing tag */}
       {showRegistrationModal && (
