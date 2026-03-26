@@ -145,6 +145,7 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
   const [districtSearchQuery, setDistrictSearchQuery] = useState("");
   
   const [acceptedItems, setAcceptedItems] = useState([]);
+  const [completedItemIds, setCompletedItemIds] = useState(new Set());
   const [deniedItemIds, setDeniedItemIds] = useState(new Set());
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedDetailItem, setSelectedDetailItem] = useState(null);
@@ -178,6 +179,28 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
 
     return () => navigator.geolocation.clearWatch(watchId);
   }, []);
+
+  // Fetch Accepted/Completed
+  useEffect(() => {
+    if(!isTourismPage) return;
+    fetch('/api/challenges/user').then(res => res.json()).then(data => {
+       if(data && data.success && data.data) {
+          const accepted = [];
+          const completed = new Set();
+          
+          data.data.forEach(item => {
+             const markerLike = { ...item.challenge, id: item.challenge.id };
+             if(item.user_challenge.status === 'completed') {
+                completed.add(markerLike.id);
+             } else {
+                accepted.push(markerLike);
+             }
+          });
+          setAcceptedItems(accepted);
+          setCompletedItemIds(completed);
+       }
+    }).catch(e => console.error(e));
+  }, [isTourismPage]);
 
   // Distance validation and Auto Popup/Complete Trigger
   useEffect(() => {
@@ -386,40 +409,55 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
     const categories = ['Challenges', 'Places', 'Food', 'Activity', 'Events'];
     let finalMarkers = [];
 
-    categories.forEach((cat) => {
+    categories.forEach((cat, index) => {
       // If category is filtered out by FAB, skip
       if (activeDiscoveryCategory && activeDiscoveryCategory !== cat) return;
 
       const items = categoryMarkers.filter(m => m.category === cat && !deniedItemIds.has(m.id));
       if (items.length === 0) return;
 
-      // SCATTERED: Show individual markers at their real positions
-      finalMarkers.push(...items.map(item => ({
-        ...item,
-        isGroup: false
-      })));
+      if (expandedCategory === cat || activeDiscoveryCategory === cat || districtSearchQuery) {
+        // SCATTERED: Show individual markers at their real positions
+        finalMarkers.push(...items.map(item => ({
+          ...item,
+          isGroup: false,
+          isFinished: completedItemIds.has(item.id)
+        })));
+      } else {
+        // GROUPED: Show 1 icon centrally around district center
+        const offsetLat = (index - 2) * 0.03;
+        const offsetLng = (index % 2 === 0 ? 0.03 : -0.03);
+        finalMarkers.push({
+          id: `group-${cat}`,
+          category: cat,
+          isGroup: true,
+          position: { lat: districtCenter.lat + offsetLat, lng: districtCenter.lng + offsetLng }
+        });
+      }
     });
 
     return finalMarkers;
-  }, [isTourismPage, selectedDistrict, districtCenter, categoryMarkers, activeDiscoveryCategory, deniedItemIds]);
+  }, [isTourismPage, selectedDistrict, districtCenter, categoryMarkers, activeDiscoveryCategory, expandedCategory, deniedItemIds, completedItemIds, districtSearchQuery]);
 
   // Marker Icon Generator for Tourism
-  const getMarkerIcon = (category, isSelected, isGroup = false) => {
-    let color = '#f97316'; // orange for challenges
+  const getMarkerIcon = (category, isSelected, isGroup = false, isFinished = false) => {
+    let color = isFinished ? '#9ca3af' : '#f97316'; // gray if finished, else orange for challenges
     let path = '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>';
     
-    if (category === 'Places') {
-      color = '#22c55e'; // green
-      path = '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>';
-    } else if (category === 'Food') {
-      color = '#ef4444'; // red
-      path = '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>';
-    } else if (category === 'Activity') {
-      color = '#06b6d4'; // cyan
-      path = '<path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>';
-    } else if (category === 'Events') {
-      color = '#8b5cf6'; // violet
-      path = '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>';
+    if (!isFinished) {
+      if (category === 'Places') {
+        color = '#22c55e'; // green
+        path = '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>';
+      } else if (category === 'Food') {
+        color = '#ef4444'; // red
+        path = '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>';
+      } else if (category === 'Activity') {
+        color = '#06b6d4'; // cyan
+        path = '<path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>';
+      } else if (category === 'Events') {
+        color = '#8b5cf6'; // violet
+        path = '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>';
+      }
     }
 
     const size = isSelected ? 48 : (isGroup ? 44 : 36);
@@ -1483,13 +1521,13 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
             onClick={() => {
               if (marker.isGroup) {
                 setExpandedCategory(marker.category);
-              } else {
+              } else if (!marker.isFinished) {
                 setActiveCategoryMarker(marker.id);
                 setActiveDiscoveryCategory(marker.category);
               }
             }}
             icon={{
-              url: getMarkerIcon(marker.category, activeCategoryMarker === marker.id, marker.isGroup),
+              url: getMarkerIcon(marker.category, activeCategoryMarker === marker.id, marker.isGroup, marker.isFinished),
               scaledSize: marker.isGroup ? new window.google.maps.Size(46, 46) : new window.google.maps.Size(38, 38),
               anchor: marker.isGroup ? new window.google.maps.Point(23, 23) : new window.google.maps.Point(19, 19)
             }}
@@ -1655,25 +1693,16 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
 
             {/* Footer Actions */}
             <div className="absolute bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-md border-t border-gray-50">
-               {acceptedItems.find(i => i.id === selectedDetailItem.id) ? (
+               {completedItemIds.has(selectedDetailItem.id) ? (
+                  <div className="text-center text-gray-400 font-black text-[10px] py-4 uppercase tracking-[0.2em]">ITEM COMPLETED</div>
+               ) : acceptedItems.find(i => i.id === selectedDetailItem.id) ? (
                  <div className="flex gap-3">
                     <button 
                       onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedDetailItem.position.lat},${selectedDetailItem.position.lng}`, '_blank')}
-                      className="flex-1 bg-blue-600 text-white font-black text-xs py-4 rounded-2xl flex items-center justify-center gap-2"
+                      className="flex-1 bg-gray-200 text-gray-700 font-black text-xs py-4 rounded-2xl flex items-center justify-center gap-2"
                     >
                       <Navigation2 size={16} /> ROUTE
                     </button>
-                    <button 
-                      onClick={() => setShowQRModal(true)}
-                      className="flex-1 bg-orange-500 text-white font-black text-xs py-4 rounded-2xl flex items-center justify-center gap-2"
-                    >
-                      <QrCode size={16} /> SCAN
-                    </button>
-                 </div>
-               ) : deniedItemIds.has(selectedDetailItem.id) ? (
-                  <div className="text-center text-gray-400 font-black text-[10px] py-4 uppercase tracking-[0.2em]">Item Hidden</div>
-               ) : (
-                 <div className="flex gap-3">
                     <button 
                       onClick={() => {
                         const inRange = isWithinRadius(selectedDetailItem);
@@ -1690,6 +1719,26 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
                       className={`flex-1 font-black text-xs py-4 rounded-2xl flex justify-center items-center shadow-lg transition-all ${isWithinRadius(selectedDetailItem) ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:shadow-xl' : 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'}`}
                     >
                       {!isWithinRadius(selectedDetailItem) ? 'TOO FAR AWAY' : (selectedDetailItem.category === 'Food' || selectedDetailItem.category === 'Events' ? 'SCAN QR' : 'UPLOAD MEDIA')}
+                    </button>
+                 </div>
+               ) : deniedItemIds.has(selectedDetailItem.id) ? (
+                  <div className="text-center text-gray-400 font-black text-[10px] py-4 uppercase tracking-[0.2em]">Item Hidden</div>
+               ) : (
+                 <div className="flex gap-3">
+                    <button 
+                      onClick={async () => {
+                        setAcceptedItems(prev => [...prev, selectedDetailItem]);
+                        toast.success("Challenge Accepted! Start traveling!");
+                        setShowDetailModal(false);
+                        try {
+                           await fetch('/api/challenges/user', {
+                              method: 'POST', body: JSON.stringify({ challenge_id: selectedDetailItem.id, status: 'accepted' })
+                           });
+                        } catch (e) {}
+                      }}
+                      className="flex-1 bg-green-600 text-white font-black text-xs py-4 rounded-2xl flex justify-center items-center shadow-lg hover:shadow-xl transition-all"
+                    >
+                      ACCEPT CHALLENGE
                     </button>
                     <button 
                       onClick={() => {
@@ -1765,40 +1814,72 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
              <h2 className="text-3xl font-black mb-2">Upload Evidence</h2>
              <p className="text-gray-400 text-sm mb-8 font-bold">Provide an image or video.</p>
              
-             <div className="aspect-square w-full max-w-[240px] mx-auto mb-8 rounded-[2.5rem] border-4 border-dashed border-indigo-100 flex items-center justify-center relative overflow-hidden bg-gray-50">
+             <div className="aspect-square w-full max-w-[240px] mx-auto mb-8 rounded-[2.5rem] border-4 border-dashed border-indigo-100 flex items-center justify-center relative overflow-hidden bg-gray-50 hover:bg-indigo-50 transition-colors">
                 {uploadSuccess ? (
                   <div className="h-full w-full flex flex-col items-center justify-center bg-[#00C853] text-white animate-in zoom-in">
                     <CheckCircle size={80} className="mb-4" />
                     <p className="font-black text-2xl uppercase tracking-widest">COMPLETED</p>
                   </div>
                 ) : (
-                  <div className={`transition-opacity duration-300 ${uploading ? 'opacity-100 animate-pulse text-indigo-500' : 'opacity-30 text-gray-400'} flex flex-col items-center justify-center`}>
-                    <svg className="w-24 h-24 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                    <span className="font-black tracking-widest uppercase text-sm">{uploading ? 'UPLOADING...' : 'TAP TO BROWSE'}</span>
-                  </div>
+                  <label className="cursor-pointer w-full h-full flex flex-col items-center justify-center transition-opacity duration-300">
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*,video/*"
+                      onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        setUploading(true);
+                        
+                        const formData = new FormData();
+                        formData.append('coverImage', file);
+                        formData.append('type', file.type.startsWith('video') ? 'video' : 'photo');
+                        
+                        try {
+                           const res = await fetch('https://wowfy.in/wowfy_app_codebase/upload.php', {
+                              method: 'POST',
+                              body: formData
+                           });
+                           const result = await res.json();
+                           if (result.success) {
+                              setUploadSuccess(true);
+                              
+                              // Persist
+                              fetch('/api/challenges/user', {
+                                method: 'POST', body: JSON.stringify({ challenge_id: selectedDetailItem.id, status: 'completed' })
+                              });
+
+                              setCompletedItemIds(prev => new Set([...prev, selectedDetailItem.id]));
+                              setAcceptedItems(prev => prev.filter(i => i.id !== selectedDetailItem.id));
+
+                              setTimeout(() => {
+                                setShowUploadModal(false);
+                                setShowDetailModal(false);
+                                setUploadSuccess(false);
+                              }, 1500);
+                           } else {
+                              toast.error(result.error || "Upload failed");
+                           }
+                        } catch (err) {
+                           toast.error("Upload error");
+                        } finally {
+                           setUploading(false);
+                        }
+                      }}
+                    />
+                    <div className={`transition-opacity duration-300 ${uploading ? 'opacity-100 animate-pulse text-indigo-500' : 'opacity-60 text-gray-500'} flex flex-col items-center justify-center`}>
+                      <svg className="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                      <span className="font-black tracking-widest uppercase text-sm text-center">
+                        {uploading ? 'UPLOADING...' : 'TAP TO BROWSE'}
+                      </span>
+                      {!uploading && <span className="text-[10px] mt-2 font-bold text-gray-400 uppercase tracking-widest">Image or Video</span>}
+                    </div>
+                  </label>
                 )}
              </div>
 
              {!uploadSuccess && (
-               <button 
-                 onClick={() => {
-                   setUploading(true);
-                   setTimeout(() => {
-                     setUploading(false);
-                     setUploadSuccess(true);
-                     setTimeout(() => {
-                        setAcceptedItems(prev => [...prev.filter(i => i.id !== selectedDetailItem?.id), selectedDetailItem].slice(-5));
-                       setUploadSuccess(false);
-                       setShowUploadModal(false);
-                       setShowDetailModal(false);
-                     }, 2000);
-                   }, 2000);
-                 }}
-                 disabled={uploading}
-                 className="w-full bg-indigo-600 text-white font-black py-5 rounded-3xl text-lg hover:bg-indigo-700 transition-all disabled:bg-gray-100 disabled:text-gray-400"
-               >
-                 {uploading ? 'PROCESSING...' : 'SIMULATE UPLOAD'}
-               </button>
+                <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Select file directly above to complete.</p>
              )}
           </div>
         </div>
