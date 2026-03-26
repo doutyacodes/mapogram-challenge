@@ -116,21 +116,18 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
 
       try {
         const res = await GlobalApi.GetMapDistricts();
-        const districtsList = res.data.data || [];
-        console.log("[TOURISM] ALL Districts from API:", districtsList.length, districtsList.map(d => `${d.name} (${d.page_id})`));
+        const allDistricts = res.data.data || [];
+        const districtsList = allDistricts.filter(d => Number(d.page_id) === Number(pageId));
+        
+        console.log("[TOURISM] Filtered Districts for this page:", districtsList.length);
         setDistrictPages(districtsList);
         
-        // If this page acts as the structural parent for ALL districts (e.g. 10000), 
-        // we don't automatically select a single district (they see the whole state).
-        const districtsOnThisPage = districtsList.filter(d => Number(d.page_id) === Number(pageId));
-        
-        if (districtsOnThisPage.length > 0) {
+        if (districtsList.length > 0) {
           setIsTourismPage(true);
           // Only auto-select if there is EXACTLY one district mapped to this page
-          // (Legacy behavior for when districts were independent pages)
-          if (districtsOnThisPage.length === 1 && !selectedDistrict) {
-             console.log("[TOURISM] Legacy Parent: Auto-selecting unique district:", districtsOnThisPage[0].name);
-             setSelectedDistrict(districtsOnThisPage[0].name);
+          if (districtsList.length === 1 && !selectedDistrict) {
+             console.log("[TOURISM] Auto-selecting unique district:", districtsList[0].name);
+             setSelectedDistrict(districtsList[0].name);
           }
         }
       } catch (e) {
@@ -138,7 +135,7 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
       }
     };
     checkTourismStatus();
-  }, [pageId, selectedDistrict, setSelectedDistrict]);
+  }, [pageId, setSelectedDistrict]);
 
   
   const [isDistrictFilterOpen, setIsDistrictFilterOpen] = useState(false);
@@ -293,19 +290,21 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
   const fetchTourismData = useCallback(async () => {
     try {
       const res = await GlobalApi.GetMapDistricts();
-      const districts = res.data.data || [];
+      const allDistricts = res.data.data || [];
+      const districts = allDistricts.filter(d => Number(d.page_id) === Number(pageId));
       setDistrictPages(districts);
 
       // Build a FeatureCollection from all district geofences
-      const features = districts.map(d => {
-        if (!d.geojson) return null;
-        let geojsonObj = typeof d.geojson === 'string' ? JSON.parse(d.geojson) : d.geojson;
-        return {
-          type: "Feature",
-          properties: { name: d.name, district: d.name, page_id: d.page_id },
-          geometry: geojsonObj
-        };
-      }).filter(Boolean);
+      const features = districts
+        .map(d => {
+          if (!d.geojson) return null;
+          let geojsonObj = typeof d.geojson === 'string' ? JSON.parse(d.geojson) : d.geojson;
+          return {
+            type: "Feature",
+            properties: { name: d.name, district: d.name, page_id: d.page_id },
+            geometry: geojsonObj
+          };
+        }).filter(Boolean);
 
       setGeofenceData({
         type: "FeatureCollection",
@@ -319,7 +318,7 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
       setIsLoading(false); // Ensure loading is stopped
       console.log("[TOURISM] fetchTourismData finished.");
     }
-  }, []);
+  }, [pageId]);
 
   useEffect(() => {
     if (pageId && isTourismPage) {
