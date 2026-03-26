@@ -528,6 +528,7 @@ export const CHALLENGES = mysqlTable("challenges", {
   location_restricted: boolean("location_restricted").default(false),
   latitude: decimal("latitude", { precision: 10, scale: 7 }),
   longitude: decimal("longitude", { precision: 10, scale: 7 }),
+  radius_meters: int("radius_meters").default(20),
   created_at: timestamp("created_at").defaultNow(),
 });
 

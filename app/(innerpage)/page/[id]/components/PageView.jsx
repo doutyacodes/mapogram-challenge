@@ -178,7 +178,7 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
     return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
-  // Distance validation and Auto Popup Trigger
+  // Distance validation and Auto Popup/Complete Trigger
   useEffect(() => {
     if (!userLocation || !categoryMarkers || categoryMarkers.length === 0 || !window.google) return;
     
@@ -190,12 +190,29 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
         new window.google.maps.LatLng(marker.position.lat, marker.position.lng)
       );
 
-      // Trigger if within 100 meters
-      if (distance < 100 && !triggeredPopupsRef.current.has(marker.id) && !acceptedItems.some(i => i.id === marker.id)) {
-        triggeredPopupsRef.current.add(marker.id);
-        setSelectedDetailItem(marker);
-        setShowDetailModal(true);
-        setActiveDetailTab('Rules');
+      // Dynamic Radius trigger (from DB, default 20m)
+      const dynamicRadius = marker.radius_meters || 20;
+
+      // Trigger logic
+      if (distance < dynamicRadius) {
+        const isAlreadyAccepted = acceptedItems.some(i => i.id === marker.id);
+        
+        if (!isAlreadyAccepted && !triggeredPopupsRef.current.has(marker.id)) {
+            // New Discovery: Show Detail Modal
+            triggeredPopupsRef.current.add(marker.id);
+            setSelectedDetailItem(marker);
+            setShowDetailModal(true);
+            setActiveDetailTab('Rules');
+        } else if (isAlreadyAccepted && !triggeredPopupsRef.current.has(`${marker.id}-complete`)) {
+            // Arrived at accepted destination: Show Completion Modal dynamically
+            triggeredPopupsRef.current.add(`${marker.id}-complete`);
+            setSelectedDetailItem(marker);
+            if (marker.category === 'Food') {
+                setShowQRModal(true);
+            } else {
+                setShowUploadModal(true);
+            }
+        }
       }
     });
   }, [userLocation, categoryMarkers, acceptedItems]);

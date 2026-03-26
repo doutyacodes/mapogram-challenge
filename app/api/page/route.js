@@ -582,7 +582,7 @@ export async function GET(req) {
 
     // Fetch categories via page type
     const pageTypeId = pageData.page_type_id;
-    const categories = await db
+    let categories = await db
       .select({
         id: POST_CATEGORY_TEMPLATES.id,
         name: POST_CATEGORY_TEMPLATES.name,
@@ -594,6 +594,23 @@ export async function GET(req) {
       .from(PAGE_TYPE_CATEGORY_PERMISSIONS)
       .innerJoin(POST_CATEGORY_TEMPLATES, eq(PAGE_TYPE_CATEGORY_PERMISSIONS.category_template_id, POST_CATEGORY_TEMPLATES.id))
       .where(eq(PAGE_TYPE_CATEGORY_PERMISSIONS.page_type_id, pageTypeId));
+
+    // Force Tourism categories for State pages if they don't have them
+    const isStatePage = [10000, 20000, 30000, 40000, 50000].includes(parseInt(pageId));
+    if (isStatePage || (categories.length === 0 && pageTypeId === 1)) {
+        const tourismCats = [
+          { id: 901, name: "Challenges", shape: "circle", icon_name: "Target", color: "#F97316" },
+          { id: 902, name: "Places", shape: "pin", icon_name: "MapPin", color: "#10B981" },
+          { id: 903, name: "Food", shape: "square", icon_name: "Utensils", color: "#EF4444" },
+          { id: 904, name: "Activity", shape: "star", icon_name: "Activity", color: "#06B6D4" },
+          { id: 905, name: "Events", shape: "calendar", icon_name: "Calendar", color: "#8B5CF6" }
+        ];
+        // Merge or replace
+        const catNames = new Set(categories.map(c => c.name));
+        tourismCats.forEach(tc => {
+            if (!catNames.has(tc.name)) categories.push(tc);
+        });
+    }
 
     // Fetch registrations if owner
     let registrations = [];
