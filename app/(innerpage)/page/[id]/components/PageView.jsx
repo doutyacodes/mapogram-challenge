@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { useMediaQuery } from 'react-responsive';
 import { GoogleMap, InfoWindowF, MarkerF } from "@react-google-maps/api";
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
+import toast from "react-hot-toast";
 import { 
     Briefcase,
     Loader2,
@@ -203,21 +204,23 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
             setSelectedDetailItem(marker);
             setShowDetailModal(true);
             setActiveDetailTab('Rules');
-        } else if (isAlreadyAccepted && !triggeredPopupsRef.current.has(`${marker.id}-complete`)) {
-            // Arrived at accepted destination: Show Completion Modal dynamically
-            triggeredPopupsRef.current.add(`${marker.id}-complete`);
-            setSelectedDetailItem(marker);
-            if (marker.category === 'Food') {
-                setShowQRModal(true);
-            } else {
-                setShowUploadModal(true);
-            }
+            toast.success(`You are within range of ${marker.title}!`);
         }
       }
     });
   }, [userLocation, categoryMarkers, acceptedItems]);
 
   
+  const isWithinRadius = useCallback((item) => {
+    if (!userLocation || !item || !item.position || !window.google) return false;
+    const distance = window.google.maps.geometry.spherical.computeDistanceBetween(
+      new window.google.maps.LatLng(userLocation.lat, userLocation.lng),
+      new window.google.maps.LatLng(item.position.lat, item.position.lng)
+    );
+    const dynamicRadius = item.radius_meters || 20;
+    return distance <= dynamicRadius;
+  }, [userLocation]);
+
   // Detail Modal States
   const [activeDetailTab, setActiveDetailTab] = useState('Rules');
 
@@ -1673,15 +1676,20 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
                  <div className="flex gap-3">
                     <button 
                       onClick={() => {
-                        if (selectedDetailItem.category === 'Food') {
+                        const inRange = isWithinRadius(selectedDetailItem);
+                        if (!inRange) {
+                          toast.error("You must be closer to the location to complete this!");
+                          return;
+                        }
+                        if (selectedDetailItem.category === 'Food' || selectedDetailItem.category === 'Events') {
                           setShowQRModal(true);
                         } else {
                           setShowUploadModal(true);
                         }
                       }}
-                      className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-black text-xs py-4 rounded-2xl flex justify-center items-center shadow-lg hover:shadow-xl transition-all"
+                      className={`flex-1 font-black text-xs py-4 rounded-2xl flex justify-center items-center shadow-lg transition-all ${isWithinRadius(selectedDetailItem) ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:shadow-xl' : 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'}`}
                     >
-                      {selectedDetailItem.category === 'Food' ? 'SCAN QR' : 'UPLOAD MEDIA'}
+                      {!isWithinRadius(selectedDetailItem) ? 'TOO FAR AWAY' : (selectedDetailItem.category === 'Food' || selectedDetailItem.category === 'Events' ? 'SCAN QR' : 'UPLOAD MEDIA')}
                     </button>
                     <button 
                       onClick={() => {
