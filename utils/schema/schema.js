@@ -495,4 +495,220 @@ export const USER_POST_VIEWS = mysqlTable("user_post_views", {
   idxUserId: index("idx_user_id").on(table.user_id),
 }));
 
+// --- Challenges & Gamification (Merged from Wowfy) ---
+
+export const DISTRICTS = mysqlTable("districts", {
+  id: int("id").primaryKey().autoincrement(),
+  page_id: int("page_id").notNull().references(() => PAGES.id, { onDelete: 'cascade' }),
+  name: varchar("name", { length: 150 }).notNull(),
+  description: text("description"),
+  image_url: varchar("image_url", { length: 255 }),
+  latitude: decimal("latitude", { precision: 10, scale: 7 }),
+  longitude: decimal("longitude", { precision: 10, scale: 7 }),
+  geojson: json("geojson"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const CHALLENGES = mysqlTable("challenges", {
+  id: int("id").primaryKey().autoincrement(),
+  district_id: int("district_id").references(() => DISTRICTS.id, { onDelete: 'cascade' }),
+  page_id: int("page_id").notNull().references(() => PAGES.id, { onDelete: 'cascade' }),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description").notNull(),
+  challenge_type: mysqlEnum("challenge_type", ["ordered", "unordered"]).default("unordered"),
+  frequency: mysqlEnum("frequency", ["daily", "weekly", "once", "quiz", "bootcamp", "contest", "treasure", "food", "experience", "event"]).default("once"),
+  start_date: datetime("start_date"),
+  end_date: datetime("end_date"),
+  entry_points: int("entry_points").default(0),
+  reward_points: int("reward_points").default(0),
+  level_required: int("level_required").default(1),
+  exp_type: mysqlEnum("exp_type", ["biriyani", "arts", "breakfast", "entertainment"]), // Legacy Wowfy experience types
+  is_active: boolean("is_active").default(true),
+  participants_count: int("participants_count").default(0),
+  location_restricted: boolean("location_restricted").default(false),
+  latitude: decimal("latitude", { precision: 10, scale: 7 }),
+  longitude: decimal("longitude", { precision: 10, scale: 7 }),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const CHALLENGE_MEDIA = mysqlTable("challenge_media", {
+  id: int("id").primaryKey().autoincrement(),
+  challenge_id: int("challenge_id").notNull().references(() => CHALLENGES.id, { onDelete: 'cascade' }),
+  media_type: mysqlEnum("media_type", ["image", "video"]).notNull(),
+  media_url: varchar("media_url", { length: 255 }).notNull(),
+  display_order: int("display_order").default(0),
+});
+
+export const TASKS = mysqlTable("tasks", {
+  id: int("id").primaryKey().autoincrement(),
+  challenge_id: int("challenge_id").notNull().references(() => CHALLENGES.id, { onDelete: 'cascade' }),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description").notNull(),
+  task_type: mysqlEnum("task_type", ["quiz", "media_upload", "location_checkin", "pedometer", "external_link"]).notNull(),
+  verification_method: varchar("verification_method", { length: 50 }), // e.g., "manual", "auto", "qr"
+  reward_points: int("reward_points").default(0),
+  reward_xp: int("reward_xp").default(0),
+  order_index: int("order_index").default(0),
+  is_active: boolean("is_active").default(true),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const TASK_MEDIA = mysqlTable("task_media", {
+  id: int("id").primaryKey().autoincrement(),
+  task_id: int("task_id").notNull().references(() => TASKS.id, { onDelete: 'cascade' }),
+  media_type: mysqlEnum("media_type", ["image", "video"]).notNull(),
+  media_url: varchar("media_url", { length: 255 }).notNull(),
+});
+
+export const QUESTIONS = mysqlTable("questions", {
+  id: int("id").primaryKey().autoincrement(),
+  task_id: int("task_id").notNull().references(() => TASKS.id, { onDelete: 'cascade' }),
+  question_text: text("question_text").notNull(),
+  question_type: mysqlEnum("question_type", ["text", "audio", "video", "image"]).default("text"),
+  media_url: varchar("media_url", { length: 255 }),
+  timer_seconds: int("timer_seconds").default(30),
+  order_index: int("order_index").default(0),
+});
+
+export const ANSWERS = mysqlTable("answers", {
+  id: int("id").primaryKey().autoincrement(),
+  question_id: int("question_id").notNull().references(() => QUESTIONS.id, { onDelete: 'cascade' }),
+  answer_text: text("answer_text").notNull(),
+  is_correct: boolean("is_correct").default(false),
+});
+
+export const USER_CHALLENGES = mysqlTable("user_challenges", {
+  id: int("id").primaryKey().autoincrement(),
+  user_id: int("user_id").notNull().references(() => USERS.id, { onDelete: 'cascade' }),
+  challenge_id: int("challenge_id").notNull().references(() => CHALLENGES.id, { onDelete: 'cascade' }),
+  status: mysqlEnum("status", ["accepted", "in_progress", "completed", "failed"]).default("accepted"),
+  start_date: timestamp("start_date").defaultNow(),
+  end_date: timestamp("end_date"),
+  reward_points_earned: int("reward_points_earned").default(0),
+  is_accepted: boolean("is_accepted").default(true),
+});
+
+export const USER_TASKS = mysqlTable("user_tasks", {
+  id: int("id").primaryKey().autoincrement(),
+  user_id: int("user_id").notNull().references(() => USERS.id, { onDelete: 'cascade' }),
+  task_id: int("task_id").notNull().references(() => TASKS.id, { onDelete: 'cascade' }),
+  status: mysqlEnum("status", ["pending", "submitted", "approved", "rejected"]).default("pending"),
+  submission_url: text("submission_url"), // URL for media upload if required
+  points_earned: int("points_earned").default(0),
+  feedback: text("feedback"),
+  submitted_at: timestamp("submitted_at"),
+  approved_at: timestamp("approved_at"),
+});
+
+export const REWARDS = mysqlTable("rewards", {
+  id: int("id").primaryKey().autoincrement(),
+  challenge_id: int("challenge_id").references(() => CHALLENGES.id, { onDelete: 'cascade' }),
+  page_id: int("page_id").notNull().references(() => PAGES.id, { onDelete: 'cascade' }),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  coupon_code: varchar("coupon_code", { length: 100 }),
+  points_cost: int("points_cost").default(0),
+  expiry_date: timestamp("expiry_date"),
+  image_url: varchar("image_url", { length: 255 }),
+  is_active: boolean("is_active").default(true),
+});
+
+export const MY_REWARDS = mysqlTable("my_rewards", {
+  id: int("id").primaryKey().autoincrement(),
+  user_id: int("user_id").notNull().references(() => USERS.id, { onDelete: 'cascade' }),
+  reward_id: int("reward_id").notNull().references(() => REWARDS.id, { onDelete: 'cascade' }),
+  claimed_at: timestamp("claimed_at").defaultNow(),
+  is_used: boolean("is_used").default(false),
+  used_at: timestamp("used_at"),
+});
+
+export const REWARD_BANK = mysqlTable("reward_bank", {
+  id: int("id").primaryKey().autoincrement(),
+  user_id: int("user_id").notNull().references(() => USERS.id, { onDelete: 'cascade' }),
+  total_points: int("total_points").default(0),
+  updated_at: timestamp("updated_at").onUpdateNow(),
+});
+
+export const XP_BANK = mysqlTable("xp_bank", {
+  user_id: int("user_id").primaryKey().references(() => USERS.id, { onDelete: 'cascade' }),
+  total_xp: int("total_xp").default(0),
+  current_level: int("current_level").default(1),
+  updated_at: timestamp("updated_at").onUpdateNow(),
+});
+
+export const XP_HISTORY = mysqlTable("xp_history", {
+  id: int("id").primaryKey().autoincrement(),
+  user_id: int("user_id").notNull().references(() => USERS.id, { onDelete: 'cascade' }),
+  xp_amount: int("xp_amount").notNull(),
+  reason: varchar("reason", { length: 255 }), // e.g., "completed challenge #1"
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+// For the "People" tab in challenges
+export const PEOPLE_DATA = mysqlTable("people_data", {
+  id: int("id").primaryKey().autoincrement(),
+  challenge_id: int("challenge_id").notNull().references(() => CHALLENGES.id, { onDelete: 'cascade' }),
+  task_id: int("task_id").references(() => TASKS.id, { onDelete: 'cascade' }),
+  user_id: int("user_id").notNull().references(() => USERS.id, { onDelete: 'cascade' }),
+  like_count: int("like_count").default(0),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const PEOPLE_MEDIA = mysqlTable("people_media", {
+  id: int("id").primaryKey().autoincrement(),
+  people_data_id: int("people_data_id").notNull().references(() => PEOPLE_DATA.id, { onDelete: 'cascade' }),
+  media_url: varchar("media_url", { length: 255 }).notNull(),
+  media_type: mysqlEnum("media_type", ["image", "video"]).default("image"),
+  caption: text("caption"),
+});
+
+export const PEOPLE_LIKES = mysqlTable("people_likes", {
+  id: int("id").primaryKey().autoincrement(),
+  people_data_id: int("people_data_id").notNull().references(() => PEOPLE_DATA.id, { onDelete: 'cascade' }),
+  user_id: int("user_id").notNull().references(() => USERS.id, { onDelete: 'cascade' }),
+});
+
+export const STORES = mysqlTable("stores", {
+  id: int("id").primaryKey().autoincrement(),
+  page_id: int("page_id").references(() => PAGES.id, { onDelete: 'set null' }),
+  name: varchar("name", { length: 255 }).notNull(),
+  latitude: decimal("latitude", { precision: 10, scale: 7 }),
+  longitude: decimal("longitude", { precision: 10, scale: 7 }),
+  image_url: varchar("image_url", { length: 255 }),
+  phone: varchar("phone", { length: 50 }),
+  is_opened: boolean("is_opened").default(true),
+  firebase_id: varchar("firebase_id", { length: 150 }),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const CHALLENGE_STORES = mysqlTable("challenge_stores", {
+  id: int("id").primaryKey().autoincrement(),
+  challenge_id: int("challenge_id").notNull().references(() => CHALLENGES.id, { onDelete: 'cascade' }),
+  store_id: int("store_id").notNull().references(() => STORES.id, { onDelete: 'cascade' }),
+  is_active: boolean("is_active").default(true),
+});
+
+export const TASK_MAP = mysqlTable("task_map", {
+  id: int("id").primaryKey().autoincrement(),
+  task_id: int("task_id").notNull().references(() => TASKS.id, { onDelete: 'cascade' }),
+  challenge_id: int("challenge_id").notNull().references(() => CHALLENGES.id, { onDelete: 'cascade' }),
+  reach_distance_meters: float("reach_distance_meters").default(100),
+  latitude: decimal("latitude", { precision: 10, scale: 7 }),
+  longitude: decimal("longitude", { precision: 10, scale: 7 }),
+});
+
+export const TASK_PEDOMETER = mysqlTable("task_pedometer", {
+  id: int("id").primaryKey().autoincrement(),
+  task_id: int("task_id").notNull().references(() => TASKS.id, { onDelete: 'cascade' }),
+  steps_goal: int("steps_goal").notNull(),
+  direction: varchar("direction", { length: 100 }), // e.g., "any", "north"
+});
+
+export const TASK_RELATIONS = mysqlTable("task_relations", {
+  id: int("id").primaryKey().autoincrement(),
+  challenge_id: int("challenge_id").notNull().references(() => CHALLENGES.id, { onDelete: 'cascade' }),
+  task_id: int("task_id").notNull().references(() => TASKS.id, { onDelete: 'cascade' }),
+  order_id: int("order_id").notNull(),
+});
+
 // -----------------------------------====================================--------------

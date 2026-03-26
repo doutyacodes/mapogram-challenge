@@ -8,9 +8,11 @@ export async function GET(req) {
   try {
     // Get token from cookies
     const token = req.cookies.get('user_token')?.value;
-
     if (!token) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({
+        success: true,
+        communities: []
+      });
     }
 
     // Verify token

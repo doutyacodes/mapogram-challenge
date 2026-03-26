@@ -636,6 +636,22 @@ const UpdateCertificationStatus = (data, token) => {
   });
 };
 
+const GetMapChallenges = (districtId = null, pageId = null, challengeId = null) => {
+  let url = '/api/challenges';
+  const query = [];
+  if (districtId) query.push(`district_id=${districtId}`);
+  if (pageId) query.push(`page_id=${pageId}`);
+  if (challengeId) query.push(`challenge_id=${challengeId}`);
+  if (query.length > 0) url += `?${query.join('&')}`;
+  return axios.get(url);
+};
+
+const GetMapDistricts = (search = null) => {
+  let url = '/api/page/districts';
+  if (search) url += `?search=${search}`;
+  return axios.get(url);
+};
+
 export default {
   CreateNewUser,
   LoginUser,
@@ -711,4 +727,8 @@ export default {
   GetCertificationCourse,
   GetCourseOverview,
   UpdateCertificationStatus,
+  
+  // Gamification APIs
+  GetMapChallenges,
+  GetMapDistricts,
 };

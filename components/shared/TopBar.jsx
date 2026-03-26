@@ -62,6 +62,9 @@ export default function ModernTopBar({ type, id, currentUserId, selectedDistrict
     if (isPage) {
       checkAdminStatus();
     }
+    // Safety timeout to ensure loading doesn't hang
+    const timer = setTimeout(() => setIsLoading(false), 5000);
+    return () => clearTimeout(timer);
   }, [id, type, currentUserId]);
 
   const fetchData = async () => {
@@ -79,6 +82,8 @@ export default function ModernTopBar({ type, id, currentUserId, selectedDistrict
       if (response.ok) {
         const result = await response.json();
         setData(result);
+      } else if (response.status === 401) {
+        console.warn('[TOPBAR] Unauthorized access to', endpoint, '- continuing as guest');
       }
     } catch (error) {
       console.error('Error fetching data:', error);

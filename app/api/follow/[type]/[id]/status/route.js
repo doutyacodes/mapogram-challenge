@@ -8,16 +8,13 @@ import { eq, and } from 'drizzle-orm';
 export async function GET(req, { params }) {
   try {
     const token = req.cookies.get("user_token")?.value;
+    const { type, id } = await params;
+    
     if (!token) {
-      return NextResponse.json({ message: "Authentication required" }, { status: 401 });
+      return NextResponse.json({ isFollowing: false });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded?.id) {
-      return NextResponse.json({ message: "Invalid user token" }, { status: 400 });
-    }
-
-    const { type, id } = params;
     const entityId = parseInt(id);
     const currentUserId = decoded.id;
 

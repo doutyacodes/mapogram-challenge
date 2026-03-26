@@ -32,11 +32,18 @@ export async function GET(req) {
     const url = new URL(req.url);
     const token = req.cookies.get("user_token")?.value;
 
-    if (!token) return NextResponse.json({ message: "Authentication required" }, { status: 401 });
+    let viewerId = null;
+    let viewerRole = "guest";
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const viewerId = decoded.id;
-    const viewerRole = "page";
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        viewerId = decoded?.id;
+        viewerRole = "user"; 
+      } catch (e) {
+        console.error("Token verification failed in /api/page:", e);
+      }
+    }
 
     const pageId = url.searchParams.get("pageId");
     if (!pageId) return NextResponse.json({ posts: [], categories: [] });
@@ -68,7 +75,7 @@ export async function GET(req) {
     const [pageData] = await db.select().from(PAGES).where(eq(PAGES.id, parseInt(pageId)));
     if (!pageData) return NextResponse.json({ message: "Page not found" }, { status: 404 });
 
-    const isOwner = await isUserPageAdmin(parseInt(viewerId), parseInt(pageId));
+    const isOwner = viewerId ? await isUserPageAdmin(parseInt(viewerId), parseInt(pageId)) : false;
 
     console.log("pageId", pageId, "viewerId:", viewerId);
     console.log("isOwner", isOwner);

@@ -1,12 +1,12 @@
 export default {
   schema: "./utils/schema/**/*.{js,ts}", // ✅ Load all files recursively
-    dialect: 'mysql',
-    dbCredentials: {
-        host: "68.178.163.247",
-        user: "devuser_doutya_website_user",
-        database: "devuser_mapogram",
-        password: "Wowfy#user"
-    }
+  dialect: "mysql",
+  dbCredentials: {
+    host: "68.178.163.247",
+    user: "devuser_mapogram_challenges",
+    database: "devuser_mapogram_challenges",
+    password: "devuser_mapogram_challenges",
+  },
 };
 
 // export default {

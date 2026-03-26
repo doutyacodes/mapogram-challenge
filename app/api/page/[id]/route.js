@@ -8,16 +8,18 @@ import { eq } from 'drizzle-orm';
 export async function GET(req, { params }) {
   try {
     const token = req.cookies.get("user_token")?.value;
-    if (!token) {
-      return NextResponse.json({ message: "Authentication required" }, { status: 401 });
+    let userId = null;
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        userId = decoded?.id;
+      } catch (e) {
+        console.error("Token verification failed:", e);
+      }
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded?.id) {
-      return NextResponse.json({ message: "Invalid user token" }, { status: 400 });
-    }
-
-    const pageId = parseInt(params.id);
+    const { id } = await params;
+    const pageId = parseInt(id);
 
     // Tourism Mock Bypass
     if (pageId === 999991 || pageId === 999992) {

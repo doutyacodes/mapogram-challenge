@@ -6,10 +6,21 @@ import { eq } from 'drizzle-orm';
 import { createGuestIdentity } from '@/utils/guests/guestUser';
 
 export async function GET(req) {
-  const token = req.cookies.get('user_token')?.value;
-  if (!token) {
-    return NextResponse.json({ message: 'Authentication required' }, { status: 401 });
-  }
+    const token = req.cookies.get('user_token')?.value;
+    if (!token) {
+      // ✅ Return a fresh guest session if no token
+      const sessionId = Math.random().toString(36).substring(7);
+      return NextResponse.json({
+        isGuest: true,
+        sessionId: sessionId,
+        identity: {
+          ...createGuestIdentity(sessionId),
+          role: 'guest',
+          role_display_name: 'Guest User',
+        },
+        loggedInUserId: null,
+      });
+    }
 
   try {
     const secret = new TextEncoder().encode(process.env.JWT_SECRET);

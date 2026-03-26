@@ -31,7 +31,7 @@ import PostRegistrationModal from "@/components/map/posts/PostRegistrationModal"
 import { useUserRole } from "@/app/hooks/useUserRole";
 import PagePostCreation from "../../../../../components/map/posts/PagePostCreation";
 import StateCategoryContent from "../../../communities/components/StateCategoryContent";
-import { STATIC_DISTRICT_DATA } from "@/utils/mockCategoryData";
+import GlobalApi from "@/app/api/GlobalApi";
 import { createClusterRenderer } from "@/utils/map/createClusterRenderer";
 import MapCard from "@/components/map/MapCard";
 import { handleClusterClick } from "@/utils/map/handleClusterClick";
@@ -92,6 +92,7 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
   const { user, canCreatePost } = useUserRole();
 
   // --- Tourism Specific States ---
+  const [districtPages, setDistrictPages] = useState([]);
   const [geofenceData, setGeofenceData] = useState(null);
   const [categoryMarkers, setCategoryMarkers] = useState([]);
   const [activeCategoryMarker, setActiveCategoryMarker] = useState(null);
@@ -100,7 +101,43 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
   const [activeDiscoveryCategory, setActiveDiscoveryCategory] = useState(null);
   const [activeCardTab, setActiveCardTab] = useState('Rules');
 
-  const isTourismPage = Number(pageId) === 999991 || Number(pageId) === 999992;
+  const [isTourismPage, setIsTourismPage] = useState(false);
+
+  useEffect(() => {
+    // Dynamically check if current page is a Tourism parent or a District page
+    const checkTourismStatus = async () => {
+      if (!pageId) return;
+      
+      // Basic check for hardcoded Kerala/Karnataka IDs as fallback (including 10000)
+      if (Number(pageId) === 999991 || Number(pageId) === 999992 || Number(pageId) === 10000) {
+        setIsTourismPage(true);
+      }
+
+      try {
+        const res = await GlobalApi.GetMapDistricts();
+        const districtsList = res.data.data || [];
+        console.log("[TOURISM] ALL Districts from API:", districtsList.length, districtsList.map(d => `${d.name} (${d.page_id})`));
+        setDistrictPages(districtsList);
+        
+        // If this page acts as the structural parent for ALL districts (e.g. 10000), 
+        // we don't automatically select a single district (they see the whole state).
+        const districtsOnThisPage = districtsList.filter(d => Number(d.page_id) === Number(pageId));
+        
+        if (districtsOnThisPage.length > 0) {
+          setIsTourismPage(true);
+          // Only auto-select if there is EXACTLY one district mapped to this page
+          // (Legacy behavior for when districts were independent pages)
+          if (districtsOnThisPage.length === 1 && !selectedDistrict) {
+             console.log("[TOURISM] Legacy Parent: Auto-selecting unique district:", districtsOnThisPage[0].name);
+             setSelectedDistrict(districtsOnThisPage[0].name);
+          }
+        }
+      } catch (e) {
+        console.error("Tourism check failed", e);
+      }
+    };
+    checkTourismStatus();
+  }, [pageId, selectedDistrict, setSelectedDistrict]);
 
   
   const [isDistrictFilterOpen, setIsDistrictFilterOpen] = useState(false);
@@ -113,6 +150,56 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrScanning, setQrScanning] = useState(false);
   const [qrSuccess, setQRSuccess] = useState(false);
+
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+
+  const triggeredPopupsRef = useRef(new Set());
+  
+  // Geolocation tracking
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      console.warn("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      },
+      (err) => console.error("Geolocation error:", err),
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, []);
+
+  // Distance validation and Auto Popup Trigger
+  useEffect(() => {
+    if (!userLocation || !categoryMarkers || categoryMarkers.length === 0 || !window.google) return;
+    
+    categoryMarkers.forEach((marker) => {
+      if (!marker || !marker.position) return;
+      
+      const distance = window.google.maps.geometry.spherical.computeDistanceBetween(
+        new window.google.maps.LatLng(userLocation.lat, userLocation.lng),
+        new window.google.maps.LatLng(marker.position.lat, marker.position.lng)
+      );
+
+      // Trigger if within 100 meters
+      if (distance < 100 && !triggeredPopupsRef.current.has(marker.id) && !acceptedItems.some(i => i.id === marker.id)) {
+        triggeredPopupsRef.current.add(marker.id);
+        setSelectedDetailItem(marker);
+        setShowDetailModal(true);
+        setActiveDetailTab('Rules');
+      }
+    });
+  }, [userLocation, categoryMarkers, acceptedItems]);
+
   
   // Detail Modal States
   const [activeDetailTab, setActiveDetailTab] = useState('Rules');
@@ -123,10 +210,6 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
   const getCategoryByName = (categoryName) => {
     return postCategories.find(cat => cat.name === categoryName) || { name: 'Default', shape: 'pin', icon_name: 'MapPin', color: '#6b7280', class_name: '' };
   };
-
-  // Determine map center and zoom - always use default for full world view
-  const mapCenter = countryCenter;
-  const mapZoom = DEFAULT_ZOOM; // Always use default zoom
 
   const isMobile = useMediaQuery({ maxWidth: 640 });
 
@@ -163,30 +246,56 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
     }
   }, [selectedDistrict, acceptedItems.length, onTourismUpdate]);
 
-  // Fetch Geofence
-  const fetchGeofence = useCallback(async (id) => {
-    if (!id) return;
+  // Fetch Geofence and Districts
+  const fetchTourismData = useCallback(async () => {
     try {
-      // For now we use the same community geofence API
-      // In a real Page app, this might be /api/pages/[id]/geofence
-      const response = await fetch(`/api/communities/${id}/geofence`);
-      if (!response.ok) {
-        setGeofenceData(null);
-        return;
-      }
-      const data = await response.json();
-      setGeofenceData(data.geofence?.geojson || null);
+      const res = await GlobalApi.GetMapDistricts();
+      const districts = res.data.data || [];
+      setDistrictPages(districts);
+
+      // Build a FeatureCollection from all district geofences
+      const features = districts.map(d => {
+        if (!d.geojson) return null;
+        let geojsonObj = typeof d.geojson === 'string' ? JSON.parse(d.geojson) : d.geojson;
+        return {
+          type: "Feature",
+          properties: { name: d.name, district: d.name, page_id: d.page_id },
+          geometry: geojsonObj
+        };
+      }).filter(Boolean);
+
+      setGeofenceData({
+        type: "FeatureCollection",
+        features
+      });
     } catch (err) {
-      console.error("Error fetching geofence:", err);
+      console.error("Error fetching tourism data:", err);
       setGeofenceData(null);
+      setError("Failed to load tourism data.");
+    } finally {
+      setIsLoading(false); // Ensure loading is stopped
+      console.log("[TOURISM] fetchTourismData finished.");
     }
   }, []);
 
   useEffect(() => {
-    if (pageId && (pageId === "999991" || pageId === "999992")) {
-      fetchGeofence(pageId);
+    if (pageId && isTourismPage) {
+      console.log("[TOURISM] Triggering fetchTourismData due to pageId or isTourismPage change.");
+      fetchTourismData();
+    } else {
+      console.log("[TOURISM] Not fetching tourism data. pageId:", pageId, "isTourismPage:", isTourismPage);
+      // If conditions are not met, ensure loading state is reset
+      setIsLoading(false);
     }
-  }, [pageId, fetchGeofence]);
+    // Safety timeout to ensure loading doesn't hang
+    const timer = setTimeout(() => {
+      if (isLoading) {
+        console.warn("[TOURISM] Loading timeout reached, forcing isLoading to false.");
+        setIsLoading(false);
+      }
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [pageId, isTourismPage, fetchTourismData, isLoading]);
 
   // Calculate actual center of selected district for marker grouping
   const districtCenter = useMemo(() => {
@@ -196,63 +305,83 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
 
     let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
     
-    // Handle both Polygon and MultiPolygon
-    const coords = feature.geometry.type === 'MultiPolygon' 
-      ? feature.geometry.coordinates.flat(2) 
-      : feature.geometry.coordinates[0];
+    if (feature.geometry.type === 'MultiPolygon') {
+      feature.geometry.coordinates.flat(1).forEach(polygon => {
+        polygon[0].forEach(coord => {
+          if (coord[1] < minLat) minLat = coord[1];
+          if (coord[1] > maxLat) maxLat = coord[1];
+          if (coord[0] < minLng) minLng = coord[0];
+          if (coord[0] > maxLng) maxLng = coord[0];
+        });
+      });
+    } else {
+      feature.geometry.coordinates[0].forEach(coord => {
+        if (coord[1] < minLat) minLat = coord[1];
+        if (coord[1] > maxLat) maxLat = coord[1];
+        if (coord[0] < minLng) minLng = coord[0];
+        if (coord[0] > maxLng) maxLng = coord[0];
+      });
+    }
 
-    coords.forEach(coord => {
-      if (coord[1] < minLat) minLat = coord[1];
-      if (coord[1] > maxLat) maxLat = coord[1];
-      if (coord[0] < minLng) minLng = coord[0];
-      if (coord[0] > maxLng) maxLng = coord[0];
-    });
+    if (minLat === 90) {
+      console.warn("[TOURISM] Invalid centroid calculation for", selectedDistrict);
+      return null;
+    }
 
-    return {
+    const calculated = {
       lat: (minLat + maxLat) / 2,
       lng: (minLng + maxLng) / 2
     };
+    console.log("[TOURISM] Centroid for", selectedDistrict, ":", calculated, "From feature", feature.properties.name);
+    return calculated;
   }, [geofenceData, selectedDistrict]);
 
-  // Unified tourism markers logic (Grouping vs Scattering)
+  const mapCenter = useMemo(() => {
+    if (isTourismPage && districtCenter) {
+      return { lat: districtCenter.lat, lng: districtCenter.lng };
+    }
+    return countryCenter;
+  }, [isTourismPage, districtCenter]);
+
+  const mapZoom = useMemo(() => {
+    if (isTourismPage && selectedDistrict) return 9;
+    return DEFAULT_ZOOM;
+  }, [isTourismPage, selectedDistrict]);
+
+  // Pan map when district center changes
+  useEffect(() => {
+    if (mapRef && districtCenter) {
+      mapRef.panTo({ lat: districtCenter.lat, lng: districtCenter.lng });
+      // Use a more appropriate zoom for districts
+      if (mapRef.getZoom() < 8) {
+        mapRef.setZoom(10);
+      }
+    }
+  }, [mapRef, districtCenter]);
+
+  // Unified tourism markers logic (Scattering)
   const visibleTourismMarkers = useMemo(() => {
     if (!isTourismPage || !selectedDistrict || !districtCenter) return [];
 
     const categories = ['Challenges', 'Places', 'Food', 'Activity', 'Events'];
     let finalMarkers = [];
 
-    categories.forEach((cat, idx) => {
+    categories.forEach((cat) => {
       // If category is filtered out by FAB, skip
       if (activeDiscoveryCategory && activeDiscoveryCategory !== cat) return;
 
       const items = categoryMarkers.filter(m => m.category === cat && !deniedItemIds.has(m.id));
       if (items.length === 0) return;
 
-      if (expandedCategory === cat) {
-        // SCATTERED: Show individual markers at their real positions
-        finalMarkers.push(...items.map(item => ({
-          ...item,
-          isGroup: false
-        })));
-      } else {
-        // GROUPED: Show a single group marker at an offset from center
-        const angle = idx * (Math.PI / 2.5);
-        const radius = 0.03; // Latitude/Longitude offset radius
-        finalMarkers.push({
-          id: `group-${cat}`,
-          isGroup: true,
-          category: cat,
-          title: `${cat} Group`,
-          position: {
-            lat: districtCenter.lat + Math.sin(angle) * radius,
-            lng: districtCenter.lng + Math.cos(angle) * radius
-          }
-        });
-      }
+      // SCATTERED: Show individual markers at their real positions
+      finalMarkers.push(...items.map(item => ({
+        ...item,
+        isGroup: false
+      })));
     });
 
     return finalMarkers;
-  }, [isTourismPage, selectedDistrict, districtCenter, categoryMarkers, expandedCategory, activeDiscoveryCategory, deniedItemIds]);
+  }, [isTourismPage, selectedDistrict, districtCenter, categoryMarkers, activeDiscoveryCategory, deniedItemIds]);
 
   // Marker Icon Generator for Tourism
   const getMarkerIcon = (category, isSelected, isGroup = false) => {
@@ -288,36 +417,57 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
   };
 
   useEffect(() => {
-    if (!selectedDistrict || !STATIC_DISTRICT_DATA["Kerala"]?.[selectedDistrict]) {
+    if (!selectedDistrict || districtPages.length === 0) {
       setCategoryMarkers([]);
       return;
     }
 
-    const districtData = STATIC_DISTRICT_DATA["Kerala"][selectedDistrict];
-    const newMarkers = [];
+    const currentDistrict = districtPages.find(d => d.name.toLowerCase() === selectedDistrict.toLowerCase());
+    if (!currentDistrict) return;
 
-    // Flatten data for markers, filtering by activeDiscoveryCategory if set
-    Object.entries(districtData).forEach(([category, items]) => {
-      // If a category is selected, only show markers for that category
-      if (activeDiscoveryCategory && category !== activeDiscoveryCategory) return;
-
-      items.forEach(item => {
-        if (deniedItemIds.has(item.id)) return;
+    const fetchDistrictChallenges = async () => {
+      try {
+        const res = await GlobalApi.GetMapChallenges(null, currentDistrict.page_id);
+        const challenges = res.data.data || [];
         
-        // Use position object from generated data
-        if (item.position && item.position.lat && item.position.lng) {
-          newMarkers.push({
-            ...item,
-            category,
-            position: { lat: parseFloat(item.position.lat), lng: parseFloat(item.position.lng) }
-          });
-        }
-      });
-    });
+        const newMarkers = [];
+        
+        challenges.forEach(challenge => {
+          // Determine Mapogram Category based on Wowfy frequency/exp_type
+          let category = 'Challenges';
+          if (challenge.frequency === 'food' || challenge.exp_type === 'breakfast' || challenge.exp_type === 'biriyani') category = 'Food';
+          else if (challenge.frequency === 'contest' || challenge.frequency === 'quiz') category = 'Activity';
+          else if (challenge.frequency === 'event') category = 'Events';
+          else if (challenge.exp_type === 'arts' || challenge.frequency === 'experience') category = 'Places';
 
-    setCategoryMarkers(newMarkers);
-    console.log(`[TOURISM] Generated ${newMarkers.length} markers for ${selectedDistrict} (Category: ${activeDiscoveryCategory || 'All'})`);
-  }, [selectedDistrict, deniedItemIds, activeDiscoveryCategory]);
+          if (activeDiscoveryCategory && category !== activeDiscoveryCategory) return;
+          if (deniedItemIds.has(challenge.id)) return;
+
+          // Deterministic scatter for empty coordinates so markers don't stack
+          const latOffset = challenge.latitude ? 0 : ((challenge.id % 10) * 0.015 - 0.075);
+          const lngOffset = challenge.longitude ? 0 : (((challenge.id * 7) % 10) * 0.015 - 0.075);
+
+          // Push into markers
+          newMarkers.push({
+            id: challenge.id,
+            ...challenge,
+            category,
+            position: { 
+              lat: parseFloat(challenge.latitude) || ((districtCenter?.lat && !isNaN(districtCenter.lat)) ? districtCenter.lat + latOffset : 8.524), 
+              lng: parseFloat(challenge.longitude) || ((districtCenter?.lng && !isNaN(districtCenter.lng)) ? districtCenter.lng + lngOffset : 76.936)
+            }
+          });
+        });
+
+        setCategoryMarkers(newMarkers);
+        console.log(`[TOURISM] Generated ${newMarkers.length} markers for ${selectedDistrict} via API.`);
+      } catch (error) {
+        console.error("Failed to fetch district challenges:", error);
+      }
+    };
+
+    fetchDistrictChallenges();
+  }, [selectedDistrict, deniedItemIds, activeDiscoveryCategory, districtPages, districtCenter]);
 
   // --- Tourism Map Rendering ---
   
@@ -380,7 +530,9 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
           zIndex: 1
         });
 
-        polygon.addListener('click', () => {
+        // Add proper click listener directly natively
+        window.google.maps.event.addListener(polygon, 'click', () => {
+          console.log('[TOURISM] Clicked on map district:', data.name);
           setSelectedDistrict(data.name);
         });
 
@@ -1029,9 +1181,9 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
     window.open(url, '_blank');
   };
 
-  const filteredDistricts = (STATIC_DISTRICT_DATA["Kerala"] ? Object.keys(STATIC_DISTRICT_DATA["Kerala"]) : [])
-    .filter(d => d.toLowerCase().includes(districtSearchQuery.toLowerCase()));
-
+  const filteredDistricts = districtPages
+    .map(d => d.name)
+    .filter(name => name.toLowerCase().includes(districtSearchQuery.toLowerCase()));
 
   return (
     <div className="relative">
@@ -1124,63 +1276,22 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
 
       {/* --- Tourism UI Components --- */}
       
-      {/* 1. District Filter (Top Left) */}
-      <div className="absolute top-4 left-4 z-[100] flex flex-col gap-2">
-        <div className="relative group">
-          <button 
-            onClick={() => setIsDistrictFilterOpen(!isDistrictFilterOpen)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white/90 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl hover:bg-white transition-all duration-300 group"
-          >
-            <div className="p-1 px-2 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
-              <Search size={16} />
-            </div>
-            <span className="font-semibold text-gray-700 min-w-[120px] text-left">
-              {selectedDistrict || "Select District"}
-            </span>
-          </button>
-
-          {isDistrictFilterOpen && (
-            <div className="absolute top-full left-0 mt-2 w-64 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
-              <div className="p-3 border-b border-gray-100">
-                <input 
-                  type="text"
-                  placeholder="Search districts..."
-                  className="w-full px-4 py-2 bg-gray-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                  value={districtSearchQuery}
-                  onChange={(e) => setDistrictSearchQuery(e.target.value)}
-                  autoFocus
-                />
-              </div>
-              <div className="max-h-64 overflow-y-auto p-2 custom-scrollbar">
-                {filteredDistricts.map(dist => (
-                  <button
-                    key={dist}
-                    onClick={() => {
-                      setSelectedDistrict(dist);
-                      setIsDistrictFilterOpen(false);
-                      setDistrictSearchQuery("");
-                    }}
-                    className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                      selectedDistrict === dist 
-                        ? 'bg-blue-600 text-white shadow-lg' 
-                        : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600'
-                    }`}
-                  >
-                    {dist}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
+      {/* 1. Map District Interactions (Replaces Top Left Dropdown) */}
+      <div className="absolute top-4 left-4 z-[100] flex flex-col gap-2 pointer-events-none">
         {selectedDistrict && (
-          <button 
-            onClick={() => setSelectedDistrict(null)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 border border-red-100 rounded-xl text-xs font-bold hover:bg-red-100 transition-colors w-fit shadow-md animate-in fade-in slide-in-from-left-2"
-          >
-            <X size={12} /> Clear Filter
-          </button>
+          <div className="flex flex-col gap-2">
+            <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-lg border border-white/20">
+              <span className="font-black text-gray-800 tracking-wider text-sm uppercase">
+                {selectedDistrict}
+              </span>
+            </div>
+            <button 
+              onClick={() => setSelectedDistrict(null)}
+              className="pointer-events-auto flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 border border-red-100 rounded-xl text-xs font-bold hover:bg-red-100 transition-colors w-fit shadow-md animate-in fade-in slide-in-from-left-2"
+            >
+              <X size={12} /> Clear Filter
+            </button>
+          </div>
         )}
       </div>
 
@@ -1202,7 +1313,7 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
                   selectedDetailItem?.id === item.id ? 'border-orange-500 scale-105' : 'border-white'
                 }`}
               >
-                <img src={item.image} className="w-full h-full object-cover rounded-xl" alt="" />
+                <img src={item.media?.[0]?.media_url || '/placeholder.jpg'} className="w-full h-full object-cover rounded-xl" alt="" />
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
                 
                 {/* Status dot */}
@@ -1403,12 +1514,12 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
                 
                 <div className="p-4">
                   <div className="h-32 w-full rounded-2xl overflow-hidden mb-3 shadow-inner">
-                    <img src={markerData.image} className="w-full h-full object-cover" alt="" />
+                    <img src={markerData.media?.[0]?.media_url || '/placeholder.jpg'} className="w-full h-full object-cover" alt="" />
                   </div>
                   <h3 className="font-black text-gray-900 text-sm mb-1 leading-tight">{markerData.title}</h3>
                   <div className="flex items-center gap-2 mb-4">
                     <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded font-black uppercase">
-                      Entry: {markerData.entryFee || 'Free'}
+                      Entry: {markerData.entry_points ? `${markerData.entry_points} Pts` : 'Free'}
                     </span>
                   </div>
                   <button 
@@ -1475,7 +1586,7 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
                   {selectedDetailItem.title}
                 </h2>
                 <div className="rounded-[2.5rem] overflow-hidden shadow-2xl h-56 relative mb-6">
-                  <img src={selectedDetailItem.image} className="w-full h-full object-cover" alt="" />
+                  <img src={selectedDetailItem.media?.[0]?.media_url || '/placeholder.jpg'} className="w-full h-full object-cover" alt="" />
                 </div>
               </div>
 
@@ -1504,11 +1615,11 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
                     <div className="grid grid-cols-2 gap-3 mb-6">
                         <div className="bg-blue-50 p-4 rounded-3xl border border-blue-100 text-center">
                           <span className="text-[8px] uppercase font-black text-blue-400 block mb-1">Price</span>
-                          <span className="text-lg font-black text-blue-700">{selectedDetailItem.price || selectedDetailItem.entryFee || 'Free'}</span>
+                          <span className="text-lg font-black text-blue-700">{selectedDetailItem.entry_points ? `${selectedDetailItem.entry_points} Pts` : 'Free'}</span>
                         </div>
                         <div className="bg-yellow-50 p-4 rounded-3xl border border-yellow-100 text-center">
                           <span className="text-[8px] uppercase font-black text-yellow-500 block mb-1">Prize</span>
-                          <span className="text-lg font-black text-yellow-700">100 Pts</span>
+                          <span className="text-lg font-black text-yellow-700">{selectedDetailItem.reward_points || 0} Pts</span>
                         </div>
                     </div>
                   </div>
@@ -1545,12 +1656,15 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
                  <div className="flex gap-3">
                     <button 
                       onClick={() => {
-                        setAcceptedItems(prev => [...prev.filter(i => i.id !== selectedDetailItem.id), selectedDetailItem].slice(-5));
-                        setShowDetailModal(false);
+                        if (selectedDetailItem.category === 'Food') {
+                          setShowQRModal(true);
+                        } else {
+                          setShowUploadModal(true);
+                        }
                       }}
-                      className="flex-1 bg-[#00C853] text-white font-black text-xs py-4 rounded-2xl"
+                      className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-black text-xs py-4 rounded-2xl flex justify-center items-center shadow-lg hover:shadow-xl transition-all"
                     >
-                      ACCEPT
+                      {selectedDetailItem.category === 'Food' ? 'SCAN QR' : 'UPLOAD MEDIA'}
                     </button>
                     <button 
                       onClick={() => {
@@ -1570,9 +1684,11 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
 
       {/* --- QR Scan Simulation Modal --- */}
       {showQRModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" onClick={() => !qrScanning && setShowQRModal(false)} />
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl">
           <div className="relative w-full max-w-md bg-white rounded-[3rem] overflow-hidden shadow-2xl p-8 text-center animate-in zoom-in duration-300">
+             <button onClick={() => !qrScanning && setShowQRModal(false)} className="absolute top-6 right-6 p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+               <X className="w-5 h-5 text-gray-500" />
+             </button>
              <h2 className="text-3xl font-black mb-2">Scan QR Code</h2>
              <p className="text-gray-400 text-sm mb-8 font-bold">Verification processing...</p>
              
@@ -1598,17 +1714,65 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
                      setQrScanning(false);
                      setQRSuccess(true);
                      setTimeout(() => {
-                       setAcceptedItems(prev => prev.filter(i => i.id !== selectedDetailItem.id));
-                       setQRSuccess(false);
                        setShowQRModal(false);
-                       setShowDetailModal(false);
-                     }, 2000);
+                       setShowUploadModal(true); // Ask for image upload after QR code for food
+                       setQRSuccess(false);
+                     }, 1500);
                    }, 2000);
                  }}
                  disabled={qrScanning}
                  className="w-full bg-blue-600 text-white font-black py-5 rounded-3xl text-lg hover:bg-blue-700 transition-all disabled:bg-gray-100 disabled:text-gray-400"
                >
                  {qrScanning ? 'VERIFYING...' : 'SIMULATE SCAN'}
+               </button>
+             )}
+          </div>
+        </div>
+      )}
+
+      {/* --- Upload Media Simulation Modal --- */}
+      {showUploadModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl">
+          <div className="relative w-full max-w-md bg-white rounded-[3rem] overflow-hidden shadow-2xl p-8 text-center animate-in zoom-in duration-300">
+             <button onClick={() => !uploading && setShowUploadModal(false)} className="absolute top-6 right-6 p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+               <X className="w-5 h-5 text-gray-500" />
+             </button>
+             <h2 className="text-3xl font-black mb-2">Upload Evidence</h2>
+             <p className="text-gray-400 text-sm mb-8 font-bold">Provide an image or video.</p>
+             
+             <div className="aspect-square w-full max-w-[240px] mx-auto mb-8 rounded-[2.5rem] border-4 border-dashed border-indigo-100 flex items-center justify-center relative overflow-hidden bg-gray-50">
+                {uploadSuccess ? (
+                  <div className="h-full w-full flex flex-col items-center justify-center bg-[#00C853] text-white animate-in zoom-in">
+                    <CheckCircle size={80} className="mb-4" />
+                    <p className="font-black text-2xl uppercase tracking-widest">COMPLETED</p>
+                  </div>
+                ) : (
+                  <div className={`transition-opacity duration-300 ${uploading ? 'opacity-100 animate-pulse text-indigo-500' : 'opacity-30 text-gray-400'} flex flex-col items-center justify-center`}>
+                    <svg className="w-24 h-24 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    <span className="font-black tracking-widest uppercase text-sm">{uploading ? 'UPLOADING...' : 'TAP TO BROWSE'}</span>
+                  </div>
+                )}
+             </div>
+
+             {!uploadSuccess && (
+               <button 
+                 onClick={() => {
+                   setUploading(true);
+                   setTimeout(() => {
+                     setUploading(false);
+                     setUploadSuccess(true);
+                     setTimeout(() => {
+                        setAcceptedItems(prev => [...prev.filter(i => i.id !== selectedDetailItem?.id), selectedDetailItem].slice(-5));
+                       setUploadSuccess(false);
+                       setShowUploadModal(false);
+                       setShowDetailModal(false);
+                     }, 2000);
+                   }, 2000);
+                 }}
+                 disabled={uploading}
+                 className="w-full bg-indigo-600 text-white font-black py-5 rounded-3xl text-lg hover:bg-indigo-700 transition-all disabled:bg-gray-100 disabled:text-gray-400"
+               >
+                 {uploading ? 'PROCESSING...' : 'SIMULATE UPLOAD'}
                </button>
              )}
           </div>

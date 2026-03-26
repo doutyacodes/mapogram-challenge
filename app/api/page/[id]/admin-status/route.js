@@ -8,16 +8,14 @@ import { eq, and } from 'drizzle-orm';
 export async function GET(req, { params }) {
   try {
     const token = req.cookies.get("user_token")?.value;
+    const { id } = await params;
+    const pageId = parseInt(id);
+
     if (!token) {
-      return NextResponse.json({ message: "Authentication required" }, { status: 401 });
+      return NextResponse.json({ isAdmin: false, isOwner: false });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded?.id) {
-      return NextResponse.json({ message: "Invalid user token" }, { status: 400 });
-    }
-
-    const pageId = parseInt(params.id);
     const currentUserId = decoded.id;
 
     // Check if user is page creator/owner
