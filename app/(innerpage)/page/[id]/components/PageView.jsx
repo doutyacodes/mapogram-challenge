@@ -217,8 +217,9 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
       // Trigger logic
       if (distance < dynamicRadius) {
         const isAlreadyAccepted = acceptedItems.some(i => i.id === marker.id);
+        const isCompleted = completedItemIds.has(marker.id);
         
-        if (!isAlreadyAccepted && !triggeredPopupsRef.current.has(marker.id)) {
+        if (!isAlreadyAccepted && !isCompleted && !triggeredPopupsRef.current.has(marker.id)) {
             // New Discovery: Show Detail Modal
             triggeredPopupsRef.current.add(marker.id);
             setSelectedDetailItem(marker);

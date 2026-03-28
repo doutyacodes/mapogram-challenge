@@ -8,7 +8,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 export async function GET(req) {
   try {
     const session = await getServerSession(authOptions);
-    let userId = 1; // Default to Guest account Tony Stark if unauthorized
+    let userId = 122; // Default to Guest account Tony Stark (ID 122) if unauthorized
 
     if (session && session.user) {
       userId = session.user.id;
@@ -33,7 +33,7 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     const session = await getServerSession(authOptions);
-    let userId = 1; // Default logic for testing (Tony Stark)
+    let userId = 122; // Default logic for testing (Tony Stark ID 122)
 
     if (session && session.user) {
       userId = session.user.id;
