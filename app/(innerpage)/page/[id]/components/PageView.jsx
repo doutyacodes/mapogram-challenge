@@ -343,22 +343,25 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
   // Calculate actual center of selected district for marker grouping
   const districtCenter = useMemo(() => {
     if (!geofenceData || !selectedDistrict) return null;
-    const feature = geofenceData.features.find(f => (f.properties.name || f.properties.district) === selectedDistrict);
+    const lowerSelected = selectedDistrict.toLowerCase();
+    const feature = geofenceData.features.find(f => (f.properties.name?.toLowerCase() || f.properties.district?.toLowerCase()) === lowerSelected);
     if (!feature) return null;
 
     let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
     
     if (feature.geometry.type === 'MultiPolygon') {
-      feature.geometry.coordinates.flat(1).forEach(polygon => {
-        polygon[0].forEach(coord => {
+      // MultiPolygon coordinates are [Polygon][Ring][Point]
+      feature.geometry.coordinates.forEach(polygon => {
+        polygon[0].forEach(coord => { // Using only the outer ring (index 0)
           if (coord[1] < minLat) minLat = coord[1];
           if (coord[1] > maxLat) maxLat = coord[1];
           if (coord[0] < minLng) minLng = coord[0];
           if (coord[0] > maxLng) maxLng = coord[0];
         });
       });
-    } else {
-      feature.geometry.coordinates[0].forEach(coord => {
+    } else if (feature.geometry.type === 'Polygon') {
+      // Polygon coordinates are [Ring][Point]
+      feature.geometry.coordinates[0].forEach(coord => { // Outer ring
         if (coord[1] < minLat) minLat = coord[1];
         if (coord[1] > maxLat) maxLat = coord[1];
         if (coord[0] < minLng) minLng = coord[0];
@@ -475,7 +478,7 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
   };
 
   useEffect(() => {
-    if (!selectedDistrict || districtPages.length === 0) {
+    if (!selectedDistrict || !districtPages || districtPages.length === 0) {
       setCategoryMarkers([]);
       return;
     }
@@ -491,6 +494,10 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
         const newMarkers = [];
         
         challenges.forEach(challenge => {
+          // SCOPE DATA: Only show challenges belonging to the selected district
+          // (Since multiple districts share the same parent page_id)
+          if (Number(challenge.district_id) !== Number(currentDistrict.id)) return;
+
           // Determine Mapogram Category based on Wowfy frequency/exp_type
           let category = 'Challenges';
           if (challenge.frequency === 'food' || challenge.exp_type === 'breakfast' || challenge.exp_type === 'biriyani') category = 'Food';
