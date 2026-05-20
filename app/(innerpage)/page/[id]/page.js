@@ -1,3 +1,4 @@
+// app\(innerpage)\page\[id]\page.js
 "use client";
 
 import { use, useEffect, useState } from "react";

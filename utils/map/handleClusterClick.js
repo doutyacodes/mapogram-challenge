@@ -1,39 +1,27 @@
 // utils/map/handleClusterClick.js
+// Leaflet version — replaces google.maps.LatLngBounds and google.maps.event
 
-export const handleClusterClick = (event, cluster, mapRef) => {
+export const handleClusterClick = (clusterGroup, cluster, mapRef) => {
   if (!mapRef) return;
 
-  let markers = [];
-  
-  if (cluster?.markers) {
-    markers = cluster.markers;
-  } else if (cluster?.getMarkers) {
-    markers = cluster.getMarkers();
-  } else if (event?.cluster) {
-    markers = event.cluster.markers || [];
-  } else {
-    console.log('Cluster structure:', cluster, 'Event:', event);
+  // Leaflet MarkerClusterGroup fires 'clusterclick' with the cluster layer
+  // cluster here is the L.MarkerCluster layer
+  const childMarkers = cluster.getAllChildMarkers
+    ? cluster.getAllChildMarkers()
+    : [];
+
+  if (childMarkers.length === 0) return;
+
+  // Build Leaflet LatLngBounds from all child marker positions
+  // Dynamically import to stay SSR-safe — L is already loaded at this point
+  const L = window._leaflet_L; // set during map init (see note below)
+
+  if (!L) {
+    // Fallback: just zoom in on cluster center
+    mapRef.setView(cluster.getLatLng(), Math.min(mapRef.getZoom() + 2, 12));
     return;
   }
 
-  if (markers.length === 0) return;
-
-  const bounds = new google.maps.LatLngBounds();
-  markers.forEach(marker => {
-    bounds.extend(marker.getPosition());
-  });
-
-  mapRef.fitBounds(bounds, {
-    duration: 800,
-  });
-
-  const listener = google.maps.event.addListener(mapRef, 'idle', () => {
-    if (mapRef.getZoom() > 12) {
-      mapRef.setZoom(12);
-      setTimeout(() => {
-        mapRef.panTo(mapRef.getCenter());
-      }, 100);
-    }
-    google.maps.event.removeListener(listener);
-  });
+  const bounds = L.latLngBounds(childMarkers.map(m => m.getLatLng()));
+  mapRef.fitBounds(bounds, { maxZoom: 12, animate: true, duration: 0.8 });
 };

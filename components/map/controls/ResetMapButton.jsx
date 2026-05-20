@@ -1,3 +1,59 @@
+// 'use client';
+
+// import { center, DEFAULT_ZOOM } from '@/lib/map/constants';
+// import { RotateCw } from 'lucide-react';
+
+// const ResetMapButton = ({
+//   mapRef,
+//   fetchPostsData,
+//   setSelectedLocation,
+//   id,
+//   isMobile = false,
+//   buttonStyle = {},
+// }) => {
+//   const handleReset = () => {
+//     if (mapRef) {
+//       mapRef.panTo(center);
+//       mapRef.setZoom(DEFAULT_ZOOM);
+//     }
+//     fetchPostsData?.(null, id);
+//     setSelectedLocation?.(null);
+//   };
+
+//   if (isMobile) {
+//     return (
+//         <button 
+//         onClick={handleReset}
+//         className="bg-white border-4 border-gray-400 shadow-lg rounded-full hover:bg-gray-50 hover:border-blue-400 active:scale-95 transition-all duration-200 flex items-center justify-center"
+//         title="Reset to world view"
+//         style={{
+//             width: '55px',
+//             height: '55px',
+//             boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+//         }}
+//         >
+//         <span className="text-gray-700 hover:text-blue-600 font-semibold text-[9px] leading-tight text-center transition-colors duration-200">
+//             World<br />View
+//         </span>
+//         </button>
+//     );
+//   }
+
+//   return (
+//     <button
+//       onClick={handleReset}
+//       className="bg-white shadow-md rounded-lg p-2 hover:bg-gray-100 transition-colors duration-200 flex items-center justify-center"
+//       style={buttonStyle}
+//       title="Reset to world view"
+//     >
+//       <RotateCw size={16} className="mr-1" />
+//       <span className="text-sm">World View</span>
+//     </button>
+//   );
+// };
+
+// export default ResetMapButton;
+
 'use client';
 
 import { center, DEFAULT_ZOOM } from '@/lib/map/constants';
@@ -10,32 +66,32 @@ const ResetMapButton = ({
   id,
   isMobile = false,
   buttonStyle = {},
+  onReset,
 }) => {
   const handleReset = () => {
     if (mapRef) {
-      mapRef.panTo(center);
-      mapRef.setZoom(DEFAULT_ZOOM);
+      // Leaflet uses setView([lat, lng], zoom) instead of panTo + setZoom
+      const lat = Array.isArray(center) ? center[0] : (center?.lat ?? 20);
+      const lng = Array.isArray(center) ? center[1] : (center?.lng ?? 0);
+      mapRef.setView([lat, lng], DEFAULT_ZOOM);
     }
     fetchPostsData?.(null, id);
     setSelectedLocation?.(null);
+    onReset?.();
   };
 
   if (isMobile) {
     return (
-        <button 
+      <button
         onClick={handleReset}
         className="bg-white border-4 border-gray-400 shadow-lg rounded-full hover:bg-gray-50 hover:border-blue-400 active:scale-95 transition-all duration-200 flex items-center justify-center"
         title="Reset to world view"
-        style={{
-            width: '55px',
-            height: '55px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-        }}
-        >
+        style={{ width: '55px', height: '55px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
+      >
         <span className="text-gray-700 hover:text-blue-600 font-semibold text-[9px] leading-tight text-center transition-colors duration-200">
-            World<br />View
+          World<br />View
         </span>
-        </button>
+      </button>
     );
   }
 
