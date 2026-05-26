@@ -1338,6 +1338,16 @@ async function loadLeaflet() {
   });
 }
 
+function releaseLeafletContainer(container) {
+  if (!container || !container._leaflet_id) return;
+
+  try {
+    delete container._leaflet_id;
+  } catch {
+    container._leaflet_id = null;
+  }
+}
+
 // ── Haversine distance — replaces google.maps.geometry.spherical ──────────────
 function haversineDistance(lat1, lng1, lat2, lng2) {
   const R  = 6371000;
@@ -1474,14 +1484,17 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
   // ── 1. Boot Leaflet map ────────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
+    let mapContainer = null;
     (async () => {
       await loadLeaflet();
       if (cancelled || !mapContainerRef.current || mapInstanceRef.current) return;
 
       const lat = Array.isArray(center) ? center[0] : (center?.lat ?? 20);
       const lng = Array.isArray(center) ? center[1] : (center?.lng ?? 0);
+      mapContainer = mapContainerRef.current;
+      releaseLeafletContainer(mapContainer);
 
-      const map = L.map(mapContainerRef.current, {
+      const map = L.map(mapContainer, {
         center:             [lat, lng],
         zoom:               DEFAULT_ZOOM,
         minZoom:            2,
@@ -1528,7 +1541,11 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
 
     return () => {
       cancelled = true;
-      if (mapInstanceRef.current) { mapInstanceRef.current.remove(); mapInstanceRef.current = null; }
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+      releaseLeafletContainer(mapContainer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

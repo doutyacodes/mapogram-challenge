@@ -6,7 +6,8 @@ import { eq } from 'drizzle-orm';
 
 export async function GET(req, { params }) {
   try {
-    const { communityId } = params;
+    const resolvedParams = await params;
+    const { communityId } = resolvedParams;
 
     // First get the community type
     const community = await db

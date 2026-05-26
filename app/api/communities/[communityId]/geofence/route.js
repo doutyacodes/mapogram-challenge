@@ -9,7 +9,8 @@ import fs from 'fs';
 
 export async function GET(request, { params }) {
   try {
-    const { communityId:id } = params;
+    const resolvedParams = await params;
+    const { communityId:id } = resolvedParams;
     
     // Tourism Mock Bypass
     if (id === '999991' || id === '999992') {

@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState } from "react";
+import dynamic from 'next/dynamic';
 import CommunityTopBar from "@/components/community/topbar/CommunityTopBar";
-import CommunityView from "./components/CommunityView";
+
+const CommunityView = dynamic(() => import("./components/CommunityView"), { ssr: false });
 
 export default function Page() {
   const [selectedDistrict, setSelectedDistrict] = useState(null);
