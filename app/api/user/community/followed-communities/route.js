@@ -61,6 +61,7 @@ import {
   COMMUNITY_ROLES
 } from '@/utils/schema/community_schema';
 import { eq, sql } from 'drizzle-orm';
+import { getChallengePageCommunities } from '@/utils/staticCommunities';
 
 export async function GET(req) {
   try {
@@ -73,7 +74,8 @@ export async function GET(req) {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.id;
+    // Guest tokens carry no id; null matches no rows instead of breaking the query
+    const userId = decoded.id ?? null;
 
     const { searchParams } = new URL(req.url);
     const type = searchParams.get("type"); // null | followed | member
@@ -196,7 +198,8 @@ export async function GET(req) {
     const sortedUserCommunities = Array.from(map.values())
       .sort((a, b) => new Date(b.followed_at) - new Date(a.followed_at));
 
-    const result = [...staticCommunities, ...sortedUserCommunities];
+    // Tourism / company / brand / celebrity challenge pages (utils/staticCommunities.js)
+    const result = [...staticCommunities, ...getChallengePageCommunities(), ...sortedUserCommunities];
 
     return NextResponse.json({ communities: result });
 

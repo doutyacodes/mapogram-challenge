@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useMediaQuery } from 'react-responsive';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -48,6 +48,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import PostRegistrationModal from "@/components/map/posts/PostRegistrationModal";
 import StateCategoryContent from "./StateCategoryContent";
 import { STATIC_DISTRICT_DATA } from "@/utils/mockCategoryData";
+import { getChallengePageData, getStaticCommunityMeta } from "@/utils/staticCommunities";
+import { geojsonBounds } from "@/utils/map/geometry";
 import { useUserRole } from "@/app/hooks/useUserRole";
 import { createClusterRenderer } from "@/utils/map/createClusterRenderer";
 import MapCard from "@/components/map/MapCard";
@@ -386,11 +388,18 @@ export default function CommunityView({
   const [selectedCommunity, setSelectedCommunity] = useState(null);
   const [communitiesLoading, setCommunitiesLoading] = useState(true);
 
+  // Tell the top bar which community is shown (it can't rely on the URL: we update
+  // it with history.replaceState, which other components don't observe).
   useEffect(() => {
     if (onTourismUpdate && selectedCommunity) {
+      const isStatic = selectedCommunity.source === 'static';
+      const meta = isStatic ? getStaticCommunityMeta(selectedCommunity.id) : null;
       onTourismUpdate({
-        isStatic: selectedCommunity.source === 'static',
+        communityId: selectedCommunity.id,
+        isStatic,
         stateName: selectedCommunity.name,
+        kindLabel: meta?.kindLabel || `${selectedCommunity.name} Tourism`,
+        logo: meta?.logo || null,
         totalPoints: 1250 // maintain the mock
       });
     }
@@ -564,20 +573,18 @@ export default function CommunityView({
 
       let markers = [];
       const stateName = selectedCommunity.name;
-      const stateData = STATIC_DISTRICT_DATA[stateName] || {};
-      
+      // Challenge pages (tourism/company/brand/celebrity) have generated data; states use the mock file
+      const stateData = getChallengePageData(selectedCommunity.id) || STATIC_DISTRICT_DATA[stateName] || {};
+
       geofenceData.features.forEach(feature => {
         const distName = feature.properties.name || feature.properties.district;
         // If a district is selected, skip others
         if (selectedDistrict && distName !== selectedDistrict) return;
-        
-        let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
-        feature.geometry.coordinates[0].forEach(coord => {
-          if (coord[1] < minLat) minLat = coord[1];
-          if (coord[1] > maxLat) maxLat = coord[1];
-          if (coord[0] < minLng) minLng = coord[0];
-          if (coord[0] > maxLng) maxLng = coord[0];
-        });
+
+        // Bounding-box centre; handles Polygon and MultiPolygon districts
+        const bounds = geojsonBounds(feature);
+        if (!bounds) return;
+        const [[minLat, minLng], [maxLat, maxLng]] = bounds;
         const centerLat = (minLat + maxLat) / 2;
         const centerLng = (minLng + maxLng) / 2;
         
@@ -643,6 +650,19 @@ export default function CommunityView({
       setCategoryMarkers([]);
     }
   }, [selectedStateCategory, selectedDistrict, geofenceData, selectedCommunity, selectedSubCategory, expandedCategory]);
+
+  // Open challenge card: a stable position array, so re-renders don't make react-leaflet's
+  // <Popup> close and reopen (its effect depends on the position prop's identity).
+  const activeMarkerData = useMemo(
+    () => (activeCategoryMarker ? categoryMarkers.find(m => m.id === activeCategoryMarker) || null : null),
+    [activeCategoryMarker, categoryMarkers]
+  );
+  const activePopupLat = activeMarkerData?.lat;
+  const activePopupLng = activeMarkerData?.lng;
+  const activePopupPosition = useMemo(
+    () => (activePopupLat == null ? null : [activePopupLat, activePopupLng]),
+    [activePopupLat, activePopupLng]
+  );
 
   // Helper function to check if user can access community posts
   const canAccessCommunityPosts = (community) => {
@@ -796,12 +816,9 @@ export default function CommunityView({
   // Unified geofence handling
   const fetchCommunityGeofence = useCallback(async (communityId, districtName = null) => {
     try {
-      if (communityId === 999991 || communityId === 999992 || communityId === 999993) {
-        let geojsonFile = '';
-        if (communityId === 999991) geojsonFile = '/geojson/kerala.json';
-        else if (communityId === 999992) geojsonFile = '/geojson/karnataka.json';
-        else if (communityId === 999993) geojsonFile = '/geojson/tamil_nadu.json';
-
+      // States and challenge pages ship their boundaries as static files
+      const geojsonFile = getStaticCommunityMeta(communityId)?.geojson;
+      if (geojsonFile) {
         const response = await fetch(geojsonFile);
         if (response.ok) {
           const data = await response.json();
@@ -927,6 +944,12 @@ export default function CommunityView({
     setIsFilterModalOpen(false);
   };
 
+  // The requested community (navbar/modals switch communities with router.push).
+  // Keyed on the id string: every history.replaceState gives useSearchParams a new
+  // object, and depending on that object re-fetched and re-selected endlessly,
+  // which kept resetting the open challenge card.
+  const urlCommunityId = searchParams.get('communityId') || searchParams.get('community');
+
   // Fetch user communities
   const fetchUserCommunities = useCallback(async () => {
     try {
@@ -940,7 +963,7 @@ export default function CommunityView({
       const data = await response.json();
       setCommunities(data.communities);
 
-      const communityIdFromUrl = searchParams.get('communityId') || searchParams.get('community');
+      const communityIdFromUrl = urlCommunityId;
       let communityToSelect = null;
 
       if (communityIdFromUrl && data.communities.length > 0) {
@@ -955,11 +978,14 @@ export default function CommunityView({
       }
 
       if (communityToSelect) {
-        setSelectedCommunity(communityToSelect);
+        // Keep the same object when the community didn't change, so effects keyed on it don't re-run
+        setSelectedCommunity(prev => (prev && prev.id === communityToSelect.id ? prev : communityToSelect));
         const url = new URL(window.location.href);
-        url.searchParams.set('communityId', communityToSelect.id);
-        window.history.replaceState({}, '', url.toString());
-        
+        if (url.searchParams.get('communityId') !== String(communityToSelect.id)) {
+          url.searchParams.set('communityId', communityToSelect.id);
+          window.history.replaceState({}, '', url.toString());
+        }
+
         // Handle access overlays for all community types
         setShowApprovalOverlay(false);
         setShowAccessOverlay(false);
@@ -985,14 +1011,16 @@ export default function CommunityView({
     } finally {
       setCommunitiesLoading(false);
     }
-  }, [searchParams]);
+  }, [urlCommunityId]);
 
-  // Update URL when community changes
+  // Update URL when community changes (only if it differs, to avoid needless router updates)
   useEffect(() => {
     if (selectedCommunity && typeof window !== 'undefined') {
       const url = new URL(window.location.href);
-      url.searchParams.set('communityId', selectedCommunity.id);
-      window.history.replaceState({}, '', url.toString());
+      if (url.searchParams.get('communityId') !== String(selectedCommunity.id)) {
+        url.searchParams.set('communityId', selectedCommunity.id);
+        window.history.replaceState({}, '', url.toString());
+      }
     }
   }, [selectedCommunity]);
 
@@ -1680,13 +1708,11 @@ export default function CommunityView({
             })}
 
             {/* Active Category InfoWindow */}
-            {selectedCommunity?.source === 'static' && activeCategoryMarker && (() => {
-              const markerData = categoryMarkers.find(m => m.id === activeCategoryMarker);
-              if (!markerData) return null;
+            {selectedCommunity?.source === 'static' && activeMarkerData && activePopupPosition && (() => {
+              const markerData = activeMarkerData;
               return (
                 <Popup
-                  position={[markerData.lat, markerData.lng]}
-                  onClose={() => { setActiveCategoryMarker(null); setActiveCardTab('Rules'); }}
+                  position={activePopupPosition}
                   closeButton={false}
                   autoPan={false}
                   className="custom-popup"
