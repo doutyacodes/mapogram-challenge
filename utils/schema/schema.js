@@ -70,6 +70,7 @@ export const PAGE_PROFILES = mysqlTable("page_profiles", {
   website_url: varchar("website_url", { length: 255 }), // ✅ moved here
   latitude: decimal("latitude", { precision: 10, scale: 7 }),  // example: 12.9715987
   longitude: decimal("longitude", { precision: 10, scale: 7 }), // example: 77.594566
+  logo_url: varchar("logo_url", { length: 255 }),
 });
 
 export const PAGE_GEOFENCES = mysqlTable("page_geofences", {
@@ -515,6 +516,11 @@ export const CHALLENGES = mysqlTable("challenges", {
   page_id: int("page_id").notNull().references(() => PAGES.id, { onDelete: 'cascade' }),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description").notNull(),
+  // Map category on challenge pages. NULL on older rows, which derive it from frequency/exp_type
+  category: mysqlEnum("category", ["Challenges", "Places", "Food", "Activity", "Events"]),
+  logo_url: varchar("logo_url", { length: 255 }),
+  // Card extras: { tags: [], price, food_name, rating, duration, event_date, hours }
+  details: json("details"),
   challenge_type: mysqlEnum("challenge_type", ["ordered", "unordered"]).default("unordered"),
   frequency: mysqlEnum("frequency", ["daily", "weekly", "once", "quiz", "bootcamp", "contest", "treasure", "food", "experience", "event"]).default("once"),
   start_date: datetime("start_date"),
