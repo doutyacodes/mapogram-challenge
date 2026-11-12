@@ -1,24 +1,32 @@
 // app\api\auth\google-callback\route.js
+//
+// Exchanges the caller's NextAuth (Google) session for the app's `user_token` cookie.
+// The user is taken from the signed NextAuth JWT, never from the request body: trusting
+// a client-supplied providerAccountId would let anyone sign in as any Google user.
 import { NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 import { db } from "@/utils";
-import { AUTH_PROVIDERS, USERS, USER_COMMUNITY_FOLLOW, USER_FOLLOWED_LAYERS, LAYERS } from "@/utils/schema/schema";
+import { AUTH_PROVIDERS, USERS, USER_FOLLOWED_LAYERS, LAYERS } from "@/utils/schema/schema";
+import { USER_COMMUNITY_FOLLOW } from "@/utils/schema/community_schema";
 import { eq, sql, and } from "drizzle-orm";
 import jwt from "jsonwebtoken";
 
 export async function POST(req) {
   try {
-    const { providerAccountId } = await req.json();
+    // Set by the jwt callback in app/api/auth/[...nextauth]/route.js after Google sign-in
+    const nextAuthToken = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    const sessionUserId = nextAuthToken?.userId;
 
-    if (!providerAccountId) {
-      return NextResponse.json({ message: "Provider account ID required" }, { status: 400 });
+    if (!sessionUserId) {
+      return NextResponse.json({ message: "Google sign-in required" }, { status: 401 });
     }
 
-    // Get user from auth provider
+    // Get the user, and make sure it really is linked to a Google account
     const authProvider = await db
       .select()
       .from(AUTH_PROVIDERS)
       .innerJoin(USERS, eq(AUTH_PROVIDERS.user_id, USERS.id))
-      .where(eq(AUTH_PROVIDERS.provider_user_id, providerAccountId))
+      .where(and(eq(AUTH_PROVIDERS.user_id, sessionUserId), eq(AUTH_PROVIDERS.provider, "google")))
       .limit(1);
 
     if (authProvider.length === 0) {

@@ -3,7 +3,8 @@ import { HYPERLOCAL_NEWS, HYPERLOCAL_CATEGORIES, USER_DETAILS } from "@/utils/sc
 import { NextResponse } from "next/server";
 import { eq, sql } from "drizzle-orm";
 
-export async function GET(req, { params }) {
+export async function GET(req, props) {
+  const params = await props.params;
   try {
     const { id } = params;
     

@@ -7,7 +7,8 @@ import { NextResponse } from "next/server";
 import path from 'path';
 import fs from 'fs';
 
-export async function GET(request, { params }) {
+export async function GET(request, props) {
+  const params = await props.params;
   try {
     const resolvedParams = await params;
     const { communityId:id } = resolvedParams;

@@ -1,5 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+"use client";
+
+import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Loader2, AlertCircle, Check, Info } from 'lucide-react';
+import { useLeafletMap } from '@/components/map/leaflet/useLeafletMap';
+import MapTypeControls from '@/components/map/controls/MapTypeControls';
+import { getLeaflet } from '@/utils/map/leaflet';
+import { geojsonBounds, toLatLngPolygons } from '@/utils/map/geometry';
+
+const INDIA_CENTER = { lat: 20.5937, lng: 78.9629 };
 
 const DistrictGeofenceSelector = ({ onGeofenceSelect, selectedGeofence }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -9,33 +17,38 @@ const DistrictGeofenceSelector = ({ onGeofenceSelect, selectedGeofence }) => {
   const [geofenceData, setGeofenceData] = useState(null);
   const [isLoadingGeofence, setIsLoadingGeofence] = useState(false);
   const [error, setError] = useState('');
-  const mapRef = useRef(null);
-  const googleMapRef = useRef(null);
-  const polygonRef = useRef(null);
 
+  // Leaflet map (replaces the manually loaded Google Maps script)
+  const { containerRef: mapRef, map } = useLeafletMap({
+    center: INDIA_CENTER, // Center of India
+    zoom: 5,
+    zoomControl: 'bottomright',
+  });
+
+  // Draw the selected district boundary and fit the map to it
   useEffect(() => {
-    // Load Google Maps
-    if (!window.google) {
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
-      script.async = true;
-      script.onload = () => initMap();
-      document.head.appendChild(script);
-    } else {
-      initMap();
-    }
-  }, []);
+    const L = getLeaflet();
+    const geometry = geofenceData?.geojson?.geometry;
+    if (!map || !L || !geometry) return;
 
-  const initMap = () => {
-    if (mapRef.current && window.google) {
-      googleMapRef.current = new window.google.maps.Map(mapRef.current, {
-        center: { lat: 20.5937, lng: 78.9629 }, // Center of India
-        zoom: 5,
-        mapTypeControl: true,
-        streetViewControl: false,
-      });
-    }
-  };
+    // Polygon or MultiPolygon; each polygon's first ring is the outline, the rest are holes
+    const polygons = toLatLngPolygons(geometry).map((rings) =>
+      L.polygon(rings, {
+        color: '#2563eb',
+        opacity: 0.9,
+        weight: 2.5,
+        fillColor: '#3b82f6',
+        fillOpacity: 0.3,
+        interactive: false,
+      }).addTo(map)
+    );
+
+    // Fit map to show entire boundary, with a little padding
+    const bounds = geojsonBounds(geometry);
+    if (bounds) map.fitBounds(bounds, { padding: [20, 20] });
+
+    return () => polygons.forEach((polygon) => polygon.remove());
+  }, [map, geofenceData]);
 
   const searchDistricts = async (query) => {
     if (!query || query.length < 2) {
@@ -85,15 +98,15 @@ const DistrictGeofenceSelector = ({ onGeofenceSelect, selectedGeofence }) => {
       const osmId = district.osm_id;
       const osmType = district.osm_type;
 
-      // Method 1: Try direct search with polygon_geojson
+      // Look the selected OSM object up by id. (Re-searching by name with limit=1 often
+      // returned the town node — a Point — instead of the district boundary relation.)
+      const osmTypeLetter = { relation: 'R', way: 'W', node: 'N' }[osmType] || 'R';
       const searchResponse = await fetch(
-        `https://nominatim.openstreetmap.org/search?` +
-        `q=${encodeURIComponent(district.name || district.display_name.split(',')[0])}&` +
+        `https://nominatim.openstreetmap.org/lookup?` +
+        `osm_ids=${osmTypeLetter}${encodeURIComponent(osmId)}&` +
         `format=geojson&` +
         `polygon_geojson=1&` +
-        `addressdetails=1&` +
-        `countrycodes=in&` +
-        `limit=1`
+        `addressdetails=1`
       );
 
       if (!searchResponse.ok) {
@@ -173,15 +186,13 @@ const DistrictGeofenceSelector = ({ onGeofenceSelect, selectedGeofence }) => {
         geometry: geometry,
       };
 
+      // The boundary is drawn by the effect above when geofenceData changes
       setGeofenceData({
         geojson,
         center_lat: centerLat,
         center_lng: centerLng,
         name: feature.properties.name || district.name || district.display_name.split(',')[0],
       });
-
-      // Draw on map
-      drawPolygonOnMap(geometry, centerLat, centerLng);
 
     } catch (err) {
       console.error('Geofence fetch error:', err);
@@ -190,88 +201,6 @@ const DistrictGeofenceSelector = ({ onGeofenceSelect, selectedGeofence }) => {
     } finally {
       setIsLoadingGeofence(false);
     }
-  };
-
-  const drawPolygonOnMap = (geometry, centerLat, centerLng) => {
-    if (!googleMapRef.current || !window.google) return;
-
-    // Remove existing polygons
-    if (polygonRef.current) {
-      if (Array.isArray(polygonRef.current)) {
-        polygonRef.current.forEach(p => p.setMap(null));
-      } else {
-        polygonRef.current.setMap(null);
-      }
-    }
-
-    const bounds = new window.google.maps.LatLngBounds();
-
-    if (geometry.type === 'Polygon') {
-      // Single polygon - coordinates[0] is outer ring, rest are holes      
-      // Convert all rings (outer + holes)
-      const paths = geometry.coordinates.map((ring, idx) => {
-        return ring.map(coord => {
-          const point = { lat: coord[1], lng: coord[0] };
-          if (idx === 0) bounds.extend(point); // Only extend bounds for outer ring
-          return point;
-        });
-      });
-
-      const polygon = new window.google.maps.Polygon({
-        paths: paths, // First path is outer, rest are holes
-        strokeColor: '#2563eb',
-        strokeOpacity: 0.9,
-        strokeWeight: 2.5,
-        fillColor: '#3b82f6',
-        fillOpacity: 0.3,
-        clickable: false,
-      });
-
-      polygon.setMap(googleMapRef.current);
-      polygonRef.current = polygon;
-
-    } else if (geometry.type === 'MultiPolygon') {
-      // Multiple polygons
-      const polygons = [];
-
-      geometry.coordinates.forEach((polygonCoords, polyIdx) => {
-        
-        // Each polygon can have multiple rings (outer + holes)
-        const paths = polygonCoords.map((ring, ringIdx) => {
-          return ring.map(coord => {
-            const point = { lat: coord[1], lng: coord[0] };
-            if (ringIdx === 0) bounds.extend(point); // Only extend for outer rings
-            return point;
-          });
-        });
-
-        const polygon = new window.google.maps.Polygon({
-          paths: paths,
-          strokeColor: '#2563eb',
-          strokeOpacity: 0.9,
-          strokeWeight: 2.5,
-          fillColor: '#3b82f6',
-          fillOpacity: 0.3,
-          clickable: false,
-        });
-
-        polygon.setMap(googleMapRef.current);
-        polygons.push(polygon);
-      });
-
-      polygonRef.current = polygons;
-    }
-
-    // Fit map to show entire boundary
-    googleMapRef.current.fitBounds(bounds);
-
-    // Add padding by zooming out slightly
-    setTimeout(() => {
-      const currentZoom = googleMapRef.current.getZoom();
-      if (currentZoom && currentZoom > 1) {
-        googleMapRef.current.setZoom(Math.max(currentZoom - 0.5, 1));
-      }
-    }, 200);
   };
 
   const handleDistrictSelect = async (district) => {
@@ -297,13 +226,8 @@ const DistrictGeofenceSelector = ({ onGeofenceSelect, selectedGeofence }) => {
     setSearchQuery('');
     setSearchResults([]);
     setError('');
-    if (polygonRef.current) {
-      polygonRef.current.setMap(null);
-    }
-    if (googleMapRef.current) {
-      googleMapRef.current.setCenter({ lat: 20.5937, lng: 78.9629 });
-      googleMapRef.current.setZoom(5);
-    }
+    // Clearing geofenceData removes the boundary layers (effect cleanup)
+    map?.setView([INDIA_CENTER.lat, INDIA_CENTER.lng], 5);
   };
 
   return (
@@ -399,6 +323,7 @@ const DistrictGeofenceSelector = ({ onGeofenceSelect, selectedGeofence }) => {
       {/* Map Container */}
       <div className="relative border-2 border-gray-200 rounded-lg overflow-hidden">
         <div ref={mapRef} className="w-full h-80" />
+        <MapTypeControls mapRef={map} />
         {!geofenceData && !isLoadingGeofence && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-50/80">
             <div className="text-center">

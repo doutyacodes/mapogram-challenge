@@ -17,9 +17,9 @@ import {
   Share2,
   MessageCircle,
   Copy,
-  Facebook,
-  Twitter
 } from 'lucide-react';
+// lucide-react 1.x no longer ships brand icons
+import { FaFacebookF as Facebook, FaXTwitter as Twitter } from 'react-icons/fa6';
 import SearchAddCommunityButton from './SearchAddCommunityButton';
 
 

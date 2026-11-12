@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/utils';
 import { PAGE_ROLE_CATEGORY_MAP, POST_CATEGORY_TEMPLATES } from '@/utils/schema/schema';
-import { eq, distinct } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 export async function GET(request) {
   try {

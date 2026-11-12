@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Upload, MapPin, Calendar, Clock, Users, AlertCircle, CheckCircle, Loader2, ChevronDown, Search, ImageIcon, AtSign, ArrowLeft, Toggle } from 'lucide-react';
+import { X, Upload, MapPin, Calendar, Clock, Users, AlertCircle, CheckCircle, Loader2, ChevronDown, Search, ImageIcon, AtSign, ArrowLeft } from 'lucide-react';
 import { ImageUploadService } from '@/utils/imageUploadService';
 import MapLocationPicker from '@/app/_components/MapLocationPicker';
 import toast from 'react-hot-toast';

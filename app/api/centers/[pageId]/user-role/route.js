@@ -3,7 +3,8 @@ import { db } from '@/utils';
 import { PAGE_MEMBERS, PAGE_ROLES } from '@/utils/schema/schema';
 import { eq, and } from 'drizzle-orm';
 
-export async function GET(req, { params }) {
+export async function GET(req, props) {
+  const params = await props.params;
   try {
     const { searchParams } = new URL(req.url);
     const userId = parseInt(searchParams.get('userId'));

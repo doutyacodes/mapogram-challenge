@@ -712,4 +712,118 @@ export const TASK_RELATIONS = mysqlTable("task_relations", {
   order_id: int("order_id").notNull(),
 });
 
+// --- Legacy NewsOnMap tables -------------------------------------------------------
+// Used by /api/nearby-news/*, /api/news/* and /api/admin/signup. They were never
+// defined in this repo (carried over from the NewsOnMap app); the shapes below follow
+// what those routes read and write. `created_by` holds the id from the JWT (USERS.id).
+
+export const USER_DETAILS = mysqlTable("user_details", {
+  id: int("id").primaryKey().autoincrement(),
+  name: varchar("name", { length: 150 }),
+  username: varchar("username", { length: 150 }).notNull().unique(),
+  password: varchar("password", { length: 255 }).notNull(),
+  mobile: varchar("mobile", { length: 20 }).unique(),
+  profile_image_url: text("profile_image_url"),
+  role_id: int("role_id"), // user_roles.id (community_schema USER_ROLES)
+  is_active: boolean("is_active").default(true),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const HYPERLOCAL_CATEGORIES = mysqlTable("hyperlocal_categories", {
+  id: int("id").primaryKey().autoincrement(),
+  name: varchar("name", { length: 100 }).notNull(),
+});
+
+export const HYPERLOCAL_NEWS = mysqlTable("hyperlocal_news", {
+  id: int("id").primaryKey().autoincrement(),
+  title: varchar("title", { length: 255 }).notNull(),
+  content: text("content"),
+  image_url: text("image_url"),
+  article_url: text("article_url"),
+  latitude: decimal("latitude", { precision: 10, scale: 7 }).notNull(),
+  longitude: decimal("longitude", { precision: 10, scale: 7 }).notNull(),
+  category_id: int("category_id"), // hyperlocal_categories.id; no FK: routes hard-code ids (11 obituary, 17 classified)
+  created_by: int("created_by").notNull(),
+  delete_after_hours: int("delete_after_hours").default(24),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
+}, (table) => ({
+  idxHyperlocalNewsCoords: index("idx_hyperlocal_news_coords").on(table.latitude, table.longitude),
+  idxHyperlocalNewsCreatedBy: index("idx_hyperlocal_news_created_by").on(table.created_by),
+}));
+
+export const CLASSIFIED_ADS = mysqlTable("classified_ads", {
+  id: int("id").primaryKey().autoincrement(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  ad_type: varchar("ad_type", { length: 50 }),
+  price: decimal("price", { precision: 12, scale: 2 }),
+  type: varchar("type", { length: 50 }), // item type, lower-cased category name
+  images: text("images"), // JSON-encoded array of image URLs
+  contact_info: varchar("contact_info", { length: 255 }),
+  latitude: decimal("latitude", { precision: 10, scale: 7 }).notNull(),
+  longitude: decimal("longitude", { precision: 10, scale: 7 }).notNull(),
+  category_id: int("category_id"), // hyperlocal_categories.id; no FK: routes hard-code ids (11 obituary, 17 classified)
+  created_by: int("created_by").notNull(),
+  delete_after_hours: int("delete_after_hours").default(24),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
+}, (table) => ({
+  idxClassifiedAdsCoords: index("idx_classified_ads_coords").on(table.latitude, table.longitude),
+  idxClassifiedAdsCreatedBy: index("idx_classified_ads_created_by").on(table.created_by),
+}));
+
+export const OBITUARIES = mysqlTable("obituaries", {
+  id: int("id").primaryKey().autoincrement(),
+  person_name: varchar("person_name", { length: 255 }).notNull(),
+  age: int("age"),
+  // routes write 'YYYY-MM-DD' strings
+  date_of_death: date("date_of_death", { mode: "string" }).notNull(),
+  image_url: text("image_url"),
+  latitude: decimal("latitude", { precision: 10, scale: 7 }).notNull(),
+  longitude: decimal("longitude", { precision: 10, scale: 7 }).notNull(),
+  category_id: int("category_id"), // hyperlocal_categories.id; no FK: routes hard-code ids (11 obituary, 17 classified)
+  created_by: int("created_by").notNull(),
+  delete_after_hours: int("delete_after_hours").default(48),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
+}, (table) => ({
+  idxObituariesCoords: index("idx_obituaries_coords").on(table.latitude, table.longitude),
+  idxObituariesCreatedBy: index("idx_obituaries_created_by").on(table.created_by),
+}));
+
+export const MAP_NEWS_CATEGORIES = mysqlTable("map_news_categories", {
+  id: int("id").primaryKey().autoincrement(),
+  name: varchar("name", { length: 100 }).notNull(),
+});
+
+export const MAP_NEWS = mysqlTable("map_news", {
+  id: int("id").primaryKey().autoincrement(),
+  title: varchar("title", { length: 255 }).notNull(),
+  summary: text("summary"),
+  image_url: text("image_url"),
+  article_url: text("article_url"),
+  source_name: varchar("source_name", { length: 255 }),
+  latitude: decimal("latitude", { precision: 10, scale: 7 }),
+  longitude: decimal("longitude", { precision: 10, scale: 7 }),
+  category_id: int("category_id").references(() => MAP_NEWS_CATEGORIES.id),
+  language_id: int("language_id").references(() => LANGUAGES.id),
+  is_breaking: boolean("is_breaking").default(false),
+  breaking_expire_at: timestamp("breaking_expire_at"),
+  is_high_priority: boolean("is_high_priority").default(false),
+  created_at: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  idxMapNewsCoords: index("idx_map_news_coords").on(table.latitude, table.longitude),
+  idxMapNewsCreatedAt: index("idx_map_news_created_at").on(table.created_at),
+}));
+
+export const MAP_NEWS_VIEWS = mysqlTable("map_news_views", {
+  id: int("id").primaryKey().autoincrement(),
+  news_id: int("news_id").notNull().references(() => MAP_NEWS.id, { onDelete: "cascade" }),
+  ip_address: varchar("ip_address", { length: 45 }).notNull(), // fits IPv6
+  viewed_at: timestamp("viewed_at").defaultNow(),
+}, (table) => ({
+  idxMapNewsViewsNewsIp: index("idx_map_news_views_news_ip").on(table.news_id, table.ip_address),
+}));
+
 // -----------------------------------====================================--------------

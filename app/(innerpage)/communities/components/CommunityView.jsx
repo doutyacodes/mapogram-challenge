@@ -1516,13 +1516,14 @@ export default function CommunityView({
             zoom={mapZoom}
             style={{ width: '100%', height: '100%', zIndex: 0 }}
             zoomControl={false}
-            attributionControl={false}
+            attributionControl={true}
             minZoom={isInfrastructureCommunity ? minZoomLevel : 2}
             maxZoom={isInfrastructureCommunity ? 22 : 18}
           >
             <MapInstanceBridge onReady={handleMapLoad} />
             <TileLayer
-              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
 
             {(() => {

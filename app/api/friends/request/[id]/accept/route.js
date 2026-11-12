@@ -7,7 +7,8 @@ import { FRIEND_REQUESTS, FRIENDS, USER_NOTIFICATIONS } from '@/utils/schema/fri
 
 import { eq, and } from 'drizzle-orm';
 
-export async function POST(req, { params }) {
+export async function POST(req, props) {
+  const params = await props.params;
   try {
     const token = req.cookies.get("user_token")?.value;
     if (!token) {

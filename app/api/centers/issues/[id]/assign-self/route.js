@@ -5,7 +5,8 @@ import { USER_POST_ISSUE_DETAILS } from '@/utils/schema/centers_schema';
 import jwt from 'jsonwebtoken';
 import { eq } from 'drizzle-orm';
 
-export async function PATCH(request, { params }) {
+export async function PATCH(request, props) {
+  const params = await props.params;
   try {
     const { id } = params;
 

@@ -6,7 +6,8 @@ import { USERS } from '@/utils/schema/schema';
 import { eq } from 'drizzle-orm';
 import { FRIEND_REQUESTS, USER_NOTIFICATIONS } from '@/utils/schema/friendsLayer_schema';
 
-export async function POST(req, { params }) {
+export async function POST(req, props) {
+  const params = await props.params;
   try {
     const token = req.cookies.get("user_token")?.value;
     if (!token) {

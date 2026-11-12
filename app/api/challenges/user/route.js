@@ -3,11 +3,13 @@ import { USER_CHALLENGES, CHALLENGES } from "@/utils/schema/schema";
 import { eq, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+// NOTE: the [...nextauth] route never exported authOptions, so getServerSession has always
+// run with default options here (no session callback => no user id). Calling it without
+// arguments keeps that exact behaviour; Turbopack rejects importing a missing export.
 
 export async function GET(req) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     let userId = 122; // Default to Guest account Tony Stark (ID 122) if unauthorized
 
     if (session && session.user) {
@@ -32,7 +34,7 @@ export async function GET(req) {
 
 export async function POST(req) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     let userId = 122; // Default logic for testing (Tony Stark ID 122)
 
     if (session && session.user) {

@@ -4,7 +4,8 @@ import { db } from '@/utils';
 import { COMMUNITIES, COMMUNITY_TYPES, COMMUNITY_TYPE_ROLES } from '@/utils/schema/community_schema';
 import { eq } from 'drizzle-orm';
 
-export async function GET(req, { params }) {
+export async function GET(req, props) {
+  const params = await props.params;
   try {
     const resolvedParams = await params;
     const { communityId } = resolvedParams;

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { db } from '@/utils';
 import { USER_COMPANIES, USER_ENTITIES } from '@/utils/schema/community_schema';
-import { eq, innerJoin } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 export async function GET(req) {
   try {

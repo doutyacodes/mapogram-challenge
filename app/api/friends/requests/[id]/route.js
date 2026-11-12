@@ -5,7 +5,8 @@ import { FRIEND_REQUESTS, FRIENDS } from '@/utils/schema/friendsLayer_schema';
 import { and, eq } from 'drizzle-orm';
 import { jwtVerify } from 'jose';
 
-export async function PATCH(req, { params }) {
+export async function PATCH(req, props) {
+  const params = await props.params;
   try {
     const { id } = params;
     const requestId = parseInt(id);

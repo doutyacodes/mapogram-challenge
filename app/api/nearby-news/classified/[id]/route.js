@@ -4,7 +4,8 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { authenticate } from "@/lib/jwtMiddleware";
 
-export async function GET(req, { params }) {
+export async function GET(req, props) {
+  const params = await props.params;
   try {
     const { id } = params;
     
@@ -106,7 +107,8 @@ async function deleteImageFromCPanel(filename) {
   }
 }
 
-  export async function PUT(req, { params }) {
+  export async function PUT(req, props) {
+    const params = await props.params;
     // Authenticate user
     const authResult = await authenticate(req);
     if (!authResult.authenticated) {

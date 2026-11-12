@@ -38,8 +38,10 @@ export async function GET(req) {
     if (token) {
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        viewerId = decoded?.id;
-        viewerRole = "user"; 
+        // Guest tokens carry no id; use null so the raw SQL below gets a real NULL
+        // parameter (undefined is dropped by drizzle and produces invalid SQL).
+        viewerId = decoded?.id ?? null;
+        viewerRole = viewerId ? "user" : "guest";
       } catch (e) {
         console.error("Token verification failed in /api/page:", e);
       }

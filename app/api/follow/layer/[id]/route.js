@@ -5,7 +5,8 @@ import { USER_FOLLOWED_LAYERS } from '@/utils/schema/schema';
 import { eq, and } from 'drizzle-orm';
 
 // Follow a layer
-export async function POST(req, { params }) {
+export async function POST(req, props) {
+  const params = await props.params;
   try {
     const token = req.cookies.get("user_token")?.value;
     if (!token) {
@@ -43,7 +44,8 @@ export async function POST(req, { params }) {
 }
 
 // Unfollow a layer
-export async function DELETE(req, { params }) {
+export async function DELETE(req, props) {
+  const params = await props.params;
   try {
     const token = req.cookies.get("user_token")?.value;
     if (!token) {

@@ -3,7 +3,8 @@ import { db } from '@/utils';
 import { eq, and } from 'drizzle-orm';
 import { COMMUNITY_TYPE_ROLES } from '@/utils/schema/community_schema';
 
-export async function GET(req, { params }) {
+export async function GET(req, props) {
+  const params = await props.params;
   try {
     const { id } = params;
     

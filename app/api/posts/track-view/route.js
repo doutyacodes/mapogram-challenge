@@ -23,6 +23,11 @@ export async function POST(req) {
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
   const userId = decoded.id;
 
+  // Guest sessions have no user id; views are only tracked for signed-in users
+  if (!userId) {
+    return NextResponse.json({ message: 'Sign in to track views' }, { status: 401 });
+  }
+
   // Check if this User has already viewed this post in the past hour
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
