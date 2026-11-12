@@ -646,10 +646,12 @@ const GetMapChallenges = (districtId = null, pageId = null, challengeId = null) 
   return axios.get(url);
 };
 
-const GetMapDistricts = (search = null) => {
-  let url = '/api/page/districts';
-  if (search) url += `?search=${search}`;
-  return axios.get(url);
+const GetMapDistricts = (search = null, pageId = null) => {
+  const params = new URLSearchParams();
+  if (search) params.set('search', search);
+  if (pageId) params.set('page_id', pageId);
+  const query = params.toString();
+  return axios.get(`/api/page/districts${query ? `?${query}` : ''}`);
 };
 
 export default {

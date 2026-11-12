@@ -1,79 +1,74 @@
+// /api/challenges/user - the signed-in user's challenges
+//   GET  -> [{ user_challenge, challenge }]
+//   POST { challenge_id, status, media_url? } -> accept / complete a challenge
+//
+// The user comes from the user_token cookie. (This used to call getServerSession(),
+// which never returned an id, so every request fell back to one hard-coded account.)
+import { NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 import { db } from "@/utils";
 import { USER_CHALLENGES, CHALLENGES } from "@/utils/schema/schema";
-import { eq, and } from "drizzle-orm";
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-// NOTE: the [...nextauth] route never exported authOptions, so getServerSession has always
-// run with default options here (no session callback => no user id). Calling it without
-// arguments keeps that exact behaviour; Turbopack rejects importing a missing export.
+import { PROGRESS_STATUSES, getUserId, recordProgress, toId } from "@/utils/challengePages";
 
 export async function GET(req) {
+  const userId = getUserId(req);
+  if (!userId) return NextResponse.json({ success: true, data: [] });
+
   try {
-    const session = await getServerSession();
-    let userId = 122; // Default to Guest account Tony Stark (ID 122) if unauthorized
-
-    if (session && session.user) {
-      userId = session.user.id;
-    }
-
-    // Fetch all user mapped challenges
-    const results = await db.select({
-       user_challenge: USER_CHALLENGES,
-       challenge: CHALLENGES
-    })
-    .from(USER_CHALLENGES)
-    .innerJoin(CHALLENGES, eq(USER_CHALLENGES.challenge_id, CHALLENGES.id))
-    .where(eq(USER_CHALLENGES.user_id, userId));
+    const results = await db
+      .select({ user_challenge: USER_CHALLENGES, challenge: CHALLENGES })
+      .from(USER_CHALLENGES)
+      .innerJoin(CHALLENGES, eq(USER_CHALLENGES.challenge_id, CHALLENGES.id))
+      .where(eq(USER_CHALLENGES.user_id, userId));
 
     return NextResponse.json({ success: true, data: results });
   } catch (error) {
     console.error("GET user_challenges error:", error);
-    return NextResponse.json({ success: false, message: "Server error", error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
   }
 }
 
 export async function POST(req) {
+  const userId = getUserId(req);
+  if (!userId) {
+    return NextResponse.json({ success: false, message: "Sign in to save your progress" }, { status: 401 });
+  }
+
+  let body;
   try {
-    const session = await getServerSession();
-    let userId = 122; // Default logic for testing (Tony Stark ID 122)
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ success: false, message: "Invalid JSON body" }, { status: 400 });
+  }
 
-    if (session && session.user) {
-      userId = session.user.id;
+  const challengeId = toId(body?.challenge_id);
+  const status = body?.status;
+  if (!challengeId || !PROGRESS_STATUSES.includes(status)) {
+    return NextResponse.json(
+      { success: false, message: `challenge_id and status (${PROGRESS_STATUSES.join(", ")}) are required` },
+      { status: 400 }
+    );
+  }
+
+  // Optional proof image shown on the People tab
+  let mediaUrl = null;
+  if (body.media_url) {
+    try {
+      const url = new URL(String(body.media_url));
+      if (url.protocol === "https:" || url.protocol === "http:") mediaUrl = url.toString().slice(0, 255);
+    } catch {
+      /* ignore an invalid URL */
     }
+  }
 
-    const body = await req.json();
-    const { challenge_id, status } = body; // status can be "accepted" or "completed"
-
-    if (!challenge_id || !status) {
-      return NextResponse.json({ success: false, message: "Missing challenge_id or status" }, { status: 400 });
+  try {
+    const result = await recordProgress(userId, challengeId, status, status === "completed" ? mediaUrl : null);
+    if (result.error) {
+      return NextResponse.json({ success: false, message: result.error }, { status: result.code });
     }
-
-    // Check if it already exists
-    const existing = await db.select()
-      .from(USER_CHALLENGES)
-      .where(and(
-        eq(USER_CHALLENGES.user_id, userId),
-        eq(USER_CHALLENGES.challenge_id, challenge_id)
-      ));
-
-    if (existing.length > 0) {
-      // Update
-      await db.update(USER_CHALLENGES)
-        .set({ status, end_date: status === 'completed' ? new Date() : null })
-        .where(eq(USER_CHALLENGES.id, existing[0].id));
-    } else {
-      // Insert
-      await db.insert(USER_CHALLENGES).values({
-        user_id: userId,
-        challenge_id,
-        status,
-        is_accepted: true
-      });
-    }
-
-    return NextResponse.json({ success: true, message: `Challenge ${status} successfully.` });
+    return NextResponse.json({ success: true, message: `Challenge ${result.status} successfully.`, ...result });
   } catch (error) {
     console.error("POST user_challenges error:", error);
-    return NextResponse.json({ success: false, message: "Server error", error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
   }
 }

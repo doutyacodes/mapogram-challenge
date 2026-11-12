@@ -4,13 +4,15 @@ import {
   PAGES,
   PAGE_PROFILES
 } from "@/utils/schema/schema";
-import { eq, like, or } from "drizzle-orm";
+import { and, eq, like, or } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search");
+    // page_id keeps the response to one page's districts (every row carries its outline)
+    const pageId = parseInt(searchParams.get("page_id"), 10);
 
     let query = db
       .select({
@@ -33,14 +35,17 @@ export async function GET(req) {
       .innerJoin(PAGES, eq(DISTRICTS.page_id, PAGES.id))
       .leftJoin(PAGE_PROFILES, eq(PAGES.id, PAGE_PROFILES.page_id));
 
+    const conditions = [];
+    if (Number.isInteger(pageId) && pageId > 0) conditions.push(eq(DISTRICTS.page_id, pageId));
     if (search) {
-      query = query.where(
+      conditions.push(
         or(
           like(DISTRICTS.name, `%${search}%`),
           like(DISTRICTS.description, `%${search}%`)
         )
       );
     }
+    if (conditions.length) query = query.where(and(...conditions));
 
     const results = await query;
     return NextResponse.json({ success: true, data: results });

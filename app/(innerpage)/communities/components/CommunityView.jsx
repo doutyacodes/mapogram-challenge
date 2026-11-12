@@ -47,9 +47,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 // applyGoogleMapsControlStyle removed — using Leaflet
 import PostRegistrationModal from "@/components/map/posts/PostRegistrationModal";
 import StateCategoryContent from "./StateCategoryContent";
-import { STATIC_DISTRICT_DATA } from "@/utils/mockCategoryData";
-import { getChallengePageData, getStaticCommunityMeta } from "@/utils/staticCommunities";
-import { geojsonBounds } from "@/utils/map/geometry";
+import { geojsonBounds, haversineMeters } from "@/utils/map/geometry";
 import { useUserRole } from "@/app/hooks/useUserRole";
 import { createClusterRenderer } from "@/utils/map/createClusterRenderer";
 import MapCard from "@/components/map/MapCard";
@@ -69,6 +67,75 @@ import RequirementModal from "@/components/community/UserRequirements/Requiremen
 import CommunityPostCreation from "@/components/community/CommunityPostCreation";
 import CommunityQuickActions from "@/components/map/controls/CommunityQuickActions";
 import CreateInfrastructurePostModal from "@/components/Navbar/CreateInfrastructurePostModal"; // Renamed from CreateCenterPostModal
+
+// Challenge pages (state tourism, tourism, company, brand, celebrity) come from the
+// database via /api/challenge-pages/*; the community list marks them with this source.
+const CHALLENGE_PAGE_SOURCE = 'challenge_page';
+
+// Colour and icon of each map category (cards, detail panel, accepted chips)
+const CATEGORY_STYLE = {
+  Challenges: { badge: 'bg-orange-500', chip: 'bg-orange-600/90', Icon: Target },
+  Places: { badge: 'bg-green-500', chip: 'bg-green-600/90', Icon: MapPin },
+  Food: { badge: 'bg-red-500', chip: 'bg-red-600/90', Icon: Utensils },
+  Activity: { badge: 'bg-cyan-500', chip: 'bg-cyan-600/90', Icon: Activity },
+  Events: { badge: 'bg-violet-500', chip: 'bg-violet-600/90', Icon: Calendar },
+};
+const DEFAULT_CATEGORY_STYLE = { badge: 'bg-blue-500', chip: 'bg-blue-600/90', Icon: Star };
+const categoryStyle = (category) => CATEGORY_STYLE[category] || DEFAULT_CATEGORY_STYLE;
+const CategoryIcon = ({ category, size }) => React.createElement(categoryStyle(category).Icon, { size });
+
+// Items the user hid on a page, remembered in this browser only
+const hiddenItemsKey = (pageId) => `challengePageHidden:${pageId}`;
+const loadHiddenItems = (pageId) => {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(hiddenItemsKey(pageId)) || '[]'));
+  } catch {
+    return new Set();
+  }
+};
+const saveHiddenItems = (pageId, ids) => {
+  try {
+    localStorage.setItem(hiddenItemsKey(pageId), JSON.stringify([...ids]));
+  } catch {
+    /* storage unavailable: hiding still works for this visit */
+  }
+};
+
+const timeAgo = (value) => {
+  const then = new Date(value).getTime();
+  if (!Number.isFinite(then)) return '';
+  const minutes = Math.round((Date.now() - then) / 60000);
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+  const days = Math.round(hours / 24);
+  if (days === 1) return 'Yesterday';
+  if (days < 30) return `${days} days ago`;
+  return new Date(then).toLocaleDateString();
+};
+
+const nameInitials = (name) =>
+  (name || '?').split(/\s+/).filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
+
+const formatDistance = (meters) =>
+  meters < 1000 ? `${Math.round(meters)} m` : `${(meters / 1000).toFixed(meters < 10000 ? 1 : 0)} km`;
+
+// Real location of an item, falling back to where its marker is drawn
+const itemLatLng = (item) => {
+  const lat = item?.latitude ?? item?.lat;
+  const lng = item?.longitude ?? item?.lng;
+  return lat == null || lng == null ? null : { lat: Number(lat), lng: Number(lng) };
+};
+
+const Avatar = ({ src, name, className }) =>
+  src ? (
+    <img src={src} className={`${className} rounded-full border-2 border-white shadow-sm object-cover`} alt="" />
+  ) : (
+    <div className={`${className} rounded-full border-2 border-white shadow-sm bg-blue-100 text-blue-700 font-black text-xs flex items-center justify-center`}>
+      {nameInitials(name)}
+    </div>
+  );
 
 const MapInstanceBridge = ({ onReady }) => {
   const map = useMap();
@@ -388,22 +455,36 @@ export default function CommunityView({
   const [selectedCommunity, setSelectedCommunity] = useState(null);
   const [communitiesLoading, setCommunitiesLoading] = useState(true);
 
+  // Challenge page data (all from the database)
+  const isChallengePage = selectedCommunity?.source === CHALLENGE_PAGE_SOURCE;
+  const challengePageId = isChallengePage ? selectedCommunity.id : null;
+  const [challengePage, setChallengePage] = useState(null); // { id, name, kind, kindLabel, tagline, logo }
+  const [districtItems, setDistrictItems] = useState({}); // { [districtId]: { Challenges: [...], ... } }
+  const [itemsLoading, setItemsLoading] = useState(false);
+  const [completedItemIds, setCompletedItemIds] = useState(() => new Set());
+  const [totalPoints, setTotalPoints] = useState(0);
+  const [progressSignedIn, setProgressSignedIn] = useState(false);
+  const [detailActivity, setDetailActivity] = useState(null); // { people, leaderboard }; null while loading
+  const [userPosition, setUserPosition] = useState(null);
+  const [earnedPoints, setEarnedPoints] = useState(0);
+  const [qrError, setQrError] = useState(null);
+
   // Tell the top bar which community is shown (it can't rely on the URL: we update
   // it with history.replaceState, which other components don't observe).
   useEffect(() => {
     if (onTourismUpdate && selectedCommunity) {
-      const isStatic = selectedCommunity.source === 'static';
-      const meta = isStatic ? getStaticCommunityMeta(selectedCommunity.id) : null;
+      const isPage = selectedCommunity.source === CHALLENGE_PAGE_SOURCE;
+      const page = isPage && challengePage?.id === selectedCommunity.id ? challengePage : null;
       onTourismUpdate({
         communityId: selectedCommunity.id,
-        isStatic,
-        stateName: selectedCommunity.name,
-        kindLabel: meta?.kindLabel || `${selectedCommunity.name} Tourism`,
-        logo: meta?.logo || null,
-        totalPoints: 1250 // maintain the mock
+        isStatic: isPage,
+        stateName: page?.name || selectedCommunity.name,
+        kindLabel: page?.kindLabel || selectedCommunity.kind_label || null,
+        logo: page?.logo || (isPage ? selectedCommunity.image_url : null) || null,
+        totalPoints: isPage ? totalPoints : 0
       });
     }
-  }, [selectedCommunity, onTourismUpdate]);
+  }, [selectedCommunity, challengePage, totalPoints, onTourismUpdate]);
 
   const [showApprovalOverlay, setShowApprovalOverlay] = useState(false);
 
@@ -523,9 +604,186 @@ export default function CommunityView({
   const [categoryMarkers, setCategoryMarkers] = useState([]);
   const [activeCategoryMarker, setActiveCategoryMarker] = useState(null);
   const [expandedCategory, setExpandedCategory] = useState(null);
-  
-  // Total points moved to parent, but keeping reference here for easy refactor if needed locally
-  const totalPoints = 1250;
+
+  // ── Challenge page: header data + district outlines (once per page) ──
+  useEffect(() => {
+    setChallengePage(null);
+    setDistrictItems({});
+    if (!challengePageId) return;
+    let cancelled = false;
+    setGeofenceData(null);
+    (async () => {
+      try {
+        const res = await fetch(`/api/challenge-pages/${challengePageId}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (cancelled) return;
+        setChallengePage(data.page);
+        setGeofenceData(data.geofence);
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Error loading challenge page:', err);
+          setError('Failed to load this page');
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [challengePageId]);
+
+  // ── Challenge page: the user's accepted / completed items and points ──
+  const loadProgress = useCallback(async (pageId) => {
+    try {
+      const res = await fetch(`/api/challenge-pages/${pageId}/progress`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setProgressSignedIn(Boolean(data.signedIn));
+      setTotalPoints(data.totalPoints || 0);
+      setCompletedItemIds(new Set(data.completedIds || []));
+      setAcceptedItems((data.accepted || []).slice(-5));
+    } catch (err) {
+      console.error('Error loading challenge progress:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    setAcceptedItems([]);
+    setCompletedItemIds(new Set());
+    setTotalPoints(0);
+    setProgressSignedIn(false);
+    setDeniedItemIds(challengePageId ? loadHiddenItems(challengePageId) : new Set());
+    if (challengePageId) loadProgress(challengePageId);
+  }, [challengePageId, loadProgress]);
+
+  // ── Challenge page: items of the selected district (fetched once per district) ──
+  const selectedDistrictId = useMemo(() => {
+    if (!isChallengePage || !selectedDistrict || geofenceData?.type !== 'FeatureCollection') return null;
+    const wanted = selectedDistrict.toLowerCase();
+    const feature = geofenceData.features.find(f => (f.properties?.name || '').toLowerCase() === wanted);
+    return feature?.properties?.district_id ?? null;
+  }, [isChallengePage, selectedDistrict, geofenceData]);
+
+  useEffect(() => {
+    if (!challengePageId || !selectedDistrictId || districtItems[selectedDistrictId]) return;
+    let cancelled = false;
+    setItemsLoading(true);
+    fetch(`/api/challenge-pages/${challengePageId}/items?district_id=${selectedDistrictId}`)
+      .then(res => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))))
+      .then(data => {
+        if (!cancelled) setDistrictItems(prev => ({ ...prev, [selectedDistrictId]: data.items || {} }));
+      })
+      .catch(err => {
+        if (!cancelled) console.error('Error loading district items:', err);
+      })
+      .finally(() => {
+        if (!cancelled) setItemsLoading(false);
+      });
+    return () => { cancelled = true; setItemsLoading(false); };
+  }, [challengePageId, selectedDistrictId, districtItems]);
+
+  // ── Detail panel: People + Leaderboard, and the user's distance to the item ──
+  const detailItemId = isDetailModalOpen ? detailItem?.id : null;
+  const loadActivity = useCallback(async (challengeId) => {
+    try {
+      const res = await fetch(`/api/challenges/${challengeId}/activity`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setDetailActivity(await res.json());
+    } catch (err) {
+      console.error('Error loading challenge activity:', err);
+      setDetailActivity({ people: [], leaderboard: [] });
+    }
+  }, []);
+
+  useEffect(() => {
+    setDetailActivity(null);
+    if (!detailItemId) return;
+    loadActivity(detailItemId);
+    if (!userPosition && typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => setUserPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {},
+        { enableHighAccuracy: false, maximumAge: 300000, timeout: 10000 }
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detailItemId, loadActivity]);
+
+  const detailDistance = useMemo(() => {
+    const target = itemLatLng(detailItem);
+    if (!userPosition || !target) return null;
+    return formatDistance(haversineMeters(userPosition.lat, userPosition.lng, target.lat, target.lng));
+  }, [userPosition, detailItem]);
+
+  // Save accept / complete for signed-in users; returns the API result or null
+  const saveProgress = useCallback(async (item, status) => {
+    if (!progressSignedIn) return null;
+    const res = await fetch('/api/challenges/user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ challenge_id: item.id, status }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+    return data;
+  }, [progressSignedIn]);
+
+  const handleAcceptItem = useCallback((item) => {
+    setAcceptedItems(prev => [...prev.filter(i => i.id !== item.id), item].slice(-5));
+    setIsDetailModalOpen(false);
+    saveProgress(item, 'accepted').catch(err => console.error('Error accepting challenge:', err));
+  }, [saveProgress]);
+
+  const handleHideItem = useCallback((item) => {
+    setDeniedItemIds(prev => {
+      const next = new Set([...prev, item.id]);
+      if (challengePageId) saveHiddenItems(challengePageId, next);
+      return next;
+    });
+    setIsDetailModalOpen(false);
+  }, [challengePageId]);
+
+  const togglePersonLike = useCallback(async (person) => {
+    try {
+      const res = await fetch(`/api/challenges/people/${person.id}/like`, { method: 'POST' });
+      if (!res.ok) return;
+      const { liked, likes } = await res.json();
+      setDetailActivity(prev => prev && {
+        ...prev,
+        people: prev.people.map(p => (p.id === person.id ? { ...p, liked, likes } : p)),
+      });
+    } catch (err) {
+      console.error('Error liking entry:', err);
+    }
+  }, []);
+
+  // QR verification (simulated scan) completes the challenge and awards its points
+  const handleQrScan = useCallback(async () => {
+    if (!detailItem) return;
+    const item = detailItem;
+    setQrError(null);
+    setQrScanning(true);
+    await new Promise(resolve => setTimeout(resolve, 2500));
+    let points = item.reward_points || 0;
+    try {
+      const result = await saveProgress(item, 'completed');
+      if (result) points = result.pointsEarned || 0;
+    } catch (err) {
+      console.error('Error completing challenge:', err);
+      setQrScanning(false);
+      setQrError(err.message || 'Could not verify. Please try again.');
+      return;
+    }
+    setEarnedPoints(points);
+    setQrScanning(false);
+    setQrSuccess(true);
+    setTimeout(() => {
+      setAcceptedItems(prev => prev.filter(i => i.id !== item.id));
+      setCompletedItemIds(prev => new Set([...prev, item.id]));
+      setTotalPoints(prev => prev + points);
+      setQrSuccess(false);
+      setIsQRModalOpen(false);
+      setIsDetailModalOpen(false);
+    }, 2000);
+  }, [detailItem, saveProgress]);
 
   const getMarkerIcon = useCallback((category, isSelected, isGroup = false) => {
     let color = '#f97316'; // orange for challenges
@@ -564,7 +822,7 @@ export default function CommunityView({
   // Generate markers based on state, district, and category filters
   useEffect(() => {
     setActiveCategoryMarker(null);
-    if (selectedCommunity?.source === 'static' && geofenceData?.type === 'FeatureCollection') {
+    if (isChallengePage && geofenceData?.type === 'FeatureCollection') {
       // Hide all markers if no district is selected
       if (!selectedDistrict) {
         setCategoryMarkers([]);
@@ -572,9 +830,6 @@ export default function CommunityView({
       }
 
       let markers = [];
-      const stateName = selectedCommunity.name;
-      // Challenge pages (tourism/company/brand/celebrity) have generated data; states use the mock file
-      const stateData = getChallengePageData(selectedCommunity.id) || STATIC_DISTRICT_DATA[stateName] || {};
 
       geofenceData.features.forEach(feature => {
         const distName = feature.properties.name || feature.properties.district;
@@ -588,7 +843,8 @@ export default function CommunityView({
         const centerLat = (minLat + maxLat) / 2;
         const centerLng = (minLng + maxLng) / 2;
         
-        const distData = stateData[distName] || {};
+        // Loaded from /api/challenge-pages/:id/items when the district is selected
+        const distData = districtItems[feature.properties.district_id] || {};
         
         // Define which categories to show based on district selection
         let categoriesToShow = [];
@@ -649,7 +905,7 @@ export default function CommunityView({
     } else {
       setCategoryMarkers([]);
     }
-  }, [selectedStateCategory, selectedDistrict, geofenceData, selectedCommunity, selectedSubCategory, expandedCategory]);
+  }, [selectedStateCategory, selectedDistrict, geofenceData, isChallengePage, districtItems, selectedSubCategory, expandedCategory]);
 
   // Open challenge card: a stable position array, so re-renders don't make react-leaflet's
   // <Popup> close and reopen (its effect depends on the position prop's identity).
@@ -814,22 +1070,9 @@ export default function CommunityView({
   }, [selectedCommunity, isInfrastructureCommunity, selectedRole]);
 
   // Unified geofence handling
+  // (Challenge pages load their outlines from /api/challenge-pages/:id instead.)
   const fetchCommunityGeofence = useCallback(async (communityId, districtName = null) => {
     try {
-      // States and challenge pages ship their boundaries as static files
-      const geojsonFile = getStaticCommunityMeta(communityId)?.geojson;
-      if (geojsonFile) {
-        const response = await fetch(geojsonFile);
-        if (response.ok) {
-          const data = await response.json();
-          
-
-          
-          setGeofenceData(data);
-          return;
-        }
-      }
-
       const response = await fetch(`/api/communities/${communityId}/geofence`);
       
       if (!response.ok) {
@@ -1027,13 +1270,14 @@ export default function CommunityView({
   // ADD THIS useEffect TO TRIGGER API CALL WHEN COMMUNITY IS SELECTED
   useEffect(() => {
     if (selectedCommunity && canAccessCommunityPosts(selectedCommunity)) {
-      fetchCommunityGeofence(selectedCommunity.id, selectedDistrict);
-      if (selectedCommunity.source !== 'static') {
-        fetchPostsData(null, selectedCommunity.id);
-      } else {
+      if (selectedCommunity.source === CHALLENGE_PAGE_SOURCE) {
+        // Page data and outlines load once per page (see the challenge page effects)
         setIsLoading(false);
         setPostsItems([]);
+        return;
       }
+      fetchCommunityGeofence(selectedCommunity.id, selectedDistrict);
+      fetchPostsData(null, selectedCommunity.id);
     }
   }, [selectedCommunity, selectedDistrict, fetchCommunityGeofence, fetchPostsData]);
 
@@ -1516,7 +1760,7 @@ export default function CommunityView({
         )}
 
         {/* Show message when no posts */}
-        {!isLoading && selectedCommunity && selectedCommunity?.source !== 'static' && postsItems.length === 0 && (
+        {!isLoading && selectedCommunity && !isChallengePage && postsItems.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-5">
             <div className="text-center p-8 bg-white rounded-lg shadow-lg border border-gray-200">
               <Briefcase size={48} className="mx-auto text-gray-400 mb-4" />
@@ -1678,7 +1922,7 @@ export default function CommunityView({
             )}
 
             {/* Static Category Markers */}
-            {selectedCommunity?.source === 'static' && categoryMarkers.map((marker, index) => {
+            {isChallengePage && categoryMarkers.map((marker, index) => {
               const isGroup = marker.isGroup;
               const isActive = activeCategoryMarker === marker.id;
               const iconUrl = getMarkerIcon(marker.category, isActive, isGroup);
@@ -1708,8 +1952,10 @@ export default function CommunityView({
             })}
 
             {/* Active Category InfoWindow */}
-            {selectedCommunity?.source === 'static' && activeMarkerData && activePopupPosition && (() => {
+            {isChallengePage && activeMarkerData && activePopupPosition && (() => {
               const markerData = activeMarkerData;
+              const { badge } = categoryStyle(markerData.category);
+              const isCompleted = completedItemIds.has(markerData.id);
               return (
                 <Popup
                   position={activePopupPosition}
@@ -1721,20 +1967,15 @@ export default function CommunityView({
                     {/* Refined Header (Reference Style) */}
                     <div className="px-5 py-4 flex items-center justify-between bg-white">
                       <div className="flex items-center gap-2">
-                         <div className={`p-1.5 rounded-lg text-white ${
-                           markerData.id.startsWith('c_') ? 'bg-orange-500' :
-                           markerData.id.startsWith('p_') ? 'bg-green-500' :
-                           markerData.id.startsWith('f_') ? 'bg-red-500' :
-                           markerData.id.startsWith('a_') ? 'bg-cyan-500' :
-                           markerData.id.startsWith('e_') ? 'bg-violet-500' : 'bg-blue-500'
-                         }`}>
-                           {markerData.id.startsWith('c_') ? <Target size={14} /> :
-                            markerData.id.startsWith('p_') ? <MapPin size={14} /> :
-                            markerData.id.startsWith('f_') ? <Utensils size={14} /> :
-                            markerData.id.startsWith('a_') ? <Activity size={14} /> :
-                            markerData.id.startsWith('e_') ? <Calendar size={14} /> : <Star size={14} />}
+                         <div className={`p-1.5 rounded-lg text-white ${badge}`}>
+                           <CategoryIcon category={markerData.category} size={14} />
                          </div>
                          <span className="text-[10px] font-black uppercase text-gray-900 tracking-widest">{markerData.category}</span>
+                         {isCompleted && (
+                           <span className="flex items-center gap-1 text-[9px] font-black uppercase text-green-600 tracking-widest">
+                             <CheckCircle size={12} /> Done
+                           </span>
+                         )}
                       </div>
                       <div className="flex items-center gap-2">
                          <button 
@@ -1790,7 +2031,7 @@ export default function CommunityView({
           </MapContainer>
         </div>
 
-        {selectedCommunity?.source === 'static' && (
+        {isChallengePage && (
           <>
             {/* Unified Discovery FAB - Bottom Right */}
             <div className={`fixed z-[120] flex flex-col items-end gap-3 transition-all duration-300 ${
@@ -1915,7 +2156,7 @@ export default function CommunityView({
         )}
 
         {/* Loading overlay */}
-        {isLoading && (
+        {(isLoading || (isChallengePage && (itemsLoading || (!challengePage && !error)))) && (
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white py-2 px-4 rounded-full shadow-md z-10">
             <div className="flex items-center space-x-2"> 
               <Loader2 className="animate-spin h-5 w-5 text-blue-600" />
@@ -1948,13 +2189,7 @@ export default function CommunityView({
                 setIsDetailModalOpen(true);
                 setActiveCardTab('Rules');
               }}
-              className={`pointer-events-auto h-8 px-4 rounded-full shadow-lg border border-white flex items-center justify-center text-white transition-all transform hover:scale-105 active:scale-95 animate-in slide-in-from-left duration-300 max-w-[160px] group ${
-                item.id.startsWith('c_') ? 'bg-orange-600/90' :
-                item.id.startsWith('p_') ? 'bg-green-600/90' :
-                item.id.startsWith('f_') ? 'bg-red-600/90' :
-                item.id.startsWith('a_') ? 'bg-cyan-600/90' :
-                item.id.startsWith('e_') ? 'bg-violet-600/90' : 'bg-blue-600/90'
-              }`}
+              className={`pointer-events-auto h-8 px-4 rounded-full shadow-lg border border-white flex items-center justify-center text-white transition-all transform hover:scale-105 active:scale-95 animate-in slide-in-from-left duration-300 max-w-[160px] group ${categoryStyle(item.category).chip}`}
             >
               <span className="text-[9px] font-black uppercase tracking-widest truncate">
                 {item.title.length > 10 ? `${item.title.substring(0, 10)}...` : item.title}
@@ -1980,18 +2215,8 @@ export default function CommunityView({
               {/* 1. Top Header Refined */}
               <div className="bg-white p-4 flex items-center justify-between border-b border-gray-50 flex-shrink-0">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-full text-white shadow-sm ${
-                    detailItem.id.startsWith('c_') ? 'bg-orange-500' :
-                    detailItem.id.startsWith('p_') ? 'bg-green-500' :
-                    detailItem.id.startsWith('f_') ? 'bg-red-500' :
-                    detailItem.id.startsWith('a_') ? 'bg-cyan-500' :
-                    detailItem.id.startsWith('e_') ? 'bg-violet-500' : 'bg-blue-500'
-                  }`}>
-                    {detailItem.id.startsWith('c_') ? <Target size={16} /> :
-                     detailItem.id.startsWith('p_') ? <MapPin size={16} /> :
-                     detailItem.id.startsWith('f_') ? <Utensils size={16} /> :
-                     detailItem.id.startsWith('a_') ? <Activity size={16} /> :
-                     detailItem.id.startsWith('e_') ? <Calendar size={16} /> : <Star size={16} />}
+                  <div className={`p-2 rounded-full text-white shadow-sm ${categoryStyle(detailItem.category).badge}`}>
+                    <CategoryIcon category={detailItem.category} size={16} />
                   </div>
                   <span className="font-black text-blue-600 text-[10px] md:text-xs tracking-[0.2em] uppercase">
                     {detailItem.category} {detailItem.tags?.[0] && `/ ${detailItem.tags[0]}`}
@@ -2070,28 +2295,41 @@ export default function CommunityView({
                   )}
                   {activeCardTab === 'People' && (
                     <div className="space-y-6">
-                      {(detailItem.people || []).map((person, idx) => (
-                        <div key={idx} className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100">
+                      {!detailActivity ? (
+                        <div className="flex justify-center py-6"><Loader2 className="animate-spin h-6 w-6 text-blue-600" /></div>
+                      ) : detailActivity.people.length === 0 ? (
+                        <p className="text-center text-sm text-gray-400 font-medium py-6">
+                          No one has completed this yet. Accept it and be the first!
+                        </p>
+                      ) : detailActivity.people.map((person) => (
+                        <div key={person.id} className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100">
                            <div className="flex items-center justify-between mb-4">
                               <div className="flex items-center gap-3">
-                                <img src={person.avatar} className="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="" />
+                                <Avatar src={person.avatar} name={person.name} className="w-10 h-10" />
                                 <div>
-                                  <p className="font-bold text-gray-800">{person.name}</p>
-                                  <p className="text-xs text-gray-400">{person.date}</p>
+                                  <p className="font-bold text-gray-800">{person.isMe ? 'You' : person.name}</p>
+                                  <p className="text-xs text-gray-400">{timeAgo(person.date)}</p>
                                 </div>
                               </div>
-                              <button className="bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold hover:bg-blue-700 transition-colors">Follow</button>
+                              {!person.isMe && (
+                                <button className="bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold hover:bg-blue-700 transition-colors">Follow</button>
+                              )}
                            </div>
                            <p className="text-sm font-bold text-green-600 mb-4 flex items-center gap-2">
                              <CheckCircle size={16} /> {person.description}
                            </p>
-                           <img src={person.certification} className="w-full h-40 object-cover rounded-xl mb-4" alt="" />
+                           {person.certification && (
+                             <img src={person.certification} className="w-full h-40 object-cover rounded-xl mb-4" alt="" />
+                           )}
+                           {person.caption && <p className="text-sm text-gray-600 mb-4">{person.caption}</p>}
                            <div className="flex items-center gap-6 text-gray-400">
-                              <button className="flex items-center gap-1.5 hover:text-red-500 transition-colors">
-                                <Heart size={16} /> <span className="text-xs font-black">{person.likes}</span>
-                              </button>
-                              <button className="flex items-center gap-1.5 hover:text-blue-500 transition-colors">
-                                <MessageCircle size={16} /> <span className="text-xs font-black">{person.comments}</span>
+                              <button
+                                onClick={() => progressSignedIn && togglePersonLike(person)}
+                                disabled={!progressSignedIn}
+                                title={progressSignedIn ? (person.liked ? 'Unlike' : 'Like') : 'Sign in to like'}
+                                className={`flex items-center gap-1.5 transition-colors ${person.liked ? 'text-red-500' : 'hover:text-red-500'}`}
+                              >
+                                <Heart size={16} fill={person.liked ? 'currentColor' : 'none'} /> <span className="text-xs font-black">{person.likes}</span>
                               </button>
                            </div>
                         </div>
@@ -2100,12 +2338,18 @@ export default function CommunityView({
                   )}
                   {activeCardTab === 'Leaderboard' && (
                     <div className="space-y-4">
-                      {(detailItem.leaderboard || []).map((entry, idx) => (
-                         <div key={idx} className={`flex items-center justify-between p-4 rounded-2xl border ${idx === 0 ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-100'}`}>
+                      {!detailActivity ? (
+                        <div className="flex justify-center py-6"><Loader2 className="animate-spin h-6 w-6 text-blue-600" /></div>
+                      ) : detailActivity.leaderboard.length === 0 ? (
+                        <p className="text-center text-sm text-gray-400 font-medium py-6">
+                          No points earned on this page yet.
+                        </p>
+                      ) : detailActivity.leaderboard.map((entry, idx) => (
+                         <div key={entry.user_id} className={`flex items-center justify-between p-4 rounded-2xl border ${idx === 0 ? 'bg-yellow-50 border-yellow-200' : entry.isMe ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-100'}`}>
                             <div className="flex items-center gap-4">
                               <span className={`text-xl font-black ${idx === 0 ? 'text-yellow-600' : 'text-gray-300'}`}>#{entry.rank}</span>
-                              <img src={entry.avatar} className="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="" />
-                              <span className="font-black text-gray-800">{entry.name}</span>
+                              <Avatar src={entry.avatar} name={entry.name} className="w-10 h-10" />
+                              <span className="font-black text-gray-800">{entry.isMe ? 'You' : entry.name}</span>
                             </div>
                             <div className="text-right">
                               <p className="text-xl font-black text-blue-600">{entry.points}</p>
@@ -2121,7 +2365,7 @@ export default function CommunityView({
                 <div className="grid grid-cols-2 gap-3 px-6 mb-6 mt-auto flex-shrink-0">
                   <div className="bg-[#FFFCE4] border border-[#FFD700] p-3 rounded-[1.5rem] text-center shadow-sm">
                     <p className="text-[9px] font-black text-gray-400 tracking-widest uppercase mb-1">DISTANCE</p>
-                    <p className="text-gray-900 text-base md:text-lg font-black">{detailItem.distance || '0.50 km'}</p>
+                    <p className="text-gray-900 text-base md:text-lg font-black">{detailDistance || '—'}</p>
                   </div>
                   <div className="bg-[#FFFCE4] border border-[#FFD700] p-3 rounded-[1.5rem] text-center shadow-sm">
                     <p className="text-[9px] font-black text-gray-400 tracking-widest uppercase mb-1">PRICE</p>
@@ -2133,13 +2377,19 @@ export default function CommunityView({
               </div>
 
               {/* 7. Full-width Sticky Footer (Refined States) */}
-              {acceptedItems.find(i => i.id === detailItem.id) ? (
+              {completedItemIds.has(detailItem.id) ? (
+                // State 0: Completed (saved in user_challenges)
+                <div className="p-6 bg-green-50 text-center font-black text-xs uppercase tracking-widest text-green-600 border-t border-green-100 flex-shrink-0 flex items-center justify-center gap-2">
+                  <CheckCircle size={18} /> Completed
+                </div>
+              ) : acceptedItems.find(i => i.id === detailItem.id) ? (
                 // State 1: Already Accepted - Show Scan and Route
                 <div className="flex h-16 md:h-20 flex-shrink-0 border-t border-gray-100">
-                  <button 
+                  <button
                     onClick={() => {
-                      // Logic for route: open google maps
-                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${detailItem.lat},${detailItem.lng}`, '_blank');
+                      // Route to the item's real location (or its marker when it has none)
+                      const target = itemLatLng(detailItem);
+                      if (target) window.open(`https://www.google.com/maps/dir/?api=1&destination=${target.lat},${target.lng}`, '_blank', 'noopener');
                     }}
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black text-sm md:text-base tracking-widest flex items-center justify-center gap-2 transition-all"
                   >
@@ -2147,6 +2397,7 @@ export default function CommunityView({
                   </button>
                   <button 
                     onClick={() => {
+                      setQrError(null);
                       setIsQRModalOpen(true);
                     }}
                     className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-black text-sm md:text-base tracking-widest flex items-center justify-center gap-2 transition-all border-l border-white/10"
@@ -2162,20 +2413,14 @@ export default function CommunityView({
               ) : (
                 // State 3: Default - Accept or Hide
                 <div className="flex h-14 md:h-20 flex-shrink-0">
-                  <button 
-                    onClick={() => {
-                      setAcceptedItems(prev => [...prev.filter(i => i.id !== detailItem.id), detailItem].slice(-5));
-                      setIsDetailModalOpen(false);
-                    }}
+                  <button
+                    onClick={() => handleAcceptItem(detailItem)}
                     className="flex-1 bg-[#00C853] hover:bg-[#00B248] text-white font-black text-base md:text-xl tracking-[0.1em] transition-colors"
                   >
                     ACCEPT
                   </button>
-                  <button 
-                    onClick={() => {
-                      setDeniedItemIds(prev => new Set([...prev, detailItem.id]));
-                      setIsDetailModalOpen(false);
-                    }}
+                  <button
+                    onClick={() => handleHideItem(detailItem)}
                     className="flex-1 bg-[#FF0000] hover:bg-[#E60000] text-white font-black text-base md:text-xl tracking-[0.1em] transition-colors"
                   >
                     HIDE
@@ -2224,7 +2469,7 @@ export default function CommunityView({
                         <h3 className="text-3xl font-black mb-1 drop-shadow-md">SUCCESS!</h3>
                         <p className="font-bold text-lg opacity-90 mb-4 tracking-wide">Verification Complete</p>
                         <div className="bg-white/20 backdrop-blur-md px-6 py-2 rounded-full border border-white/30 animate-bounce">
-                           <span className="text-xl font-black">+ {detailItem.id.startsWith('c_') ? '500' : '200'} POINTS</span>
+                           <span className="text-xl font-black">+ {earnedPoints} POINTS</span>
                         </div>
                       </div>
                     ) : (
@@ -2234,22 +2479,12 @@ export default function CommunityView({
                     )}
                   </div>
 
+                  {qrError && !qrSuccess && (
+                    <p className="text-sm font-bold text-red-600 mb-4">{qrError}</p>
+                  )}
                   {!qrSuccess && (
                     <button
-                      onClick={() => {
-                        setQrScanning(true);
-                        setTimeout(() => {
-                           setQrScanning(false);
-                           setQrSuccess(true);
-                           setTimeout(() => {
-                              // Success - remove from accepted items
-                              setAcceptedItems(prev => prev.filter(i => i.id !== detailItem.id));
-                              setQrSuccess(false);
-                              setIsQRModalOpen(false);
-                              setIsDetailModalOpen(false);
-                           }, 2000);
-                        }, 2500);
-                      }}
+                      onClick={handleQrScan}
                       disabled={qrScanning}
                       className={`w-full py-5 rounded-3xl text-xl font-black transition-all ${
                         qrScanning ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-2xl shadow-blue-200'

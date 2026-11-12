@@ -1554,11 +1554,9 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
   useEffect(() => {
     const checkTourismStatus = async () => {
       if (!pageId) return;
-      if (Number(pageId) === 999991 || Number(pageId) === 999992 || Number(pageId) === 10000) {
-        setIsTourismPage(true);
-      }
+      // A page with districts in the database is a tourism / challenge page
       try {
-        const res          = await GlobalApi.GetMapDistricts();
+        const res          = await GlobalApi.GetMapDistricts(null, pageId);
         const allDistricts = res.data.data || [];
         const districtsList = allDistricts.filter(d => Number(d.page_id) === Number(pageId));
         setDistrictPages(districtsList);
@@ -1643,7 +1641,7 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
   // ── Fetch tourism geofence data ────────────────────────────────────────────
   const fetchTourismData = useCallback(async () => {
     try {
-      const res          = await GlobalApi.GetMapDistricts();
+      const res          = await GlobalApi.GetMapDistricts(null, pageId);
       const allDistricts = res.data.data || [];
       const districts    = allDistricts.filter(d => Number(d.page_id) === Number(pageId));
       setDistrictPages(districts);
@@ -1763,16 +1761,20 @@ export default function PageView({pageId, isOwner, selectedDistrict, setSelected
 
     const fetchDistrictChallenges = async () => {
       try {
-        const res        = await GlobalApi.GetMapChallenges(null, currentDistrict.page_id);
+        const res        = await GlobalApi.GetMapChallenges(currentDistrict.id, currentDistrict.page_id);
         const challenges = res.data.data || [];
         const newMarkers = [];
         challenges.forEach(challenge => {
           if (Number(challenge.district_id) !== Number(currentDistrict.id)) return;
-          let category = 'Challenges';
-          if (challenge.frequency === 'food' || challenge.exp_type === 'breakfast' || challenge.exp_type === 'biriyani') category = 'Food';
-          else if (challenge.frequency === 'contest' || challenge.frequency === 'quiz') category = 'Activity';
-          else if (challenge.frequency === 'event') category = 'Events';
-          else if (challenge.exp_type === 'arts' || challenge.frequency === 'experience') category = 'Places';
+          // Explicit category column first; older rows derive it from frequency / exp_type
+          let category = challenge.category;
+          if (!category) {
+            category = 'Challenges';
+            if (challenge.frequency === 'food' || challenge.exp_type === 'breakfast' || challenge.exp_type === 'biriyani') category = 'Food';
+            else if (challenge.frequency === 'contest' || challenge.frequency === 'quiz') category = 'Activity';
+            else if (challenge.frequency === 'event') category = 'Events';
+            else if (challenge.exp_type === 'arts' || challenge.frequency === 'experience') category = 'Places';
+          }
           if (activeDiscoveryCategory && category !== activeDiscoveryCategory) return;
           if (deniedItemIds.has(challenge.id)) return;
           const latOffset = challenge.latitude  ? 0 : ((challenge.id % 10) * 0.015 - 0.075);

@@ -5,7 +5,6 @@ import { Users, Crown, Shield, AlertTriangle, Plus, FileText, Award } from 'luci
 import CommunityManagementDropdown from '../CommunityManagementDropdown';
 import CommunityPostCreation from '../CommunityPostCreation';
 import CreateCenterPostModal from '@/components/Navbar/CreateInfrastructurePostModal';
-import { getStaticCommunityMeta } from '@/utils/staticCommunities';
 
 export default function CommunityTopBar({ selectedDistrict, tourismData }) {
   const { totalPoints } = tourismData || {};
@@ -17,22 +16,15 @@ export default function CommunityTopBar({ selectedDistrict, tourismData }) {
   const [isModerator, setIsModerator] = useState(false);
   const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
   const [showPostModal, setShowPostModal] = useState(false);
-  const [urlCommunityId, setUrlCommunityId] = useState(null);
 
-  // Initial guess from the URL; CommunityView then reports the community it actually
-  // shows (it updates the URL with history.replaceState, which we can't observe).
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    setUrlCommunityId(urlParams.get('communityId'));
-  }, []);
-  const communityId = tourismData?.communityId ? String(tourismData.communityId) : urlCommunityId;
-
-  // Static pages are known up front, so their header renders without a request
-  const staticMeta = getStaticCommunityMeta(communityId);
-  const isStatic = Boolean(tourismData?.isStatic || staticMeta);
-  const stateName = tourismData?.stateName || staticMeta?.name || '';
-  const kindLabel = tourismData?.kindLabel || staticMeta?.kindLabel;
-  const logo = tourismData?.logo || staticMeta?.logo || null;
+  // CommunityView reports the community it shows (it updates the URL with
+  // history.replaceState, which this component can't observe). Challenge pages
+  // (isStatic) come with their name, label, logo and the user's points.
+  const communityId = tourismData?.communityId != null ? String(tourismData.communityId) : null;
+  const isStatic = Boolean(tourismData?.isStatic);
+  const stateName = tourismData?.stateName || '';
+  const kindLabel = tourismData?.kindLabel;
+  const logo = tourismData?.logo || null;
 
   // Color theme for community - using amber/orange theme
   const themeConfig = {

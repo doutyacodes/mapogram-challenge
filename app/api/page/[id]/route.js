@@ -22,18 +22,6 @@ export async function GET(req, props) {
     const { id } = await params;
     const pageId = parseInt(id);
 
-    // Tourism Mock Bypass
-    if (pageId === 999991 || pageId === 999992) {
-      return NextResponse.json({
-        id: pageId,
-        name: pageId === 999991 ? "Kerala Tourism" : "Karnataka Tourism",
-        username: pageId === 999991 ? "keralatourism" : "karnatakatourism",
-        profilePic: "https://www.keralatourism.org/images/logo/logo.png",
-        bio: "Official tourism page",
-        pageType: "Tourism",
-      });
-    }
-
     const pageData = await db
       .select({
         id: PAGES.id,
