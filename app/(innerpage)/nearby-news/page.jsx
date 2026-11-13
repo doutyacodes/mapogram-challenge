@@ -2,8 +2,12 @@
 import ReactDOMServer from "react-dom/server";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useMediaQuery } from 'react-responsive';
-import { GoogleMap, useLoadScript, MarkerF, InfoWindowF, Circle  } from "@react-google-maps/api";
-import { 
+import { useLeafletMap } from "@/components/map/leaflet/useLeafletMap";
+import LeafletPopup from "@/components/map/leaflet/LeafletPopup";
+import MapTypeControls from "@/components/map/controls/MapTypeControls";
+import ZoomControls from "@/components/map/controls/ZoomControls";
+import { getLeaflet, toLeafletIcon } from "@/utils/map/leaflet";
+import {
     MapPin, AlertTriangle, Building2, UserRound, Car, Cloud, 
     PartyPopper, Swords, Megaphone, AlertCircle, Trophy, 
     Heart, Briefcase, Film, Laptop, FlaskConical, GraduationCap, 
@@ -339,7 +343,6 @@ export default function NewsMap() {
   const [userLocation, setUserLocation] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [mapRef, setMapRef] = useState(null);
 
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState(null);
@@ -372,11 +375,8 @@ export default function NewsMap() {
     redirect("/")
   },[])
 
-
-  // Load Google Maps script
-  const { isLoaded } = useLoadScript({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-  });
+  // Leaflet map (replaces <GoogleMap> + useLoadScript); `mapRef` is the L.Map instance
+  const { containerRef: mapContainerRef, map: mapRef } = useLeafletMap({ center, zoom: DEFAULT_ZOOM });
 
   const mapControlStyles = {
     // Common styles for both map type and filter buttons
@@ -421,8 +421,8 @@ const restrictMapBounds = useCallback(() => {
   if (!mapRef || !userLocation) return;
   
   const currentCenter = mapRef.getCenter();
-  const currentLat = currentCenter.lat();
-  const currentLng = currentCenter.lng();
+  const currentLat = currentCenter.lat;
+  const currentLng = currentCenter.lng;
   
   const distance = calculateDistance(
     userLocation.lat, 
@@ -444,7 +444,7 @@ const restrictMapBounds = useCallback(() => {
     const newLng = userLocation.lng + (Math.cos(angle) * MAX_RADIUS_KM / 
       (111 * Math.cos(userLocation.lat * Math.PI / 180))); // Adjust for longitude at that latitude
     
-    mapRef.panTo({ lat: newLat, lng: newLng });
+    mapRef.panTo([newLat, newLng]);
   }
 }, [mapRef, userLocation]);
 
@@ -501,8 +501,7 @@ const restrictMapBounds = useCallback(() => {
         console.log("Setting User Location")
         // If map is available, pan and zoom to user location
         if (mapRef) {
-          mapRef.panTo({ lat: latitude, lng: longitude });
-          mapRef.setZoom(USER_LOCATION_ZOOM);
+          mapRef.setView([latitude, longitude], USER_LOCATION_ZOOM);
         }
         console.log("Initiate Fetch news")
         fetchNewsData();
@@ -568,10 +567,10 @@ const restrictMapBounds = useCallback(() => {
     const bounds = map.getBounds();
     if (bounds) {
         const newBounds = {
-        north: bounds.getNorthEast().lat(),
-        south: bounds.getSouthWest().lat(),
-        east: bounds.getNorthEast().lng(),
-        west: bounds.getSouthWest().lng()
+        north: bounds.getNorth(),
+        south: bounds.getSouth(),
+        east: bounds.getEast(),
+        west: bounds.getWest()
         };
         
         // Only fetch if bounds have changed significantly
@@ -734,109 +733,79 @@ const handleNavigateToCreator = () => {
     );
   };
 
+  // ── Leaflet overlays (replace <Circle>, <MarkerF>, onIdle/onDragEnd and the bounds restriction) ──
 
-  // Custom Map Type Controls Component
-  const MapTypeControls = ({ mapRef }) => {
-  const [mapType, setMapType] = useState("roadmap");
-  const [isExpanded, setIsExpanded] = useState(false);
-  
-  // State to track if the screen is in mobile view
-  const [isMobile, setIsMobile] = useState(false);
-  
-  // Effect to check screen size and update isMobile state
+  // 10km radius circle + panning limited to the radius plus a buffer
   useEffect(() => {
-      const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768); // 768px is a common breakpoint for mobile
-      };
-      
-      // Initial check
-      checkScreenSize();
-      
-      // Add event listener for window resize
-      window.addEventListener('resize', checkScreenSize);
-      
-      // Clean up
-      return () => window.removeEventListener('resize', checkScreenSize);
-  }, []);
+    const L = getLeaflet();
+    if (!mapRef || !L || !userLocation) return;
+    const { lat, lng } = userLocation;
 
-  const changeMapType = (type) => {
-      if (!mapRef) return;
-      mapRef.setMapTypeId(type);
-      setMapType(type);
-      setIsExpanded(false);
-  };
+    const circle = L.circle([lat, lng], {
+      radius: MAX_RADIUS_KM * 1000, // metres
+      color: "#3B82F6",
+      opacity: 0.6,
+      weight: 2,
+      fillColor: "#3B82F6",
+      fillOpacity: 0.15,
+      interactive: false,
+    }).addTo(mapRef);
 
-  // Desktop view: Side-by-side buttons
-  if (!isMobile) {
-      return (
-      <div className="absolute top-3 left-4 z-10 flex flex-row">
-          <button 
-          onClick={() => changeMapType("roadmap")}
-          className={`bg-white shadow-md p-2 hover:bg-gray-100 transition-colors duration-200 flex items-center justify-center rounded-l-lg border-r border-gray-200 ${mapType === "roadmap" ? "bg-gray-100" : ""}`}
-          style={{
-              ...buttonStyle,
-              color: mapType === "roadmap" ? "black" : "rgba(0,0,0,0.5)",
-              fontWeight: mapType === "roadmap" ? "500" : "normal"
-          }}
-          >
-          Map
-          </button>
-          <button 
-          onClick={() => changeMapType("satellite")}
-          className={`bg-white shadow-md p-2 hover:bg-gray-100 transition-colors duration-200 flex items-center justify-center rounded-r-lg ${mapType === "satellite" ? "bg-gray-100" : ""}`}
-          style={{
-              ...buttonStyle,
-              color: mapType === "satellite" ? "black" : "rgba(0,0,0,0.5)",
-              fontWeight: mapType === "satellite" ? "500" : "normal"
-          }}
-          >
-          Satellite
-          </button>
-      </div>
-      );
-  }
-  
-  // Mobile view: Dropdown menu
-  return (
-      <div className="absolute top-3 left-4 z-10 flex flex-col">
-      {/* Main toggle button */}
-      <button 
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="bg-white shadow-md rounded-lg p-2 hover:bg-gray-100 transition-colors duration-200 mb-2 flex items-center justify-center"
-          style={buttonStyle}
-      >
-          <span>{mapType === "roadmap" ? "Map" : "Satellite"}</span>
-      </button>
+    const latBuffer = (MAX_RADIUS_KM * BUFFER_FACTOR) / 111;
+    const lngBuffer = (MAX_RADIUS_KM * BUFFER_FACTOR) / (111 * Math.cos((lat * Math.PI) / 180));
+    mapRef.setMaxBounds([[lat - latBuffer, lng - lngBuffer], [lat + latBuffer, lng + lngBuffer]]);
 
-      {/* Dropdown options */}
-      {isExpanded && (
-          <div className="bg-white shadow-lg rounded-lg overflow-hidden absolute top-12 left-0">
-          <button 
-              className={`w-full text-left px-4 py-2 hover:bg-gray-100 ${mapType === "roadmap" ? "bg-gray-200" : ""}`}
-              onClick={() => changeMapType("roadmap")}
-          >
-              Map
-          </button>
-          <button 
-              className={`w-full text-left px-4 py-2 hover:bg-gray-100 ${mapType === "satellite" ? "bg-gray-200" : ""}`}
-              onClick={() => changeMapType("satellite")}
-          >
-              Satellite
-          </button>
-          </div>
-      )}
-      </div>
-  );
-  };
+    return () => {
+      circle.remove();
+      mapRef.setMaxBounds([[-85, -180], [85, 180]]);
+    };
+  }, [mapRef, userLocation]);
 
-  // Loading state
-  if (!isLoaded) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-xl font-medium">Loading Map...</div>
-      </div>
-    );
-  }
+  // Refetch when the view settles (Google onIdle) and keep the view near the user.
+  // Re-bound on every render so the handlers always see current state.
+  useEffect(() => {
+    if (!mapRef) return;
+    const onMoveEnd = () => {
+      handleBoundsChanged(mapRef);
+      if (userLocation) restrictMapBounds();
+    };
+    const onDragEnd = () => {
+      if (userLocation) restrictMapBounds();
+    };
+    mapRef.on("moveend", onMoveEnd);
+    mapRef.on("dragend", onDragEnd);
+    return () => {
+      mapRef.off("moveend", onMoveEnd);
+      mapRef.off("dragend", onDragEnd);
+    };
+  });
+
+  // No map gestures while the location is being fetched
+  useEffect(() => {
+    if (!mapRef) return;
+    [mapRef.dragging, mapRef.touchZoom, mapRef.doubleClickZoom, mapRef.scrollWheelZoom, mapRef.boxZoom, mapRef.keyboard]
+      .forEach((handler) => handler && (isGettingLocation ? handler.disable() : handler.enable()));
+  }, [mapRef, isGettingLocation]);
+
+  // News markers (one per location; the icon carries the count badge)
+  useEffect(() => {
+    const L = getLeaflet();
+    if (!mapRef || !L) return;
+    const markers = [];
+    for (const [locationKey, newsAtLocation] of Object.entries(groupedNews)) {
+      const mainNews = newsAtLocation[0];
+      if (!mainNews) continue;
+      if (mainNews.category && !selectedCategories.includes(mainNews.category)) continue;
+      const [lat, lng] = locationKey.split(",").map(parseFloat);
+      const marker = L.marker([lat, lng], {
+        icon: toLeafletIcon(L, createCategoryMarkerIcon(mainNews.category, newsAtLocation.length)),
+      })
+        .on("click", () => handleMarkerClick(locationKey))
+        .addTo(mapRef);
+      markers.push(marker);
+    }
+    return () => markers.forEach((marker) => marker.remove());
+  }, [mapRef, groupedNews, selectedCategories]);
 
   // Get current news item for the info window
   const getCurrentNewsItem = () => {
@@ -1013,95 +982,23 @@ const handleNavigateToCreator = () => {
   )}
 </div>
 
-    <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={userLocation || center}
-        zoom={userLocation ? USER_LOCATION_ZOOM : DEFAULT_ZOOM}
-        options={{
-            fullscreenControl: false,
-            streetViewControl: false,
-            mapTypeControl: false,
-            zoomControl: !isGettingLocation, // Disable zoom control during location fetch
-            gestureHandling: isGettingLocation ? "none" : "greedy", // CHANGE THIS LINE
-            // Add restriction with buffer if user location exists
-            restriction: userLocation ? {
-              latLngBounds: {
-                north: userLocation.lat + ((MAX_RADIUS_KM * BUFFER_FACTOR) / 111),
-                south: userLocation.lat - ((MAX_RADIUS_KM * BUFFER_FACTOR) / 111),
-                east: userLocation.lng + ((MAX_RADIUS_KM * BUFFER_FACTOR) / (111 * Math.cos(userLocation.lat * Math.PI / 180))),
-                west: userLocation.lng - ((MAX_RADIUS_KM * BUFFER_FACTOR) / (111 * Math.cos(userLocation.lat * Math.PI / 180)))
-              },
-              strictBounds: false // Allow some elasticity
-            } : undefined,
-        }}
-        onLoad={(map) => setMapRef(map)}
-        onIdle={(map) => {
-            handleBoundsChanged(map);
-            // Keep bounds checks but with the buffered area
-            if (userLocation) restrictMapBounds();
-        }}
-        onDragEnd={() => {
-            // Apply restriction with buffer zone
-            if (userLocation) restrictMapBounds();
-        }}
-        >
- 
-        {/* Add radius circle when user location exists */}
-        {userLocation && (
-            <Circle
-                center={userLocation}
-                radius={MAX_RADIUS_KM * 1000} // Convert km to meters
-                options={{
-                    fillColor: "#3B82F6", // Light blue fill
-                    fillOpacity: 0.15,    // Very subtle fill
-                    strokeColor: "#3B82F6", // Light blue stroke
-                    strokeOpacity: 0.6,   // Moderate stroke opacity
-                    strokeWeight: 2,      // Thin border
-                }}
-            />
-        )}
-        {/* Custom Map Type Controls */}
-        <MapTypeControls mapRef={mapRef} />
+    <div style={containerStyle} className="relative">
+        <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
 
-        {/* News Markers */}
-        {Object.keys(groupedNews).map((locationKey) => {
-          const [lat, lng] = locationKey.split(',').map(parseFloat);
-          const newsAtLocation = groupedNews[locationKey];
-          const mainNews = newsAtLocation[0]; // Use the first (most recent) news for the marker
-          
-          // Skip this marker if its category is not in the selected categories
-          if (mainNews.category && !selectedCategories.includes(mainNews.category)) {
-            return null;
-          }
-          
-          return (
-            <MarkerF
-              key={locationKey}
-              position={{ lat, lng }}
-              onClick={() => handleMarkerClick(locationKey)}
-              icon={createCategoryMarkerIcon(mainNews.category, newsAtLocation.length)}
-              label={
-                newsAtLocation.length > 1 
-                ? {
-                    text: `${newsAtLocation.length}`,
-                    color: "#333",
-                    fontSize: "12px",
-                    fontWeight: "bold"
-                }
-                : null
-              }
-            />
-          );
-        })}
+        {/* Radius circle, markers and the bounds restriction are Leaflet layers (see effects above) */}
+        {/* Custom Map Type Controls */}
+        <MapTypeControls mapRef={mapRef} buttonStyle={buttonStyle} />
+        {!isGettingLocation && <ZoomControls mapRef={mapRef} isMobile={isMobile} />}
 
         {/* Info Window */}
-        {currentNews && (
-          <InfoWindowF
-            position={{ lat: selectedLocation.lat, lng: selectedLocation.lng }}
-            onCloseClick={() => setSelectedLocation(null)}
-            options={{
-              pixelOffset: new window.google.maps.Size(0, -5)
-            }}
+        {currentNews && selectedLocation && (
+          <LeafletPopup
+            map={mapRef}
+            position={selectedLocation}
+            onClose={() => setSelectedLocation(null)}
+            offset={[0, -5]}
+            maxWidth={320}
+            className=""
           >
             <div className="max-w-xs relative select-none">
               {/* Custom header with category badge and custom close button */}
@@ -1131,17 +1028,6 @@ const handleNavigateToCreator = () => {
             </div>
 
               
-              {/* Add CSS to hide the default close button */}
-              <style jsx>{`
-                .gm-ui-hover-effect {
-                  display: none !important;
-                }
-                
-                /* Target the parent container's top padding to remove extra space */
-                .gm-style .gm-style-iw-c {
-                  padding-top: 12px !important;
-                }
-              `}</style>
               
               {/* News Image */}
               <div className="relative h-40 w-full overflow-hidden rounded-lg mb-3">
@@ -1208,9 +1094,9 @@ const handleNavigateToCreator = () => {
                 </div>
               )}
             </div>
-          </InfoWindowF>
+          </LeafletPopup>
         )}
-      </GoogleMap>
+      </div>
 
       {/* Loading overlay */}
       {isLoading && (

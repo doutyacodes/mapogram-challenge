@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/utils';
 import { BRANDS, PRODUCTS } from '@/utils/schema/complaints_schema';
-import { eq, inArray, distinct } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 
 export async function GET(req) {
   try {

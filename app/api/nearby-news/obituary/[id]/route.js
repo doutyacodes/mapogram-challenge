@@ -4,7 +4,10 @@ import { db } from '@/utils/index';
 import { OBITUARIES } from '@/utils/schema/schema';
 import { eq } from 'drizzle-orm';
 import { authenticate } from '@/lib/jwtMiddleware';
-import calculateDistance from '@/lib/utils';
+import { haversineMeters } from '@/utils/map/geometry';
+
+// Distance in kilometres (lib/utils never exported a calculateDistance)
+const calculateDistance = (lat1, lng1, lat2, lng2) => haversineMeters(lat1, lng1, lat2, lng2) / 1000;
 
 // Function to delete image from cPanel
 async function deleteImageFromCPanel(filename) {
@@ -33,7 +36,8 @@ async function deleteImageFromCPanel(filename) {
   }
 }
 
-export async function PUT(req, { params }) {
+export async function PUT(req, props) {
+  const params = await props.params;
   // Authenticate user
   const authResult = await authenticate(req);
   if (!authResult.authenticated) {

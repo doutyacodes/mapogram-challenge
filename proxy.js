@@ -151,7 +151,8 @@ import { jwtVerify } from 'jose';
 import { createGuestSession } from './utils/guests/guestUser';
 import { getToken } from "next-auth/jwt"
 
-export async function middleware(request) {
+// Next.js 16 renamed Middleware to Proxy (file `proxy.js`, export `proxy`).
+export async function proxy(request) {
   const { pathname } = request.nextUrl;
   
   console.log("🔍 MIDDLEWARE FOR:", pathname);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import UserPostCreation from './UserPostCreation';
-import { X, Upload, MapPin, Calendar, Clock, Users, AlertCircle, CheckCircle, Loader2, ChevronDown, Search, ImageIcon, AtSign, ArrowLeft, Toggle } from 'lucide-react';
+import { X, Upload, MapPin, Calendar, Clock, Users, AlertCircle, CheckCircle, Loader2, ChevronDown, Search, ImageIcon, AtSign, ArrowLeft } from 'lucide-react';
 import { getIconComponent } from '@/app/api/utils/iconMapping';
 import PagePostCreation from '../map/posts/PagePostCreation';
 import ClassifiedPostCreation from './ClassifiedPostCreation';

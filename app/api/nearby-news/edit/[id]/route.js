@@ -5,7 +5,8 @@ import { eq } from 'drizzle-orm';
 import { authenticate } from '@/lib/jwtMiddleware';
 import { db } from '@/utils';
 
-export async function GET(req, { params }) {
+export async function GET(req, props) {
+  const params = await props.params;
   // Authenticate user
   const authResult = await authenticate(req);
   if (!authResult.authenticated) {

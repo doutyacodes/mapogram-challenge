@@ -6,7 +6,8 @@ import { db } from '@/utils';
 import { USER_POST_REGISTRATIONS } from '@/utils/schema/schema';
 import { and, eq } from 'drizzle-orm';
 
-export async function POST(req, { params }) {
+export async function POST(req, props) {
+  const params = await props.params;
   try {
     const postId = parseInt(params.postId); // getting postId from URL param
     const { note, resumeUrl, latitude, longitude } = await req.json();

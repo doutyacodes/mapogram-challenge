@@ -5,7 +5,8 @@ import jwt from 'jsonwebtoken';
 import { eq, and } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
-export async function GET(req, { params }) {
+export async function GET(req, props) {
+  const params = await props.params;
   try {
     const { id: pageId } = params;
 

@@ -3,7 +3,8 @@ import { db } from '@/utils';
 import { PAGE_MEMBERS } from '@/utils/schema/schema';
 import { eq, count } from 'drizzle-orm';
 
-export async function GET(req, { params }) {
+export async function GET(req, props) {
+  const params = await props.params;
   try {
     const pageId = parseInt(params.pageId);
 

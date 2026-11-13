@@ -7,7 +7,8 @@ import { USER_PROFILES, USERS } from '@/utils/schema/schema';
 import { eq, and } from 'drizzle-orm';
 
 // GET - Verify invite code and get community info
-export async function GET(req, { params }) {
+export async function GET(req, props) {
+  const params = await props.params;
   try {
     const { code } = params;
 
@@ -96,7 +97,8 @@ export async function GET(req, { params }) {
 }
 
 // POST - Join community via invite link
-export async function POST(req, { params }) {
+export async function POST(req, props) {
+  const params = await props.params;
   try {
     const { code } = params;
 

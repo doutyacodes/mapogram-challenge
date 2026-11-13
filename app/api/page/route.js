@@ -38,8 +38,10 @@ export async function GET(req) {
     if (token) {
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        viewerId = decoded?.id;
-        viewerRole = "user"; 
+        // Guest tokens carry no id; use null so the raw SQL below gets a real NULL
+        // parameter (undefined is dropped by drizzle and produces invalid SQL).
+        viewerId = decoded?.id ?? null;
+        viewerRole = viewerId ? "user" : "guest";
       } catch (e) {
         console.error("Token verification failed in /api/page:", e);
       }
@@ -47,29 +49,6 @@ export async function GET(req) {
 
     const pageId = url.searchParams.get("pageId");
     if (!pageId) return NextResponse.json({ posts: [], categories: [] });
-
-    // Tourism Mock Bypass
-    if (pageId === "999991" || pageId === "999992") {
-      const mockPage = {
-        id: parseInt(pageId),
-        name: pageId === "999991" ? "Kerala Tourism" : "Karnataka Tourism",
-        page_type_id: 1, // Assume 1 is a valid type for categories
-        created_at: new Date()
-      };
-      
-      const mockCategories = [
-        { id: 1, name: "Challenges", shape: "circle", icon_name: "Target", color: "#F97316" },
-        { id: 2, name: "Places", shape: "pin", icon_name: "MapPin", color: "#10B981" },
-        { id: 3, name: "Food", shape: "square", icon_name: "Utensils", color: "#EF4444" }
-      ];
-
-      return NextResponse.json({
-        posts: [],
-        categories: mockCategories,
-        registrations: [],
-        user: { id: viewerId, role: viewerRole }
-      });
-    }
 
     // Get page details
     const [pageData] = await db.select().from(PAGES).where(eq(PAGES.id, parseInt(pageId)));

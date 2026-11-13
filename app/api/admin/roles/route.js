@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/utils";
-import { USER_ROLES } from "@/utils/schema/schema";
+import { USER_ROLES } from "@/utils/schema/community_schema";
 
 export async function GET() {
   try {

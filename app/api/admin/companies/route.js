@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/utils";
-import { USER_COMPANIES, USER_ENTITIES } from "@/utils/schema/schema";
+import { USER_COMPANIES, USER_ENTITIES } from "@/utils/schema/community_schema";
+import { eq } from "drizzle-orm";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";

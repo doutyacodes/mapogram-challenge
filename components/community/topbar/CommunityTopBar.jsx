@@ -7,7 +7,7 @@ import CommunityPostCreation from '../CommunityPostCreation';
 import CreateCenterPostModal from '@/components/Navbar/CreateInfrastructurePostModal';
 
 export default function CommunityTopBar({ selectedDistrict, tourismData }) {
-  const { isStatic, stateName, totalPoints } = tourismData || {};
+  const { totalPoints } = tourismData || {};
   const [communityData, setCommunityData] = useState(null);
   const [membersCount, setMembersCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -16,14 +16,15 @@ export default function CommunityTopBar({ selectedDistrict, tourismData }) {
   const [isModerator, setIsModerator] = useState(false);
   const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
   const [showPostModal, setShowPostModal] = useState(false);
-  const [communityId, setCommunityId] = useState(null);
 
-  // Get community ID from URL
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('communityId');
-    setCommunityId(id);
-  }, []);
+  // CommunityView reports the community it shows (it updates the URL with
+  // history.replaceState, which this component can't observe). Challenge pages
+  // (isStatic) come with their name, label, logo and the user's points.
+  const communityId = tourismData?.communityId != null ? String(tourismData.communityId) : null;
+  const isStatic = Boolean(tourismData?.isStatic);
+  const stateName = tourismData?.stateName || '';
+  const kindLabel = tourismData?.kindLabel;
+  const logo = tourismData?.logo || null;
 
   // Color theme for community - using amber/orange theme
   const themeConfig = {
@@ -35,12 +36,21 @@ export default function CommunityTopBar({ selectedDistrict, tourismData }) {
   };
 
   useEffect(() => {
+    // Static tourism / challenge pages are not in the database: nothing to fetch
+    if (isStatic) {
+      setIsLoading(false);
+      return;
+    }
     if (communityId) {
+      setIsLoading(true);
+      setCommunityData(null);
+      setIsOwner(false);
       fetchCommunityData();
       fetchMembersCount();
       fetchUserRoleAndPermissions();
     }
-  }, [communityId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [communityId, isStatic]);
 
   const fetchCommunityData = async () => {
     try {
@@ -97,10 +107,11 @@ export default function CommunityTopBar({ selectedDistrict, tourismData }) {
     // Implement based on your auth system
     // This could be from cookies, localStorage, or auth context
     try {
-      const response = await fetch('/api/auth/me');
+      // /api/user/me returns { user: <decoded token> }
+      const response = await fetch('/api/user/me');
       if (response.ok) {
-        const user = await response.json();
-        return user.id;
+        const data = await response.json();
+        return data.user?.id ?? null;
       }
     } catch (error) {
       console.error('Error fetching current user:', error);
@@ -171,21 +182,27 @@ export default function CommunityTopBar({ selectedDistrict, tourismData }) {
           <div className="flex items-center space-x-3">
             {isStatic ? (
               <>
-                {/* Tourism Logo */}
+                {/* Page logo (falls back to initials) */}
                 <div className="relative flex-shrink-0">
                   <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-inner">
-                    <img 
-                      src="https://www.keralatourism.org/images/logo/logo.png" 
-                      alt="Tourism Logo" 
-                      className="w-full h-full object-contain p-1"
-                    />
+                    {logo ? (
+                      <img
+                        src={logo}
+                        alt={`${stateName} logo`}
+                        className="w-full h-full object-contain p-1"
+                      />
+                    ) : (
+                      <span className={`text-base md:text-xl font-black ${themeConfig.text}`}>
+                        {getInitials(stateName)}
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                {/* State/District Info */}
+                {/* Page / zone info */}
                 <div className="flex flex-col min-w-0">
                    <span className="text-[10px] md:text-xs font-black text-white/90 uppercase tracking-[0.2em] leading-tight">
-                     {stateName} Tourism
+                     {kindLabel || `${stateName} Tourism`}
                    </span>
                    <h1 className="text-lg md:text-2xl font-black text-white truncate leading-tight mt-0.5">
                      {selectedDistrict || stateName}

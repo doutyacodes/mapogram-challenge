@@ -7,7 +7,8 @@ import Client from 'ssh2-sftp-client';
 
 
 // GET handler to fetch news item by ID
-export async function GET(req, { params }) {
+export async function GET(req, props) {
+  const params = await props.params;
   const { id } = params;
   
   // Authenticate user
@@ -53,7 +54,8 @@ export async function GET(req, { params }) {
 }
 
 // PUT handler to update news item
-export async function PUT(req, { params }) {
+export async function PUT(req, props) {
+  const params = await props.params;
   const { id } = params;
   
   // Authenticate user
@@ -226,7 +228,8 @@ function deg2rad(deg) {
 }
 
 // DELETE handler to delete news item
-export async function DELETE(req, { params }) {
+export async function DELETE(req, props) {
+  const params = await props.params;
   const { id } = params;
   
   // Authenticate user

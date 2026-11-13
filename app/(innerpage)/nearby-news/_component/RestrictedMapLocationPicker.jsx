@@ -1,11 +1,21 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { GoogleMap, LoadScriptNext, Marker, Circle, Autocomplete } from '@react-google-maps/api';
-import { MapPin, Search, Crosshair, X, AlertCircle, CheckCircle, Loader } from 'lucide-react';
+"use client";
 
-const RestrictedMapLocationPicker = ({ 
-  latitude, 
-  longitude, 
-  onLocationChange, 
+import React, { useState, useCallback, useEffect } from 'react';
+import { MapPin, AlertCircle, CheckCircle, Loader } from 'lucide-react';
+import { useLeafletMap } from '@/components/map/leaflet/useLeafletMap';
+import { useMapMarker } from '@/components/map/leaflet/useMapMarker';
+import PlaceSearchInput from '@/components/map/leaflet/PlaceSearchInput';
+import MapTypeControls from '@/components/map/controls/MapTypeControls';
+import { createDotIcon, getLeaflet } from '@/utils/map/leaflet';
+import { haversineMeters } from '@/utils/map/geometry';
+
+// Stable icon factory for the "you are here" dot (useMapMarker calls it once)
+const createUserLocationIcon = (L) => createDotIcon(L, { color: '#3B82F6', size: 20 });
+
+const RestrictedMapLocationPicker = ({
+  latitude,
+  longitude,
+  onLocationChange,
   className = "",
   radiusKm = 10, // Default 10km radius
   isReadOnly = false // Add this new prop
@@ -14,302 +24,178 @@ const RestrictedMapLocationPicker = ({
   const [isGettingLocation, setIsGettingLocation] = useState(true);
   const [locationError, setLocationError] = useState(null);
   const [locationPermissionDenied, setLocationPermissionDenied] = useState(false);
-  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false); // Add this state
-  const googleMapsApiKey= process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 
-  const [mapCenter, setMapCenter] = useState(null);
   const [markerPosition, setMarkerPosition] = useState(
-    latitude && longitude 
+    latitude && longitude
       ? { lat: parseFloat(latitude), lng: parseFloat(longitude) }
       : null
   );
 
-  const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [autocomplete, setAutocomplete] = useState(null);
   const [validationError, setValidationError] = useState('');
   const [isWithinRadius, setIsWithinRadius] = useState(true);
-  
-  const mapRef = useRef(null);
+
   const radiusInMeters = radiusKm * 1000;
-  
-  // Libraries needed for Google Maps
-  const libraries = ['places', 'geometry'];
-  
-  // Map configuration
-  const mapContainerStyle = {
-    width: '100%',
-    height: '450px',
-    borderRadius: '8px'
-  };
-  
-  const mapOptions = {
-    disableDefaultUI: isReadOnly,
-    gestureHandling: isReadOnly ? 'none' : 'greedy',
-    clickableIcons: !isReadOnly,
-    zoomControl: true,
-    streetViewControl: false,
-    mapTypeControl: true,
-    fullscreenControl: false,
-    gestureHandling: '',
-    draggableCursor: 'default',
-    draggingCursor: 'default',
-    disableDoubleClickZoom: isReadOnly,
-    restriction: null, // Will be set dynamically
-    styles: [
-      {
-        featureType: 'poi',
-        elementType: 'labels',
-        stylers: [{ visibility: 'on' }]
-      }
-    ]
-  };
-
-  // Circle options for the radius
-  const circleOptions = {
-    strokeColor: '#3B82F6',
-    strokeOpacity: 0.8,
-    strokeWeight: 2,
-    fillColor: '#3B82F6',
-    fillOpacity: 0.15,
-    clickable: false
-  };
-
-  // Calculate distance between two points in meters
-  const calculateDistance = (lat1, lng1, lat2, lng2) => {
-    if (!window.google || !window.google.maps || !window.google.maps.geometry) {
-      // Fallback Haversine formula
-      const R = 6371e3; // Earth's radius in meters
-      const φ1 = lat1 * Math.PI/180;
-      const φ2 = lat2 * Math.PI/180;
-      const Δφ = (lat2-lat1) * Math.PI/180;
-      const Δλ = (lng2-lng1) * Math.PI/180;
-
-      const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-      return R * c;
-    } else {
-      // Use Google Maps geometry library
-      const point1 = new window.google.maps.LatLng(lat1, lng1);
-      const point2 = new window.google.maps.LatLng(lat2, lng2);
-      return window.google.maps.geometry.spherical.computeDistanceBetween(point1, point2);
-    }
-  };
 
   // Validate if position is within radius
-  const validatePosition = (lat, lng) => {
+  const validatePosition = useCallback((lat, lng) => {
     if (!userCurrentLocation) return false;
-    
-    const distance = calculateDistance(
-      userCurrentLocation.lat, 
-      userCurrentLocation.lng, 
-      lat, 
-      lng
-    );
-    
-    return distance <= radiusInMeters;
-  };
-
-  // Get user's current location on component mount
-  useEffect(() => {
-    const getCurrentLocation = () => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const userLocation = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            };
-            
-            setUserCurrentLocation(userLocation);
-            setMapCenter(userLocation);
-            setIsGettingLocation(false);
-            setLocationError(null);
-            
-            // If there's already a marker position, validate it
-            if (markerPosition && userCurrentLocation) {
-              const isValid = validatePosition(markerPosition.lat, markerPosition.lng);
-              setIsWithinRadius(isValid);
-              if (!isValid) {
-                setValidationError(`Selected location is outside the ${radiusKm}km allowed radius`);
-              }
-            }
-          },
-          (error) => {
-            console.error('Error getting location:', error);
-            setIsGettingLocation(false);
-            
-            let errorMessage = 'Unable to get your current location. ';
-            switch(error.code) {
-              case error.PERMISSION_DENIED:
-                errorMessage = 'Location access denied. Please allow location access to use this feature.';
-                setLocationPermissionDenied(true);
-                break;
-              case error.POSITION_UNAVAILABLE:
-                errorMessage = 'Location information is unavailable.';
-                break;
-              case error.TIMEOUT:
-                errorMessage = 'Location request timed out.';
-                break;
-              default:
-                errorMessage = 'An unknown error occurred while getting your location.';
-                break;
-            }
-            setLocationError(errorMessage);
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 15000,
-            maximumAge: 60000
-          }
-        );
-      } else {
-        setIsGettingLocation(false);
-        setLocationError('Geolocation is not supported by this browser.');
-      }
-    };
-
-    getCurrentLocation();
-  }, [markerPosition]);
-
-  // Update map restrictions when user location is available
-  useEffect(() => {
-    if (userCurrentLocation && mapRef.current && mapRef.current.state && mapRef.current.state.map) {
-      const map = mapRef.current.state.map;
-      
-      // Calculate bounds with some padding beyond the radius for better UX
-      const paddingFactor = 1.5; // 50% extra space beyond radius
-      const paddedRadiusInMeters = radiusInMeters * paddingFactor;
-      
-      // Calculate approximate bounds (rough calculation)
-      const latOffset = (paddedRadiusInMeters / 111320); // 1 degree lat ≈ 111.32 km
-      const lngOffset = (paddedRadiusInMeters / (111320 * Math.cos(userCurrentLocation.lat * Math.PI / 180)));
-      
-      const bounds = {
-        north: userCurrentLocation.lat + latOffset,
-        south: userCurrentLocation.lat - latOffset,
-        east: userCurrentLocation.lng + lngOffset,
-        west: userCurrentLocation.lng - lngOffset
-      };
-      
-      // Set map restriction
-      map.setOptions({
-        restriction: {
-          latLngBounds: bounds,
-          strictBounds: false
-        },
-        minZoom: 12, // Prevent too much zoom out
-        maxZoom: 20
-      });
-    }
+    return haversineMeters(userCurrentLocation.lat, userCurrentLocation.lng, lat, lng) <= radiusInMeters;
   }, [userCurrentLocation, radiusInMeters]);
 
-  // Handle map click with validation
-  const handleMapClick = useCallback((event) => {
-    if (!userCurrentLocation) return;
-    
-    const lat = event.latLng.lat();
-    const lng = event.latLng.lng();
-    
-    const isValid = validatePosition(lat, lng);
-    
-    if (isValid) {
-      const newPosition = { lat, lng };
-      setMarkerPosition(newPosition);
-      setValidationError('');
-      setIsWithinRadius(true);
-      onLocationChange(lat.toString(), lng.toString());
-    } else {
-      setValidationError(`Please select a location within ${radiusKm}km of your current position`);
-      setIsWithinRadius(false);
-      
-      // Show temporary error marker
-      setTimeout(() => {
-        setValidationError('');
-      }, 3000);
-    }
-  }, [userCurrentLocation, radiusKm, onLocationChange]);
-
-  // Handle marker drag with validation
-  const handleMarkerDrag = useCallback((event) => {
-    if (!userCurrentLocation) return;
-    
-    const lat = event.latLng.lat();
-    const lng = event.latLng.lng();
-    
-    const isValid = validatePosition(lat, lng);
-    
-    if (isValid) {
-      const newPosition = { lat, lng };
-      setMarkerPosition(newPosition);
-      setValidationError('');
-      setIsWithinRadius(true);
-      onLocationChange(lat.toString(), lng.toString());
-    } else {
-      // Snap back to previous valid position or remove marker
-      setValidationError(`Marker must be within ${radiusKm}km of your current location`);
-      setIsWithinRadius(false);
-      
-      // Reset marker to last valid position or remove it
-      if (isWithinRadius) {
-        // Keep current position
-      } else {
-        setMarkerPosition(null);
-        onLocationChange('', '');
-      }
-      
-      setTimeout(() => {
-        setValidationError('');
-      }, 3000);
-    }
-  }, [userCurrentLocation, radiusKm, onLocationChange, isWithinRadius]);
-
-  // Handle autocomplete load
-  const onAutocompleteLoad = (autocompleteInstance) => {
-    setAutocomplete(autocompleteInstance);
+  const showTemporaryError = (message) => {
+    setValidationError(message);
+    setTimeout(() => setValidationError(''), 3000);
   };
 
-  // Handle place selection from autocomplete
-  const onPlaceChanged = () => {
-    if (autocomplete !== null && userCurrentLocation) {
-      const place = autocomplete.getPlace();
-      
-      if (place.geometry && place.geometry.location) {
-        const lat = place.geometry.location.lat();
-        const lng = place.geometry.location.lng();
-        const isValid = validatePosition(lat, lng);
-        
-        if (isValid) {
-          const newPosition = { lat, lng };
-          setMarkerPosition(newPosition);
-          setMapCenter(newPosition);
-          setValidationError('');
-          setIsWithinRadius(true);
-          onLocationChange(lat.toString(), lng.toString());
-          setSearchQuery(place.formatted_address || place.name || '');
-          
-          if (mapRef.current && mapRef.current.state && mapRef.current.state.map) {
-            const map = mapRef.current.state.map;
-            map.panTo(newPosition);
-            map.setZoom(16);
-          }
-        } else {
-          setValidationError(`Selected location is outside the ${radiusKm}km allowed radius`);
-          setIsWithinRadius(false);
-          setTimeout(() => {
-            setValidationError('');
-          }, 3000);
+  const requestLocation = useCallback((maximumAge) => {
+    if (!navigator.geolocation) {
+      setIsGettingLocation(false);
+      setLocationError('Geolocation is not supported by this browser.');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserCurrentLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
+        setIsGettingLocation(false);
+        setLocationError(null);
+      },
+      (error) => {
+        console.error('Error getting location:', error);
+        setIsGettingLocation(false);
+
+        let errorMessage = 'Unable to get your current location. ';
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Location access denied. Please allow location access to use this feature.';
+            setLocationPermissionDenied(true);
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Location information is unavailable.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'Location request timed out.';
+            break;
+          default:
+            errorMessage = 'An unknown error occurred while getting your location.';
+            break;
         }
+        setLocationError(errorMessage);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge,
       }
+    );
+  }, []);
+
+  // Get user's current location once on mount
+  useEffect(() => {
+    requestLocation(60000);
+  }, [requestLocation]);
+
+  // An existing marker (edit mode) is checked once the user's location is known
+  useEffect(() => {
+    if (!userCurrentLocation || !markerPosition) return;
+    const isValid = validatePosition(markerPosition.lat, markerPosition.lng);
+    setIsWithinRadius(isValid);
+    if (!isValid) setValidationError(`Selected location is outside the ${radiusKm}km allowed radius`);
+    // only when the user's location arrives
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userCurrentLocation]);
+
+  // Handle map click with validation
+  const handleMapClick = (event) => {
+    if (isReadOnly || !userCurrentLocation) return;
+    const { lat, lng } = event.latlng;
+
+    if (validatePosition(lat, lng)) {
+      setMarkerPosition({ lat, lng });
+      setValidationError('');
+      setIsWithinRadius(true);
+      onLocationChange(lat.toString(), lng.toString());
+    } else {
+      setIsWithinRadius(false);
+      showTemporaryError(`Please select a location within ${radiusKm}km of your current position`);
     }
   };
 
-  const clearSearch = () => {
-    setSearchQuery('');
+  const mapReady = !isGettingLocation && !locationError && Boolean(userCurrentLocation);
+  const { containerRef, map } = useLeafletMap({
+    enabled: mapReady, // the map container only renders once the location is known
+    center: userCurrentLocation,
+    zoom: 12,
+    minZoom: 12, // Prevent too much zoom out
+    maxZoom: 20,
+    zoomControl: 'bottomright',
+    restrictToWorld: false,
+    onClick: handleMapClick,
+  });
+
+  // Radius circle + keep the view around it (50% padding beyond the radius)
+  useEffect(() => {
+    const L = getLeaflet();
+    if (!map || !L || !userCurrentLocation) return;
+    const { lat, lng } = userCurrentLocation;
+
+    const circle = L.circle([lat, lng], {
+      radius: radiusInMeters,
+      color: '#3B82F6',
+      opacity: 0.8,
+      weight: 2,
+      fillColor: '#3B82F6',
+      fillOpacity: 0.15,
+      interactive: false,
+    }).addTo(map);
+
+    const paddedRadiusInMeters = radiusInMeters * 1.5;
+    const latOffset = paddedRadiusInMeters / 111320; // 1 degree lat ≈ 111.32 km
+    const lngOffset = paddedRadiusInMeters / (111320 * Math.cos(lat * Math.PI / 180));
+    map.setMaxBounds([[lat - latOffset, lng - lngOffset], [lat + latOffset, lng + lngOffset]]);
+
+    return () => circle.remove();
+  }, [map, userCurrentLocation, radiusInMeters]);
+
+  // User's current location marker
+  useMapMarker(map, userCurrentLocation, {
+    title: 'Your current location',
+    createIcon: createUserLocationIcon,
+  });
+
+  // Selected location marker (draggable unless read-only)
+  const selectedMarkerRef = useMapMarker(map, markerPosition && isWithinRadius ? markerPosition : null, {
+    title: 'Selected location',
+    draggable: !isReadOnly,
+    onDragEnd: (latLng) => {
+      if (!userCurrentLocation) return;
+      const { lat, lng } = latLng;
+      if (validatePosition(lat, lng)) {
+        setMarkerPosition({ lat, lng });
+        setValidationError('');
+        setIsWithinRadius(true);
+        onLocationChange(lat.toString(), lng.toString());
+      } else {
+        // Snap back to the last valid position
+        if (markerPosition) selectedMarkerRef.current?.setLatLng([markerPosition.lat, markerPosition.lng]);
+        showTemporaryError(`Marker must be within ${radiusKm}km of your current location`);
+      }
+    },
+  });
+
+  // Place selected from search suggestions (replaces Places Autocomplete)
+  const handlePlaceSelect = (place) => {
+    if (!userCurrentLocation) return false;
+    if (!validatePosition(place.lat, place.lng)) {
+      setIsWithinRadius(false);
+      showTemporaryError(`Selected location is outside the ${radiusKm}km allowed radius`);
+      return false;
+    }
+    setMarkerPosition({ lat: place.lat, lng: place.lng });
+    setValidationError('');
+    setIsWithinRadius(true);
+    onLocationChange(place.lat.toString(), place.lng.toString());
+    map?.setView([place.lat, place.lng], 16);
+    return true;
   };
 
   // Retry getting location
@@ -317,55 +203,7 @@ const RestrictedMapLocationPicker = ({
     setIsGettingLocation(true);
     setLocationError(null);
     setLocationPermissionDenied(false);
-    
-    // Re-trigger location detection
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const userLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          };
-          
-          setUserCurrentLocation(userLocation);
-          setMapCenter(userLocation);
-          setIsGettingLocation(false);
-        },
-        (error) => {
-          setIsGettingLocation(false);
-          setLocationError('Failed to get location. Please ensure location permissions are enabled.');
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 0 // Force fresh location
-        }
-      );
-    }
-  };
-
-  // Handle Google Maps script load
-  const handleGoogleMapsLoad = () => {
-    setIsGoogleMapsLoaded(true);
-  };
-
-  // Create custom marker icon (safe method)
-  const createMarkerIcon = (color = '#3B82F6', size = 20) => {
-    if (!isGoogleMapsLoaded || !window.google || !window.google.maps) {
-      return undefined; // Return undefined if Google Maps isn't loaded yet
-    }
-
-    const svgIcon = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}">
-        <circle cx="12" cy="12" r="8"/>
-        <circle cx="12" cy="12" r="3" fill="white"/>
-      </svg>
-    `;
-
-    return {
-      url: 'data:image/svg+xml;base64,' + btoa(svgIcon),
-      scaledSize: new window.google.maps.Size(size, size)
-    };
+    requestLocation(0); // Force fresh location
   };
 
   // Show loading state while getting location
@@ -425,7 +263,7 @@ const RestrictedMapLocationPicker = ({
           Within {radiusKm}km radius only
         </span>
       </label>
-      
+
       {/* Validation Status */}
       {markerPosition && (
         <div className={`flex items-center gap-2 p-2 rounded-md ${isWithinRadius ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
@@ -442,7 +280,7 @@ const RestrictedMapLocationPicker = ({
           )}
         </div>
       )}
-      
+
       {/* Error Message */}
       {validationError && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
@@ -452,56 +290,18 @@ const RestrictedMapLocationPicker = ({
           </div>
         </div>
       )}
-      
+
       {/* Search Controls */}
       <div className="flex flex-col sm:flex-row gap-2">
         <div className="flex-1 relative">
-            {isGoogleMapsLoaded ? (
-            <Autocomplete
-                onLoad={onAutocompleteLoad}
-                onPlaceChanged={onPlaceChanged}
-                options={{
-                bounds: userCurrentLocation ? {
-                    north: userCurrentLocation.lat + 0.1,
-                    south: userCurrentLocation.lat - 0.1,
-                    east: userCurrentLocation.lng + 0.1,
-                    west: userCurrentLocation.lng - 0.1
-                } : undefined,
-                strictBounds: false
-                }}
-            >
-                <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={isReadOnly ? "Location editing disabled" : `Search within ${radiusKm}km of your location...`}
-                className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
-                disabled={!isGoogleMapsLoaded || isReadOnly} // Add isReadOnly condition
-                />
-            </Autocomplete>
-            ) : (
-            <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Loading map services..."
-                className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
-                disabled
-            />
-            )}
-            
-            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-            {searchQuery && (
-                <button
-                type="button"
-                onClick={clearSearch}
-                className="text-gray-400 hover:text-gray-600 p-1"
-                title="Clear search"
-                >
-                <X className="h-3 w-3" />
-                </button>
-            )}
-            </div>
+          <PlaceSearchInput
+            onSelect={handlePlaceSelect}
+            near={userCurrentLocation}
+            disabled={isReadOnly}
+            showSearchButton={false}
+            placeholder={isReadOnly ? "Location editing disabled" : `Search within ${radiusKm}km of your location...`}
+            inputClassName="w-full px-4 py-2 pr-12 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
+          />
         </div>
       </div>
 
@@ -511,7 +311,7 @@ const RestrictedMapLocationPicker = ({
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4" />
               <span>
-                Location cannot be changed in edit mode. If you need to change the location, 
+                Location cannot be changed in edit mode. If you need to change the location,
                 please delete this article and create a new one.
               </span>
             </div>
@@ -519,52 +319,9 @@ const RestrictedMapLocationPicker = ({
         )}
 
       {/* Map Container */}
-      <div className="border border-gray-300 rounded-lg overflow-hidden shadow-sm">
-        <LoadScriptNext
-        googleMapsApiKey={googleMapsApiKey} 
-        libraries={libraries}
-        onLoad={() => setIsGoogleMapsLoaded(true)}
-        preventGoogleFontsLoading={true}
-        >
-          <GoogleMap
-            ref={mapRef}
-            mapContainerStyle={mapContainerStyle}
-            center={mapCenter}
-            zoom={11}
-            options={mapOptions}
-            onClick={isReadOnly ? undefined : handleMapClick}
-            onLoad={() => setIsMapLoaded(true)}
-          >
-            {/* User's current location marker */}
-            {userCurrentLocation && isGoogleMapsLoaded && (
-              <Marker
-                position={userCurrentLocation}
-                icon={createMarkerIcon('#3B82F6', 20)}
-                title="Your current location"
-              />
-            )}
-            
-            {/* Radius circle */}
-            {userCurrentLocation && (
-              <Circle
-                center={userCurrentLocation}
-                radius={radiusInMeters}
-                options={circleOptions}
-              />
-            )}
-            
-            {/* Selected location marker */}
-            {markerPosition && isWithinRadius && isGoogleMapsLoaded && (
-              <Marker
-                position={markerPosition}
-                draggable={window.google?.maps?.Animation ? true : false}
-                onDragEnd={handleMarkerDrag}
-                animation={window.google?.maps?.Animation?.DROP}
-                title="Selected location"
-              />
-            )}
-          </GoogleMap>
-        </LoadScriptNext>
+      <div className="relative border border-gray-300 rounded-lg overflow-hidden shadow-sm">
+        <div ref={containerRef} style={{ width: '100%', height: '450px', borderRadius: '8px' }} />
+        <MapTypeControls mapRef={map} />
       </div>
 
       {/* Coordinates Display */}

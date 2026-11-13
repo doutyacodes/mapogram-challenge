@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Users, Image, Type, FileText, Copy, Share2, ExternalLink, Check, MessageCircle, Facebook, Twitter } from 'lucide-react';
+import { X, Users, Image, Type, FileText, Copy, Share2, ExternalLink, Check, MessageCircle } from 'lucide-react';
+// lucide-react 1.x no longer ships brand icons
+import { FaFacebookF as Facebook, FaXTwitter as Twitter } from 'react-icons/fa6';
 
 const CommunitySuccessModal = ({ isOpen, onClose, community, inviteLink }) => {
   const [copied, setCopied] = useState(false);

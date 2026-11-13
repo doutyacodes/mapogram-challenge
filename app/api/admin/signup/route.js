@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { db } from "@/utils";
-import { USER_DETAILS, USER_ROLES, USER_ENTITIES, USER_COMPANIES } from "@/utils/schema/schema";
+import { USER_DETAILS } from "@/utils/schema/schema";
+import { USER_ROLES, USER_ENTITIES, USER_COMPANIES } from "@/utils/schema/community_schema";
 import { eq, or } from "drizzle-orm";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";

@@ -35,7 +35,8 @@ export async function GET(req) {
     if (!token) return NextResponse.json({ message: "Authentication required" }, { status: 401 });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const viewerId = decoded.id;
+    // Guest tokens carry no id; null keeps the raw SQL valid (drizzle drops undefined)
+    const viewerId = decoded.id ?? null;
     const viewerRole = decoded.role;
 
     // Get user's location from query params or user profile

@@ -6,7 +6,8 @@ import { eq, and, desc } from "drizzle-orm";
 import { jwtVerify } from "jose";
 
 // GET - Fetch all messages for a complaint post
-export async function GET(req, { params }) {
+export async function GET(req, props) {
+  const params = await props.params;
   try {
     const { id } = params;
     
@@ -66,7 +67,8 @@ export async function GET(req, { params }) {
 }
 
 // POST - Send a new message
-export async function POST(req, { params }) {
+export async function POST(req, props) {
+  const params = await props.params;
   try {
     const { id } = params;
     

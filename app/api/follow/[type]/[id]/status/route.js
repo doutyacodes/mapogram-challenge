@@ -5,7 +5,8 @@ import { db } from '@/utils';
 import { USER_FOLLOWED_PAGES, USER_FOLLOWED_LAYERS } from '@/utils/schema/schema';
 import { eq, and } from 'drizzle-orm';
 
-export async function GET(req, { params }) {
+export async function GET(req, props) {
+  const params = await props.params;
   try {
     const token = req.cookies.get("user_token")?.value;
     const { type, id } = await params;

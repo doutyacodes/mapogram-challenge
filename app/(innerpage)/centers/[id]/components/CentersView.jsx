@@ -1,22 +1,26 @@
   "use client"
   import React, { useState, useEffect, useCallback, useRef } from "react";
   import { useMediaQuery } from 'react-responsive';
-  import { GoogleMap, InfoWindowF } from "@react-google-maps/api";
-  import { MarkerClusterer } from '@googlemaps/markerclusterer';
   import { Search, UserPlus, Plus, Users, Flag, Layers, Crown, Bell, ChevronDown, Menu, X, Building, AlertTriangle, FileText, Calendar, Loader2, ChevronLeft, ChevronRight, Briefcase } from 'lucide-react';
   import { useSearchParams, useRouter } from 'next/navigation';
-  import { applyGoogleMapsControlStyle } from "@/utils/googleMapsStyles";
   import { useUserRole } from "@/app/hooks/useUserRole";
-  import { createClusterRenderer } from "@/utils/map/createClusterRenderer";
   import CentersMapcard from "@/components/map/InfrastructureMapCard";
-  import { handleClusterClick } from "@/utils/map/handleClusterClick";
   import MapTypeControls from "@/components/map/controls/MapTypeControls";
   import ZoomControls from "@/components/map/controls/ZoomControls";
   import MobileFilterDropdown from "@/components/map/controls/MobileFilterDropdown";
   import PostFilterPanel from "@/components/map/controls/PostFilterPanel";
   import { center, containerStyle, DEFAULT_ZOOM, USER_LOCATION_ZOOM } from "@/lib/map/constants";
-  import { createPostCategoryMarkerIcon, groupPostsByLocation } from '@/utils/map/markerUtils';
+  import { groupPostsByLocation } from '@/utils/map/markerUtils';
   import CreateCenterPostModal from "@/components/Navbar/CreateInfrastructurePostModal";
+  import { useLeafletMap } from "@/components/map/leaflet/useLeafletMap";
+  import { usePostMarkers } from "@/components/map/leaflet/usePostMarkers";
+  import LeafletPopup from "@/components/map/leaflet/LeafletPopup";
+  import { getLeaflet } from "@/utils/map/leaflet";
+  import { geojsonBounds, pointInGeoJSON, toLatLngPolygons, worldMaskRings } from "@/utils/map/geometry";
+
+  const CENTER_MIN_ZOOM = 16.5;
+  const CENTER_MAX_ZOOM = 22;
+  const NO_REGISTRATIONS = {};
 
   // Page Access Overlay Component
   const PageAccessOverlay = ({ pageName, accessStatus, isMobile, onJoinRequest }) => {
@@ -277,7 +281,6 @@
     const [userLocation, setUserLocation] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [mapRef, setMapRef] = useState(null);
     const router = useRouter();
     const searchParams = useSearchParams();
   console.log("grouped posts", groupedPosts)
@@ -312,12 +315,6 @@
 
     // Add refs to store state for mobile restoration
     const userLocationRef = useRef(null);
-    const isInitialLoadRef = useRef(true);
-    const userHasInteractedRef = useRef(false); // Track if user has manually moved the map
-
-    const markersRef = useRef([]);
-    const clusterRef = useRef(null);
-    const existingMarkersRef = useRef(new Map()); // Track markers by location key
     const prevSelectedLocationRef = useRef(null);
 
     const [showRegistrationModal, setShowRegistrationModal] = useState(false);
@@ -342,13 +339,40 @@
 
     const { user, canCreatePost } = useUserRole();
 
+    // Right click inside the geofence opens the create menu
+    const handleMapContextMenu = (e) => {
+      if (!geofenceData) return;
+      const { lat, lng } = e.latlng;
+      if (!pointInGeoJSON(lat, lng, geofenceData)) return;
+      setContextMenu({
+        position: { lat, lng },
+        pixelPosition: { x: e.originalEvent.clientX, y: e.originalEvent.clientY },
+      });
+      setClickedLocation({ lat, lng });
+    };
+
+    // Leaflet map (replaces <GoogleMap>); `mapRef` is the L.Map instance
+    const {
+      containerRef: mapContainerRef,
+      map: mapRef,
+      clusterGroup,
+      userHasInteractedRef, // true once the user has manually moved the map
+    } = useLeafletMap({
+      center,
+      zoom: DEFAULT_ZOOM,
+      maxZoom: CENTER_MAX_ZOOM,
+      zoomSnap: 0.5, // allows the 16.5 building zoom
+      cluster: true,
+      clusterType: "page",
+      // Google MarkerClusterer here used radius 130 and maxZoom 15
+      clusterOptions: { maxClusterRadius: 130, disableClusteringAtZoom: 16 },
+      onClick: () => setContextMenu(null),
+      onContextMenu: handleMapContextMenu,
+    });
+
     const getCategoryByName = (categoryName) => {
       return postCategories.find(cat => cat.name === categoryName) || { name: 'Default', shape: 'pin', icon_name: 'MapPin', color: '#6b7280', class_name: '' };
     };
-
-    // Determine map center and zoom - always use default for full world view
-    const mapCenter = countryCenter;
-    const mapZoom = DEFAULT_ZOOM; // Always use default zoom
 
     const isMobile = useMediaQuery({ maxWidth: 640 });
 
@@ -436,24 +460,10 @@
         setCurrentRole(data.currentRole || '');
         setIsAdmin(data.user?.isAdmin || false);
 
+        // usePostMarkers removes markers that are no longer in groupedPosts
         const grouped = groupPostsByLocation(data.posts || []);
         setGroupedPosts(grouped);
-        
-        // ADD THIS: Clear all existing markers when role changes and no posts found
-        if (data.posts.length === 0) {
-          // Clear all existing markers
-          existingMarkersRef.current.forEach(marker => {
-            marker.setMap(null);
-          });
-          existingMarkersRef.current.clear();
-          
-          // Clear cluster
-          if (clusterRef.current) {
-            clusterRef.current.clearMarkers();
-            clusterRef.current.setMap(null);
-          }
-        }
-        
+
       } catch (err) {
         console.error("Error fetching posts:", err);
         if (!isAutoRefresh) {
@@ -477,41 +487,30 @@
         const data = await response.json();
         
         if (data.geofence && data.geofence.geojson) {
-          setGeofenceData(data.geofence.geojson.geometry);
+          const geometry = data.geofence.geojson.geometry;
+          setGeofenceData(geometry);
 
-        // Calculate bounds from geofence
-          const bounds = new google.maps.LatLngBounds();
-          data.geofence.geojson.geometry.coordinates[0].forEach(coord => {
-            bounds.extend({ lat: coord[1], lng: coord[0] });
-          });
-          
-      // Calculate center of geofence
-        const ne = bounds.getNorthEast();
-        const sw = bounds.getSouthWest();
-        const centerLat = (ne.lat() + sw.lat()) / 2;
-        const centerLng = (ne.lng() + sw.lng()) / 2;
+          // [[south, west], [north, east]] of the geofence
+          const bounds = geojsonBounds(geometry);
+          if (!bounds) return null;
+          const [[south, west], [north, east]] = bounds;
+          const centerLat = (south + north) / 2;
+          const centerLng = (west + east) / 2;
 
-        if (mapRef) {
-          // First set the center
-          mapRef.setCenter({ lat: centerLat, lng: centerLng });
-          
-          // Then set a fixed zoom level (higher number = more zoomed in)
-          mapRef.setZoom(16.5); // Try 15, 16, or 17 for different zoom levels
-          
-          // Set restrictions
-          mapRef.setOptions({
-            restriction: {
-              latLngBounds: bounds, // Use original bounds without padding
-              strictBounds: true,
-            },
-            minZoom: 16.5, // Must match or be less than the setZoom value above
-            maxZoom: 22
-          });
-          
-          // Update state
-          setMinZoomLevel(16.5); // Match the zoom level above
-        }
-          
+          if (mapRef) {
+            // Zoom into the building/campus and keep the view on it
+            mapRef.setMinZoom(CENTER_MIN_ZOOM);
+            mapRef.setMaxZoom(CENTER_MAX_ZOOM);
+            mapRef.setView([centerLat, centerLng], CENTER_MIN_ZOOM);
+
+            // Pad the geofence a little so its edges stay visible while panning
+            const padLat = (north - south) * 0.25;
+            const padLng = (east - west) * 0.25;
+            mapRef.setMaxBounds([[south - padLat, west - padLng], [north + padLat, east + padLng]]);
+
+            setMinZoomLevel(CENTER_MIN_ZOOM);
+          }
+
           return bounds;
         }
       } catch (err) {
@@ -606,98 +605,35 @@
       }
     }, [pageId, mapRef, fetchGeofence, fetchPostsData, checkPageAccess]);
 
+    // Geofence: blue outline + grey overlay outside it.
+    // Zoom/pan limits are enforced by Leaflet's minZoom/maxBounds set in fetchGeofence.
     useEffect(() => {
-      if (!mapRef || !geofenceData) return;
-      
-      // Create the geofence polygon (blue outline) - INSIDE area
-      const geofencePolygon = new google.maps.Polygon({
-        paths: geofenceData.coordinates[0].map(coord => ({
-          lat: coord[1],
-          lng: coord[0]
-        })),
-        strokeColor: '#3B82F6',
-        strokeOpacity: 0.8,
-        strokeWeight: 3,
-        fillColor: 'transparent',
-        fillOpacity: 0,
-        clickable: false,
-        map: mapRef
-      });
-      
-      // Create the world bounds (large rectangle covering the world)
-      const worldBounds = [
-        { lat: 85, lng: -180 },
-        { lat: 85, lng: 180 },
-        { lat: -85, lng: 180 },
-        { lat: -85, lng: -180 }
-      ];
-      
-      // Create the geofence path (this will be the "hole" - must be counter-clockwise for outer ring)
-      const geofencePath = [...geofenceData.coordinates[0].map(coord => ({
-        lat: coord[1],
-        lng: coord[0]
-      }))];
-      
-      // For proper hole rendering, ensure geofence path is in opposite winding order to worldBounds
-      // Since worldBounds is clockwise, geofence path should be counter-clockwise
-      geofencePath.reverse();
-      
-      // Create the inverse polygon (grey overlay outside geofence)
-      const overlayPolygon = new google.maps.Polygon({
-        paths: [worldBounds, geofencePath], // Outer ring (world), inner hole (geofence)
-        strokeColor: 'transparent',
-        strokeOpacity: 0,
-        strokeWeight: 0,
-        fillColor: '#6B7280', // Grey color
-        fillOpacity: 0.4,     // Semi-transparent grey
-        clickable: false,
-        map: mapRef
-      });
-      
-      // Cleanup function
+      const L = getLeaflet();
+      if (!mapRef || !L || !geofenceData) return;
+
+      const outlines = toLatLngPolygons(geofenceData).map((rings) =>
+        L.polygon(rings, {
+          color: '#3B82F6',
+          opacity: 0.8,
+          weight: 3,
+          fill: false,
+          interactive: false,
+        }).addTo(mapRef)
+      );
+
+      // World rectangle with the geofence cut out as a hole
+      const overlay = L.polygon(worldMaskRings(geofenceData), {
+        stroke: false,
+        fillColor: '#6B7280',
+        fillOpacity: 0.4,
+        interactive: false,
+      }).addTo(mapRef);
+
       return () => {
-        geofencePolygon.setMap(null);
-        overlayPolygon.setMap(null);
+        outlines.forEach((polygon) => polygon.remove());
+        overlay.remove();
       };
     }, [mapRef, geofenceData]);
-        
-    useEffect(() => {
-      if (!mapRef || !geofenceData) return;
-      
-      const zoomChangedListener = mapRef.addListener('zoom_changed', () => {
-        const currentZoom = mapRef.getZoom();
-        if (currentZoom < minZoomLevel) {
-          mapRef.setZoom(minZoomLevel);
-        }
-      });
-      
-      // Also prevent dragging outside bounds
-      const dragListener = mapRef.addListener('drag', () => {
-        const currentBounds = mapRef.getBounds();
-        if (!currentBounds) return;
-        
-        // If map is dragged outside restricted area, recenter it
-        const mapCenter = mapRef.getCenter();
-        const restrictedBounds = new google.maps.LatLngBounds(
-          { lat: -85, lng: -180 },
-          { lat: 85, lng: 180 }
-        );
-        
-        if (!restrictedBounds.contains(mapCenter)) {
-          // Recenter to a safe position
-          mapRef.panTo(center);
-        }
-      });
-      
-      return () => {
-        if (zoomChangedListener) {
-          google.maps.event.removeListener(zoomChangedListener);
-        }
-        if (dragListener) {
-          google.maps.event.removeListener(dragListener);
-        }
-      };
-    }, [mapRef, minZoomLevel, geofenceData]);
 
     useEffect(() => {
       const newParams = new URLSearchParams(searchParams);
@@ -742,208 +678,18 @@
             locationPermissionState === 'granted') {
           // Restore user location when page becomes visible again on mobile
           setTimeout(() => {
-            mapRef.panTo(userLocationRef.current);
-            mapRef.setZoom(USER_LOCATION_ZOOM);
+            const { lat, lng } = userLocationRef.current;
+            mapRef.setView([lat, lng], USER_LOCATION_ZOOM);
           }, 100);
         }
       };
 
       document.addEventListener('visibilitychange', handleVisibilityChange);
       return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }, [mapRef, isMobile, locationPermissionState]);
+    }, [mapRef, isMobile, locationPermissionState, userHasInteractedRef]);
 
-    useEffect(() => {
-      const updateMarkersAsync = async () => {
-        if (!mapRef || (Object.keys(groupedPosts).length === 0 && Object.keys(groupedRegistrations).length === 0)) return;
-        
-        // Get current markers map
-        const currentMarkers = existingMarkersRef.current;
-        const newLocationKeys = new Set([...Object.keys(groupedPosts), ...Object.keys(groupedRegistrations)]);
-        const existingLocationKeys = new Set(currentMarkers.keys());
-        
-        // Remove markers that no longer exist
-        for (const locationKey of existingLocationKeys) {
-          if (!newLocationKeys.has(locationKey)) {
-            const marker = currentMarkers.get(locationKey);
-            if (marker) {
-              marker.setMap(null);
-              currentMarkers.delete(locationKey);
-            }
-          }
-        }
-        
-        // Update or create markers
-        const allMarkers = [];
-        const markerPromises = [];
-        
-        // HANDLE POST MARKERS
-        Object.keys(groupedPosts).forEach((locationKey) => {
-          const [lat, lng] = locationKey.split(',').map(parseFloat);
-          const postsAtLocation = groupedPosts[locationKey];
-          const mainPost = postsAtLocation[0];
-          
-          if (mainPost.category && !selectedCategories.includes(mainPost.category)) {
-            // Hide marker if category not selected
-            if (currentMarkers.has(locationKey)) {
-              currentMarkers.get(locationKey).setMap(null);
-            }
-            return;
-          }
-          // Check if this post needs blinking effect
 
-          
-          const allPostRead = areAllPostAtLocationRead(locationKey); // Check if all news are read
-          const markerPromise = (async () => {
-            let marker = currentMarkers.get(locationKey);
-            
-            // Instead of passing category name string, pass the category object
-            const categoryData = postCategories.find(cat => cat.id === mainPost.category_id) || 
-                                { name: 'Default', shape: 'pin', icon_name: 'MapPn', color: '#6b7280' };
 
-            // Check if this post needs blinking effect
-            const needsBlinking = mainPost.issue_details && 
-              mainPost.issue_details.assigned_to_user_id === user?.id &&
-              mainPost.issue_details.status !== 'completed';
-            
-            const markerIcon = createPostCategoryMarkerIcon(
-              categoryData, 
-              postsAtLocation.length, 
-              mainPost, 
-              allPostRead,
-              needsBlinking // Pass the blinking flag
-            );
-            
-            if (marker) {
-              // Update existing marker
-              marker.setMap(mapRef);
-              marker.setIcon(markerIcon);
-              marker.setZIndex(1);
-            } else {
-              // Create new marker
-              marker = new google.maps.Marker({
-                position: { lat, lng },
-                map: mapRef,
-                icon: markerIcon,
-                zIndex: 1,
-              });
-              
-              // Add click listener to new marker
-              marker.addListener('click', () => {
-                handleMarkerClick(locationKey);
-              });
-              
-              currentMarkers.set(locationKey, marker);
-            }
-            
-            return marker;
-          })();
-          
-          markerPromises.push(markerPromise);
-        });
-
-        // Wait for all markers to be created/updated
-        const resolvedMarkers = await Promise.all(markerPromises);
-        allMarkers.push(...resolvedMarkers.filter(marker => marker));
-        
-        // Update cluster with all visible markers
-        if (clusterRef.current) {
-          clusterRef.current.clearMarkers();
-          clusterRef.current.setMap(null);
-        }
-        
-        if (allMarkers.length > 0) {
-          const cluster = new MarkerClusterer({
-            map: mapRef,
-            markers: allMarkers,
-            renderer: createClusterRenderer(mapRef, readPostIds, groupedPosts, { type: "page" }),
-            algorithmOptions: {
-              maxZoom: 15,   // cluster still active up to closer zoom (previously 12)
-              radius: 130,   // wider radius → merges nearby markers faster
-            },
-          });
-    
-          cluster.addListener('click', (event, cluster, map) => {
-            handleClusterClick(event, cluster, map);
-          });
-          
-          clusterRef.current = cluster;
-        }
-        
-        // Update markersRef for compatibility
-        markersRef.current = allMarkers;
-        
-        // Cleanup function
-        return () => {
-          if (clusterRef.current) {
-            clusterRef.current.clearMarkers();
-            clusterRef.current.setMap(null);
-          }
-          // Don't clear existingMarkersRef here - we want to keep markers for reuse
-        };
-      };
-      
-      updateMarkersAsync();
-    }, [mapRef, groupedPosts, selectedCategories, readPostIds]);
-
-    // effect to clear markers when role changes to one with no posts
-    useEffect(() => {
-      if (selectedRole && postsItems.length === 0) {
-        // Clear all markers when switching to a role with no posts
-        existingMarkersRef.current.forEach(marker => {
-          marker.setMap(null);
-        });
-        existingMarkersRef.current.clear();
-        
-        // Clear cluster
-        if (clusterRef.current) {
-          clusterRef.current.clearMarkers();
-          clusterRef.current.setMap(null);
-        }
-      }
-    }, [selectedRole, postsItems.length]);
-
-    // Handle zoom changes to update cluster marker sizes
-    useEffect(() => {
-      if (!mapRef || !clusterRef.current) return;
-      
-      const handleZoomChange = () => {
-        // Small delay to ensure zoom has completed
-        setTimeout(() => {
-          // Get current markers
-          const currentMarkers = markersRef.current;
-          if (currentMarkers.length > 0) {
-            // Clear the existing cluster
-            clusterRef.current.clearMarkers();
-            clusterRef.current.setMap(null);
-            
-            // Create new cluster with updated renderer
-            const newCluster = new MarkerClusterer({
-              map: mapRef,
-              markers: currentMarkers,
-              renderer: createClusterRenderer(mapRef, readPostIds, groupedPosts, { type: "page" }),
-              algorithmOptions: {
-                maxZoom: 15,   // allow clustering a bit deeper zoom
-                radius: 130,   // make clusters merge quicker visually
-              },
-            });
-
-            newCluster.addListener('click', (event, cluster, map) => {
-              handleClusterClick(event, cluster, map);
-            });
-            
-            clusterRef.current = newCluster;
-          }
-        }, 100);
-      };
-      
-      const zoomListener = mapRef.addListener('zoom_changed', handleZoomChange);
-      
-      return () => {
-        if (zoomListener) {
-          google.maps.event.removeListener(zoomListener);
-        }
-      };
-    }, [mapRef]);
 
 
     // Auto-refresh posts data every 30 seconds
@@ -968,16 +714,6 @@
       }
     }, [postCategories]);
 
-    // Cleanup all markers on component unmount
-    useEffect(() => {
-      return () => {
-        // Clean up all markers when component unmounts
-        existingMarkersRef.current.forEach(marker => {
-          marker.setMap(null);
-        });
-        existingMarkersRef.current.clear();
-      };
-    }, []);
 
     useEffect(() => {
       // Mark previous news as read when location changes
@@ -1009,41 +745,6 @@
       setCurrentPostIndex(index);
     }, []);
 
-    // Handle map load
-    const handleMapLoad = (map) => {
-      setMapRef(map);
-
-      // Inject custom style to adjust controls after map is fully loaded
-      applyGoogleMapsControlStyle(); 
-      
-      // Add map interaction listeners to track user interaction
-      const addInteractionListeners = () => {
-        map.addListener('dragstart', () => {
-          userHasInteractedRef.current = true;
-        });
-        
-        map.addListener('zoom_changed', () => {
-          // Only mark as interaction if it's not the initial zoom
-          if (!isInitialLoadRef.current) {
-            userHasInteractedRef.current = true;
-          }
-        });
-
-        // Also track clicks on the map
-        map.addListener('click', () => {
-          userHasInteractedRef.current = true;
-        });
-      };
-
-      // Add listeners immediately but mark initial load as complete after delay
-      addInteractionListeners();
-      setTimeout(() => {
-        isInitialLoadRef.current = false;
-      }, 2000);
-      
-      // Add listeners after a short delay to avoid initial load events
-      setTimeout(addInteractionListeners, 1000);
-    };
 
     // Navigate through possts at the same location
     const handleNextPost = () => {
@@ -1061,23 +762,6 @@
     console.log("Like triggered")
     };
 
-    // Helper function to check if a point is inside a polygon
-    const checkPointInPolygon = (point, polygon) => {
-      const x = point.lat, y = point.lng;
-      let inside = false;
-      
-      for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-        const xi = polygon[i].lat, yi = polygon[i].lng;
-        const xj = polygon[j].lat, yj = polygon[j].lng;
-        
-        const intersect = ((yi > y) !== (yj > y)) &&
-          (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-        
-        if (intersect) inside = !inside;
-      }
-      
-      return inside;
-    };
 
     // Get current post item for the info window
     const getCurrentPostItem = () => {
@@ -1094,6 +778,32 @@
     };
 
     const currentItem = getCurrentPostItem();
+
+    // Clustered post markers (replaces google.maps.Marker + MarkerClusterer).
+    // Issues assigned to the viewer and not yet completed blink.
+    usePostMarkers({
+      map: mapRef,
+      clusterGroup,
+      groupedPosts,
+      groupedRegistrations: NO_REGISTRATIONS, // centers only show posts
+      selectedCategories,
+      readPostIds,
+      postCategories,
+      onPostClick: handleMarkerClick,
+      shouldBlink: (mainPost) =>
+        Boolean(
+          mainPost.issue_details &&
+          mainPost.issue_details.assigned_to_user_id === user?.id &&
+          mainPost.issue_details.status !== 'completed'
+        ),
+    });
+
+    const closePostPopup = () => {
+      setSelectedLocation(null);
+      setShowRegistrationDetails(false);
+      setShowUserProfile(false);
+      setCurrentRegistrationIndex(0);
+    };
 
     return (
       <div className="relative">
@@ -1190,60 +900,10 @@
           </div>
         </div>
       )}
-          <GoogleMap
-            mapContainerStyle={containerStyle}
-            center={mapCenter}
-            zoom={mapZoom}
-            options={{
-              fullscreenControl: false,
-              streetViewControl: false,
-              mapTypeControl: false,
-              zoomControl: false,
-              panControl: false,
-              rotateControl: false,
-              scaleControl: false,
-              gestureHandling: "greedy",
-              clickableIcons: false,
-              minZoom: minZoomLevel, // Use the dynamic minZoomLevel
-              maxZoom: 22,
-              restriction: geofenceData ? {
-                latLngBounds: {
-                  north: 85,
-                  south: -85,
-                  west: -180,
-                  east: 180,
-                },
-                strictBounds: false, // Set to false to allow some movement at edges
-              } : undefined,
-              disableDefaultUI: true,
-            }}
-            onClick={() => {
-              if (contextMenu) {
-                setContextMenu(null);
-              }
-            }}  
-            onLoad={handleMapLoad}
-            onRightClick={(e) => {
-              if (!geofenceData) return;
-              
-              const clickedLat = e.latLng.lat();
-              const clickedLng = e.latLng.lng();
-              
-              // Check if the clicked point is inside the geofence
-              const isInsideGeofence = checkPointInPolygon(
-                { lat: clickedLat, lng: clickedLng },
-                geofenceData.coordinates[0].map(coord => ({ lat: coord[1], lng: coord[0] }))
-              );
-              
-              if (isInsideGeofence) {
-                setContextMenu({
-                  position: { lat: clickedLat, lng: clickedLng },
-                  pixelPosition: { x: e.domEvent.clientX, y: e.domEvent.clientY }
-                });
-                setClickedLocation({ lat: clickedLat, lng: clickedLng });
-              }
-            }}
-          >
+          {/* Map click closes the context menu, right click inside the geofence opens it (see useLeafletMap above) */}
+          <div style={containerStyle} className="relative">
+          <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
+
           {/* Custom Map Type Controls */}
           <MapTypeControls mapRef={mapRef} buttonStyle={buttonStyle}/>
 
@@ -1253,30 +913,19 @@
           {/* Help Button below ZoomControls */}
           {/* <HelpButton isMobile={isMobile} /> */}
 
-          {currentItem && (
-            <InfoWindowF
-              position={{ lat: selectedLocation.lat, lng: selectedLocation.lng }}
-              onCloseClick={() => {
-                setSelectedLocation(null);
-                setShowRegistrationDetails(false);
-                setShowUserProfile(false);
-                setCurrentRegistrationIndex(0);
-              }}
-              options={{
-                pixelOffset: new window.google.maps.Size(0, -5),
-                disableAutoPan: false,
-                maxWidth: window.innerWidth < 640 ? 280 : 320
-              }}
+          {currentItem && selectedLocation && (
+            <LeafletPopup
+              map={mapRef}
+              position={selectedLocation}
+              onClose={closePostPopup}
+              offset={[0, -5]}
+              minWidth={isMobile ? 280 : 320}
+              maxWidth={isMobile ? 280 : 320}
             >
               <CentersMapcard
                 post={currentItem} // ✅ Use the currentItem here
                 user={user}
-                onClose={() => {
-                  setSelectedLocation(null);
-                  setShowRegistrationDetails(false);
-                  setShowUserProfile(false);
-                  setCurrentRegistrationIndex(0);
-                }}
+                onClose={closePostPopup}
                 onPrev={handlePrevPost}
                 onNext={handleNextPost}
                 // readPostIds={readPostIds}
@@ -1294,19 +943,18 @@
                 showUserProfile={showUserProfile}
                 onBackFromProfile={() => setShowUserProfile(false)}
               />
-            </InfoWindowF>
+            </LeafletPopup>
           )}
 
           {/* Context Menu for Right Click */}
           {contextMenu && (
-            <InfoWindowF
+            <LeafletPopup
+              map={mapRef}
               position={contextMenu.position}
-              onCloseClick={() => setContextMenu(null)}
-              options={{
-                disableAutoPan: true,
-                maxWidth: 200,
-                pixelOffset: new window.google.maps.Size(0, -10)
-              }}
+              onClose={() => setContextMenu(null)}
+              offset={[0, -10]}
+              maxWidth={200}
+              autoPan={false}
             >
             <div className="relative bg-white rounded-lg shadow-lg">
               {/* Close Button */}
@@ -1357,10 +1005,10 @@
                 </button>
               </div>
             </div>
-            </InfoWindowF>
+            </LeafletPopup>
           )}
 
-        </GoogleMap>
+        </div>
 
         {/* Create Post Modal */}
         <CreateCenterPostModal

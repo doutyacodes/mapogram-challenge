@@ -4,7 +4,8 @@ import { db } from '@/utils';
 import { USERS, PAGE_MEMBERS, PAGE_ROLES, USER_PROFILES } from '@/utils/schema/schema';
 import { eq } from 'drizzle-orm';
 
-export async function GET(request, { params }) {
+export async function GET(request, props) {
+  const params = await props.params;
   try {
     const { id } = params;
 

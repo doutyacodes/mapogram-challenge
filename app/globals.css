@@ -1,10 +1,11 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* @import must precede all other rules (Turbopack/Lightning CSS drops late imports) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
 @import "leaflet/dist/leaflet.css";
 @import "leaflet.markercluster/dist/MarkerCluster.css";
 @import "leaflet.markercluster/dist/MarkerCluster.Default.css";
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 *{
   padding: 0;
   margin: 0
@@ -12,6 +13,27 @@
 
 body {
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ── Leaflet ─────────────────────────────────────────────────────────────── */
+/* Own stacking context so sibling overlay controls (z-10 etc.) sit above the
+   map panes (Leaflet panes use z-index 200-700). */
+.leaflet-container {
+  z-index: 0;
+}
+
+/* Popups that host React cards (MapCard etc.) rendered through a portal */
+.leaflet-page-popup .leaflet-popup-content-wrapper {
+  padding: 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+.leaflet-page-popup .leaflet-popup-content {
+  margin: 0;
+}
+.leaflet-page-popup .leaflet-popup-close-button {
+  display: none !important;
 }
 .roboto-bold {
   font-family: "Roboto", sans-serif;

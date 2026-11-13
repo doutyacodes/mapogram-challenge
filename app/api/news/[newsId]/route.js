@@ -3,7 +3,8 @@ import { db } from '@/utils';
 import { MAP_NEWS, MAP_NEWS_CATEGORIES, LANGUAGES } from '@/utils/schema/schema';
 import { eq } from 'drizzle-orm';
 
-export async function GET(req, { params }) {
+export async function GET(req, props) {
+  const params = await props.params;
   try {
     const { newsId } = params;
     

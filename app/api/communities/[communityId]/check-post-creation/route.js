@@ -3,7 +3,8 @@ import { db } from '@/utils';
 import { COMMUNITIES, COMMUNITY_TYPES } from '@/utils/schema/community_schema';
 import { eq } from 'drizzle-orm';
 
-export async function GET(request, { params }) {
+export async function GET(request, props) {
+  const params = await props.params;
   try {
     const resolvedParams = await params;
     const { communityId: id } = resolvedParams;

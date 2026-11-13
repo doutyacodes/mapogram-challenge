@@ -61,6 +61,7 @@ import {
   COMMUNITY_ROLES
 } from '@/utils/schema/community_schema';
 import { eq, sql } from 'drizzle-orm';
+import { listChallengePageCommunities } from '@/utils/challengePages';
 
 export async function GET(req) {
   try {
@@ -73,7 +74,8 @@ export async function GET(req) {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.id;
+    // Guest tokens carry no id; null matches no rows instead of breaking the query
+    const userId = decoded.id ?? null;
 
     const { searchParams } = new URL(req.url);
     const type = searchParams.get("type"); // null | followed | member
@@ -148,55 +150,13 @@ export async function GET(req) {
       }
     }
 
-    const staticCommunities = [
-      {
-        id: 999991, // Kerala
-        name: 'Kerala',
-        description: 'State of Kerala',
-        image_url: null,
-        created_at: new Date().toISOString(),
-        invite_code: null,
-        is_open: true,
-        followed_at: new Date().toISOString(),
-        status: 'approved',
-        community_type_name: 'State',
-        role_name: 'Member',
-        source: 'static'
-      },
-      {
-        id: 999992, // Karnataka
-        name: 'Karnataka',
-        description: 'State of Karnataka',
-        image_url: null,
-        created_at: new Date().toISOString(),
-        invite_code: null,
-        is_open: true,
-        followed_at: new Date().toISOString(),
-        status: 'approved',
-        community_type_name: 'State',
-        role_name: 'Member',
-        source: 'static'
-      },
-      {
-        id: 999993, // Tamil Nadu
-        name: 'Tamil Nadu',
-        description: 'State of Tamil Nadu',
-        image_url: null,
-        created_at: new Date().toISOString(),
-        invite_code: null,
-        is_open: true,
-        followed_at: new Date().toISOString(),
-        status: 'approved',
-        community_type_name: 'State',
-        role_name: 'Member',
-        source: 'static'
-      }
-    ];
-
     const sortedUserCommunities = Array.from(map.values())
       .sort((a, b) => new Date(b.followed_at) - new Date(a.followed_at));
 
-    const result = [...staticCommunities, ...sortedUserCommunities];
+    // Challenge pages (pages whose type has category 'challenge_page': state tourism,
+    // tourism, company, brand, celebrity) are listed first for everyone
+    const challengePages = await listChallengePageCommunities();
+    const result = [...challengePages, ...sortedUserCommunities];
 
     return NextResponse.json({ communities: result });
 

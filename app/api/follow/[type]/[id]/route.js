@@ -6,7 +6,8 @@ import { USER_FOLLOWED_PAGES, USER_FOLLOWED_LAYERS, PAGES } from '@/utils/schema
 import { eq, and } from 'drizzle-orm';
 import { USER_NOTIFICATIONS } from '@/utils/schema/friendsLayer_schema';
 
-export async function POST(req, { params }) {
+export async function POST(req, props) {
+  const params = await props.params;
   try {
     const token = req.cookies.get("user_token")?.value;
     if (!token) {
@@ -56,7 +57,8 @@ export async function POST(req, { params }) {
   }
 }
 
-export async function DELETE(req, { params }) {
+export async function DELETE(req, props) {
+  const params = await props.params;
   try {
     const token = req.cookies.get("user_token")?.value;
     if (!token) {

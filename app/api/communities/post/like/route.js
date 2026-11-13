@@ -1,5 +1,6 @@
 import { db } from '@/utils';
-import { MAP_POST_LIKES } from '@/utils/schema/schema';
+// Community post likes live in community_post_likes (MAP_POST_LIKES never existed)
+import { COMMUNITY_POST_LIKES as MAP_POST_LIKES } from '@/utils/schema/community_schema';
 import jwt from 'jsonwebtoken';
 import { eq, and } from 'drizzle-orm';
 import { NextResponse } from 'next/server';

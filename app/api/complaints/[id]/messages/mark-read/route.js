@@ -5,7 +5,8 @@ import { POST_CHAT_MESSAGES, USER_POSTS } from "@/utils/schema/schema";
 import { eq, and } from "drizzle-orm";
 
 // PATCH - Mark messages as read
-export async function PATCH(req, { params }) {
+export async function PATCH(req, props) {
+  const params = await props.params;
   try {
     const { id } = params;
     

@@ -1,10 +1,11 @@
 // app/api/complaints/[id]/confirm/route.js
 import { NextResponse } from 'next/server';
 import { db } from '@/utils';
-import { USER_COMPLAINT_POSTS, USER_POSTS } from '@/utils/schema/complaints_schema';
+import { USER_COMPLAINT_POSTS } from '@/utils/schema/complaints_schema';
 import { eq } from 'drizzle-orm';
 
-export async function PATCH(request, { params }) {
+export async function PATCH(request, props) {
+  const params = await props.params;
   try {
     const { id } = params;
     const { confirmed } = await request.json();

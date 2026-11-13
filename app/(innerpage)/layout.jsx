@@ -6,13 +6,10 @@ import ProtectedRoute from "../_components/ProtectedRoute";
 import Navbar from "../_components/Navbar";
 import LayoutWrapper from "../_components/LayoutWrapper";
 import BottomNavigation from "../_components/BottomNav";
-import { LoadScript } from "@react-google-maps/api";
 
 const ProtectLayout = ({ children }) => {
   const pathname = usePathname();
   const [showBottomNav, setShowBottomNav] = useState(true);
-
-  const libraries = ["places"]; // add more if needed
 
   useEffect(() => {
     // Hide bottom nav for detail pages
@@ -27,8 +24,9 @@ const ProtectLayout = ({ children }) => {
     
   }, [pathname]);
 
+  // Maps are Leaflet now (loaded per map component); no global Google Maps script.
   return (
-    <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY} libraries={libraries}>
+    <>
       {/* <ProtectedRoute allowedRoutes={["/", "/search", "/our-story", "/our-features", "/about-us", "/contact-us", "/landing", "/news-maps", "/nearby-news"]}> */}
         <div className="relative min-h-screen flex bg-white">
             <div className="flex-grow">
@@ -40,7 +38,7 @@ const ProtectLayout = ({ children }) => {
             </div>
         </div>
       {/* </ProtectedRoute> */}
-    </LoadScript>
+    </>
   );
 };
 

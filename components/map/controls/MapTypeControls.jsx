@@ -127,7 +127,8 @@ const MapTypeControls = ({ mapRef, buttonStyle }) => {
     }
 
     const { url, attribution } = TILE_LAYERS[type];
-    const newLayer = L.tileLayer(url, { maxZoom: 19, attribution });
+    // Upscale tiles past zoom 19 on maps that allow deeper zoom (e.g. centers go to 22)
+    const newLayer = L.tileLayer(url, { maxNativeZoom: 19, maxZoom: Math.max(19, mapRef.getMaxZoom()), attribution });
     newLayer.addTo(mapRef);
     tileLayerRef.current = newLayer;
 
